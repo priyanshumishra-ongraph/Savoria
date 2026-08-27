@@ -1,107 +1,110 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 
-export interface IIngredient extends Document {
-    name: string;
-    quantity: string;
+export interface IIngredient {
+  name: string;
+  quantity: string;
 }
 
-export interface IRecipe extends Document { 
-    owner: mongoose.Types.ObjectId;
-    title: string;
-    description: string;
-    ingredients: IIngredient[];
-    instructions: string;
-    steps: string[];
-    category: 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack' | 'Dessert' | 'Beverage';
-    imageUrl?: string;
-    prepTime: number; // in minutes
-    cookTime: number; // in minutes
-    servings: number;
-    tags: string[];
+export interface IRecipe extends Document {
+  owner: mongoose.Types.ObjectId;
+  title: string;
+  description?: string;
+  imageUrl?: string;
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  ingredients: IIngredient[];
+  steps: string[];
+  category: 'Breakfast' | 'Lunch' | 'Dinner' | 'Dessert' | 'Beverage' | 'Snack';
+  tags: string[];
+  prepTimeMinutes?: number;
+  cookTimeMinutes?: number;
+  likes: mongoose.Types.ObjectId[];
+  likesCount: number;
 }
 
-const RecipeSchema: Schema<IRecipe> = new Schema({
+const RecipeSchema: Schema = new Schema(
+  {
     owner: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true,
-        index: true
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+      index: true
     },
     title: {
-        type: String,
-        required: true,
-        trim: true,
-        minlength: 3,
-        maxlength: 100
+      type: String,
+      required: true,
+      trim: true,
+      minlength: 3,
+      maxlength: 100
     },
     description: {
-        type: String,
-        required: true,
-        trim: true,
-        minlength: 10,
-        maxlength: 500
-    },
-    ingredients: [{
-        name: {
-            type: String,
-            required: true,
-        },
-        quantity: {
-            type: String,
-            required: true,
-            trim: true,
-            minlength: 1,
-            maxlength: 100
-        }
-    }],
-    instructions: {
-        type: String,
-        required: true,
-        trim: true,
-        minlength: 10
-    },
-    steps: [{
-        type: String,
-        required: true,
-        trim: true,
-        minlength: 1,
-        maxlength: 200
-    }],
-    category: {
-        type: String,
-        required: true,
-        enum: ['Breakfast', 'Lunch', 'Dinner', 'Snack', 'Dessert', 'Beverage']
+      type: String,
+      maxlength: 300,
+      trim: true
     },
     imageUrl: {
-        type: String,
-        trim: true,
-        match: [/^https?:\/\/.+\.(jpg|jpeg|png|webp|avif|gif|svg)$/, 'Please fill a valid image URL']
+      type: String,
+      default: 'placeholder-recipe.jpg'
     },
-    prepTime: {
-        type: Number,
-        required: true,
-        min: 1
+    difficulty: {
+      type: String,
+      enum: ['Easy', 'Medium', 'Hard'],
+      default: 'Medium'
     },
-    cookTime: {
-        type: Number,
-        required: true,
-        min: 1
+    ingredients: {
+      type: [{
+        name: { type: String, required: true },
+        quantity: { type: String, required: true }
+      }],
+      validate: [
+        (val: any[]) => val.length > 0,
+        'A recipe must have at least one ingredient'
+      ]
     },
-    servings: {
-        type: Number,
-        required: true,
-        min: 1
+    steps: {
+      type: [String],
+      validate: [
+        (val: string[]) => val.length > 0,
+        'A recipe must have at least one step'
+      ]
     },
-    tags: [{
-        type: String,
-        trim: true,
-        minlength: 1,
-        maxlength: 30
-    }]
-}, 
-{
+    category: {
+      type: String,
+      required: true,
+      enum: ['Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Beverage', 'Snack']
+    },
+    tags: {
+      type: [String],
+      index: true
+    },
+    prepTimeMinutes: {
+      type: Number,
+      min: 0
+    },
+    cookTimeMinutes: {
+      type: Number,
+      min: 0
+    },
+    likes: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    likesCount: {
+      type: Number,
+      default: 0
+    }
+  },
+  {
     timestamps: true
-}
+  }
 );
+
+// Compound text index for search functionality (Day 4)
+// Now includes tags and description for a more powerful search engine
+RecipeSchema.index({ 
+  title: 'text', 
+  'ingredients.name': 'text',
+  tags: 'text',
+  description: 'text'
+});
 
 export default mongoose.model<IRecipe>('Recipe', RecipeSchema);
