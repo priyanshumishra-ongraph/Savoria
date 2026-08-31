@@ -98,8 +98,7 @@ const RecipeSchema: Schema = new Schema(
   }
 );
 
-// Compound text index for search functionality (Day 4)
-// Now includes tags and description for a more powerful search engine
+
 RecipeSchema.index({ 
   title: 'text', 
   'ingredients.name': 'text',
