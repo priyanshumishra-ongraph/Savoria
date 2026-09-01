@@ -16,6 +16,24 @@ This project focuses on strict REST API design, robust database schemas, secure 
   - **Recipe Schema**: Includes ownership references, validation rules, descriptions, imagery, difficulty, tags, and a likes system.
   - **Search Optimization**: Implemented compound text indexes on recipe titles, ingredients, descriptions, and tags for powerful search queries.
 
+### ✅ Day 2: Authentication (Completed)
+- **Authentication Endpoints**: Implemented robust `/api/auth/register` and `/api/auth/login` routes.
+- **Security & Hashing**: Verified user credentials securely using `bcrypt` comparison.
+- **JWT Implementation**: 
+  - Signed JSON Web Tokens upon successful login with a 7-day expiry.
+  - Built custom `protect` middleware to intercept requests and verify JWT integrity.
+  - Strictly enforcing `401 Unauthorized` for missing, bad, or expired tokens.
+- **Session Management**: Implemented `GET /api/auth/me` to safely retrieve the current logged-in user profile from the token payload.
+
+### ✅ Day 3: CRUD, Validation & Authorization (Completed)
+- **RESTful Recipe API**: Implemented full CRUD (`GET`, `POST`, `PUT`, `DELETE`) endpoints for recipes.
+- **Strict Input Validation**: Utilized `express-validator` to enforce rules on every input field before processing requests.
+- **Role-Based Authorization**:
+  - Ensured only the original `owner` of a recipe can edit or delete it.
+  - Implemented an `admin` role override for global moderation.
+- **Status Code Discipline**: Explicit separation between `401 Unauthorized` (auth failure) and `403 Forbidden` (permission failure).
+- **Global Error Handling**: Centralized error middleware to catch and format API errors and `404 Not Found` routes consistently.
+
 ---
 
 ## 🚀 Getting Started
