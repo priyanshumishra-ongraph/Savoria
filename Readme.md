@@ -34,6 +34,15 @@ This project focuses on strict REST API design, robust database schemas, secure 
 - **Status Code Discipline**: Explicit separation between `401 Unauthorized` (auth failure) and `403 Forbidden` (permission failure).
 - **Global Error Handling**: Centralized error middleware to catch and format API errors and `404 Not Found` routes consistently.
 
+### ✅ Day 4: API Hardening & Tests (Completed)
+- **Advanced Querying**: Implemented pagination, category filtering, and full-text search directly via API query parameters.
+- **API Hardening**: 
+  - Secured HTTP headers using `helmet`.
+  - Configured strict environment-based `CORS` origins.
+  - Implemented global endpoint rate-limiting using `express-rate-limit` to prevent abuse.
+- **Automated Testing**: Built an integration test suite using `Jest` and `Supertest` covering request validation, authentication tokens, and deep RBAC permission checks.
+- **Data Seeding**: Created an automated database seed script for generating test users, admins, and sample recipes.
+
 ---
 
 ## 🚀 Getting Started

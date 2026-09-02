@@ -4,8 +4,30 @@ import { AuthRequest } from '../middleware/auth.middleware';
 
 export const getRecipes = async (req: Request, res: Response): Promise<void> => {
   try {
-    const recipes = await Recipe.find().populate('owner', 'name email avatarUrl');
-    res.json(recipes);
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+    const query: any = {};
+    if (req.query.category) {
+      query.category = req.query.category;
+    }
+    if (req.query.search) {
+      query.$text = { $search: req.query.search as string };
+    }
+    const recipes = await Recipe.find(query)
+      .populate('owner', 'name email avatarUrl')
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+    
+    const total = await Recipe.countDocuments(query);
+    res.json({
+      recipes,
+      page,
+      pages: Math.ceil(total / limit),
+      total
+    });
+
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: (error as Error).message });
   }
