@@ -46,6 +46,33 @@ export const getRecipeById = async (req: Request, res: Response): Promise<void> 
   }
 };
 
+export const getMyRecipes = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+    
+    // Filter strictly by the logged-in user's ID
+    const query = { owner: req.user?.id };
+    
+    const recipes = await Recipe.find(query)
+      .populate('owner', 'name email avatarUrl')
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+    
+    const total = await Recipe.countDocuments(query);
+    res.json({
+      recipes,
+      page,
+      pages: Math.ceil(total / limit),
+      total
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: (error as Error).message });
+  }
+};
+
 export const createRecipe = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const newRecipe = new Recipe({

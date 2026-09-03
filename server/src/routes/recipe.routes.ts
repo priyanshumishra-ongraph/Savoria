@@ -4,7 +4,8 @@ import {
   getRecipeById, 
   createRecipe, 
   updateRecipe, 
-  deleteRecipe 
+  deleteRecipe,
+  getMyRecipes
 } from '../controllers/recipe.controller';
 import { protect } from '../middleware/auth.middleware';
 import { recipeRules, recipeIdRule, validate } from '../validators/recipe.validator';
@@ -12,6 +13,7 @@ import { recipeRules, recipeIdRule, validate } from '../validators/recipe.valida
 const router = express.Router();
 
 router.get('/', getRecipes);
+router.get('/my', protect, getMyRecipes);
 router.get('/:id', recipeIdRule, validate, getRecipeById);
 
 router.post('/', protect, recipeRules, validate, createRecipe);

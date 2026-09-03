@@ -4,6 +4,7 @@ import cors from 'cors';
 import { connectDB } from './config/db';
 import authRoutes from './routes/auth.routes';
 import recipeRoutes from './routes/recipe.routes';
+import dashboardRoutes from './routes/dashboard.routes';
 import { errorHandler, notFound } from './middleware/error.middleware';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
@@ -30,6 +31,7 @@ app.use(helmet());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/recipes', recipeRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 app.use('/api', apiLimiter);
 
 app.use(notFound);

@@ -1,12 +1,19 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterOutlet, Router } from '@angular/router';
+import { NavbarComponent } from './features/navbar.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
-  templateUrl: './app.html',
-  styleUrl: './app.scss'
+  standalone: true,
+  imports: [CommonModule, RouterOutlet, NavbarComponent],
+  template: `
+    <app-navbar *ngIf="router.url !== '/login'" style="position: relative; z-index: 9999; display: block;"></app-navbar>
+    <main>
+      <router-outlet></router-outlet>
+    </main>
+  `
 })
-export class App {
-  protected readonly title = signal('client');
+export class AppComponent {
+  router = inject(Router);
 }

@@ -29,3 +29,11 @@ export const protect = (req: AuthRequest, res: Response, next: NextFunction): vo
         res.status(401).json({ message: 'Not authorized, token failed' });
     }
 }
+
+export const admin = (req: AuthRequest, res: Response, next: NextFunction): void => {
+    if (req.user && req.user.role === 'admin') {
+        next();
+    } else {
+        res.status(403).json({ message: 'Not authorized as an admin' });
+    }
+}
