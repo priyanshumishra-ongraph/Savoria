@@ -1,307 +1,212 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RecipeService } from '../core/services/recipe.service';
-import { LoadingSpinnerComponent } from '../shared/components/loading-spinner.component';
 
 @Component({
   selector: 'app-recipe-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, LoadingSpinnerComponent],
+  imports: [
+    CommonModule, ReactiveFormsModule, RouterModule,
+    MatInputModule, MatSelectModule, MatButtonModule, MatCardModule, MatProgressSpinnerModule
+  ],
   template: `
     <div class="form-container">
-      <div class="form-card">
-        <div class="form-header">
-          <h2>Create New Recipe</h2>
-          <p>Share your culinary masterpiece with the Savoria community.</p>
-        </div>
+      <mat-card class="form-card">
+        <mat-card-header>
+          <mat-card-title>{{ isEditMode ? 'Edit Recipe' : 'Share a New Recipe' }}</mat-card-title>
+          <mat-card-subtitle>{{ isEditMode ? 'Update your masterpiece' : 'Inspire others with your culinary creation!' }}</mat-card-subtitle>
+        </mat-card-header>
 
-        <form (ngSubmit)="onSubmit()" #recipeForm="ngForm" class="recipe-form">
-          <div class="input-group full-width">
-            <label for="title">Recipe Title</label>
-            <input type="text" id="title" [(ngModel)]="recipe.title" name="title" placeholder="e.g. Spicy Garlic Pasta" required>
-          </div>
+        <mat-card-content>
+          <form [formGroup]="recipeForm" (ngSubmit)="onSubmit()" class="recipe-form">
+            
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Recipe Title</mat-label>
+              <input matInput formControlName="title" placeholder="E.g., Creamy Garlic Pasta">
+              <mat-error *ngIf="recipeForm.get('title')?.hasError('required')">Title is required</mat-error>
+              <mat-error *ngIf="recipeForm.get('title')?.hasError('minlength')">Title must be at least 3 characters</mat-error>
+            </mat-form-field>
 
-          <div class="input-group">
-            <label for="category">Category</label>
-            <select id="category" [(ngModel)]="recipe.category" name="category" required>
-              <option value="Breakfast">Breakfast</option>
-              <option value="Lunch">Lunch</option>
-              <option value="Dinner">Dinner</option>
-              <option value="Dessert">Dessert</option>
-              <option value="Beverage">Beverage</option>
-              <option value="Snack">Snack</option>
-            </select>
-          </div>
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Category</mat-label>
+              <mat-select formControlName="category">
+                <mat-option value="Breakfast">Breakfast</mat-option>
+                <mat-option value="Lunch">Lunch</mat-option>
+                <mat-option value="Dinner">Dinner</mat-option>
+                <mat-option value="Dessert">Dessert</mat-option>
+                <mat-option value="Beverage">Beverage</mat-option>
+                <mat-option value="Snack">Snack</mat-option>
+              </mat-select>
+            </mat-form-field>
 
-          <div class="input-group">
-            <label for="difficulty">Difficulty</label>
-            <select id="difficulty" [(ngModel)]="recipe.difficulty" name="difficulty" required>
-              <option value="Easy">Easy</option>
-              <option value="Medium">Medium</option>
-              <option value="Hard">Hard</option>
-            </select>
-          </div>
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Difficulty</mat-label>
+              <mat-select formControlName="difficulty">
+                <mat-option value="Easy">Easy</mat-option>
+                <mat-option value="Medium">Medium</mat-option>
+                <mat-option value="Hard">Hard</mat-option>
+              </mat-select>
+            </mat-form-field>
 
-          <div class="input-group">
-            <label for="prepTime">Prep Time (mins)</label>
-            <input type="number" id="prepTime" [(ngModel)]="recipe.prepTimeMinutes" name="prepTimeMinutes" placeholder="15" min="0">
-          </div>
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Prep Time (minutes)</mat-label>
+              <input matInput type="number" formControlName="prepTimeMinutes" min="0">
+            </mat-form-field>
 
-          <div class="input-group">
-            <label for="cookTime">Cook Time (mins)</label>
-            <input type="number" id="cookTime" [(ngModel)]="recipe.cookTimeMinutes" name="cookTimeMinutes" placeholder="30" min="0">
-          </div>
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Cook Time (minutes)</mat-label>
+              <input matInput type="number" formControlName="cookTimeMinutes" min="0">
+            </mat-form-field>
 
-          <div class="input-group full-width">
-            <label for="imageUrl">Image URL (Optional)</label>
-            <input type="url" id="imageUrl" [(ngModel)]="recipe.imageUrl" name="imageUrl" placeholder="https://example.com/image.jpg">
-          </div>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Image URL (Optional)</mat-label>
+              <input matInput formControlName="imageUrl" placeholder="https://...">
+            </mat-form-field>
 
-          <div class="input-group full-width">
-            <label for="description">Description</label>
-            <textarea id="description" [(ngModel)]="recipe.description" name="description" rows="3" placeholder="A brief description of this dish..." required></textarea>
-          </div>
-          
-          <div class="input-group">
-            <label for="ingredients">Ingredients (Comma separated)</label>
-            <textarea id="ingredients" [(ngModel)]="ingredientsText" name="ingredients" rows="4" placeholder="2 cups flour, 1 tsp salt, 3 eggs..." required></textarea>
-          </div>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Description</mat-label>
+              <textarea matInput formControlName="description" rows="2" placeholder="A brief description..."></textarea>
+              <mat-hint align="end">{{recipeForm.get('description')?.value?.length || 0}}/300</mat-hint>
+              <mat-error *ngIf="recipeForm.get('description')?.hasError('maxlength')">Max 300 characters</mat-error>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Ingredients (Comma separated)</mat-label>
+              <textarea matInput formControlName="ingredientsText" rows="3" placeholder="2 cups flour, 1 tsp salt..."></textarea>
+              <mat-error *ngIf="recipeForm.get('ingredientsText')?.hasError('required')">At least one ingredient is required</mat-error>
+            </mat-form-field>
 
-          <div class="input-group">
-            <label for="steps">Instructions (New line for each step)</label>
-            <textarea id="steps" [(ngModel)]="stepsText" name="steps" rows="4" placeholder="1. Preheat oven...&#10;2. Mix ingredients..." required></textarea>
-          </div>
-          
-          <div class="input-group full-width">
-            <label for="tags">Tags (Comma separated)</label>
-            <input type="text" id="tags" [(ngModel)]="tagsText" name="tags" placeholder="vegan, healthy, quick">
-          </div>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Instructions (New line for each step)</mat-label>
+              <textarea matInput formControlName="stepsText" rows="4" placeholder="1. Preheat oven..."></textarea>
+              <mat-error *ngIf="recipeForm.get('stepsText')?.hasError('required')">At least one step is required</mat-error>
+            </mat-form-field>
 
-          <div class="actions full-width">
-            <a routerLink="/recipes" class="cancel-btn">Cancel</a>
-            <button type="submit" class="submit-btn" [disabled]="!recipeForm.form.valid || isSubmitting">
-              <span *ngIf="!isSubmitting">Publish Recipe</span>
-              <app-loading-spinner *ngIf="isSubmitting"></app-loading-spinner>
-            </button>
-          </div>
-        </form>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Tags (Comma separated)</mat-label>
+              <input matInput formControlName="tagsText" placeholder="vegan, healthy, quick">
+            </mat-form-field>
 
-        <div *ngIf="error" class="error-banner">
-          <span>{{ error }}</span>
-        </div>
-      </div>
+          </form>
+
+          <div *ngIf="error" class="error-banner">{{ error }}</div>
+        </mat-card-content>
+
+        <mat-card-actions class="actions">
+          <button mat-button routerLink="/dashboard">Cancel</button>
+          <button mat-flat-button color="accent" [disabled]="recipeForm.invalid || isSubmitting" (click)="onSubmit()">
+            <mat-spinner *ngIf="isSubmitting" diameter="20" class="btn-spinner"></mat-spinner>
+            <span *ngIf="!isSubmitting">{{ isEditMode ? 'Save Changes' : 'Publish Recipe' }}</span>
+          </button>
+        </mat-card-actions>
+      </mat-card>
     </div>
   `,
   styles: [`
-    .form-container {
-      background-color: #f8f9fa;
-      min-height: calc(100vh - 70px);
-      font-family: 'Inter', 'Segoe UI', sans-serif;
-      padding: 40px 0;
-    }
-    
-    .form-card {
-      background: #ffffff;
-      padding: 50px 60px;
-      border-radius: 24px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.03);
-      border: 1px solid #edf2f7;
-      width: 100%;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
+    .form-container { background-color: #faf5eb; min-height: calc(100vh - 70px); padding: 40px 20px; display: flex; justify-content: center; }
+    .form-card { width: 100%; max-width: 900px; padding: 20px; border-radius: 16px; }
+    mat-card-title { font-size: 28px; font-weight: 800; color: #3C2218; margin-bottom: 8px; }
+    .recipe-form { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 24px; }
+    .full-width { width: 100%; }
+    .half-width { width: calc(50% - 8px); }
+    .actions { display: flex; justify-content: flex-end; padding: 16px; gap: 12px; }
+    .actions button { border-radius: 8px !important; }
+    .btn-spinner { margin-right: 8px; display: inline-block; }
+    .error-banner { background: #fee2e2; color: #dc2626; padding: 12px; border-radius: 8px; margin-top: 16px; }
 
-    .form-header {
-      text-align: left;
-      margin-bottom: 40px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid #edf2f7;
-    }
-
-    .form-header h2 {
-      margin: 0;
-      color: #1a202c;
-      font-size: 32px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-    }
-
-    .form-header p {
-      color: #718096;
-      margin-top: 8px;
-      font-size: 16px;
-    }
-
-    .recipe-form {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 30px;
-    }
-
-    .full-width {
-      grid-column: 1 / -1;
-    }
-
-    .input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .input-group label {
-      font-size: 14px;
-      font-weight: 600;
-      color: #34495e;
-    }
-
-    .input-group input, .input-group select, .input-group textarea {
-      padding: 12px 16px;
-      border: 1px solid #dfe6e9;
-      border-radius: 8px;
-      font-size: 15px;
-      font-family: inherit;
-      transition: all 0.3s ease;
-      outline: none;
-    }
-
-    .input-group input:focus, .input-group select:focus, .input-group textarea:focus {
-      border-color: #e67e22;
-      box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
-    }
-
-    .actions {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      gap: 15px;
-      margin-top: 20px;
-    }
-
-    .cancel-btn {
-      color: #7f8c8d;
-      text-decoration: none;
-      font-weight: 600;
-    }
-
-    .cancel-btn:hover {
-      color: #34495e;
-    }
-
-    .submit-btn {
-      background-color: #e67e22;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-
-    .submit-btn:hover:not([disabled]) {
-      background-color: #d35400;
-    }
-
-    .submit-btn[disabled] {
-      background-color: #bdc3c7;
-      cursor: not-allowed;
-    }
-
-    .error-banner {
-      margin-top: 25px;
-      padding: 12px 15px;
-      background-color: #fdeaea;
-      color: #c0392b;
-      border-left: 4px solid #e74c3c;
-      border-radius: 4px;
-    }
-
-    @media (max-width: 992px) {
-      .form-container {
-        padding: 20px 10px;
-      }
-      .form-card {
-        padding: 30px 20px;
-      }
-      .recipe-form {
-        grid-template-columns: 1fr;
-      }
+    @media (max-width: 768px) {
+      .half-width { width: 100%; }
     }
   `]
 })
-export class RecipeFormComponent {
-  recipe = {
-    title: '',
-    category: 'Dinner',
-    difficulty: 'Medium',
-    description: '',
-    imageUrl: '',
-    prepTimeMinutes: null,
-    cookTimeMinutes: null
-  };
-  
-  ingredientsText = '';
-  stepsText = '';
-  tagsText = '';
-  
-  error = '';
-  isSubmitting = false;
-
+export class RecipeFormComponent implements OnInit {
+  private fb = inject(FormBuilder);
   private recipeService = inject(RecipeService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
+
+  recipeForm!: FormGroup;
+  isSubmitting = false;
+  error = '';
+  isEditMode = false;
+  recipeId: string | null = null;
+
+  ngOnInit() {
+    this.recipeId = this.route.snapshot.paramMap.get('id');
+    this.isEditMode = !!this.recipeId;
+
+    // Mirrors Mongoose Validation Constraints
+    this.recipeForm = this.fb.group({
+      title: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
+      category: ['Dinner', Validators.required],
+      difficulty: ['Medium', Validators.required],
+      description: ['', Validators.maxLength(300)],
+      imageUrl: [''],
+      prepTimeMinutes: [null],
+      cookTimeMinutes: [null],
+      ingredientsText: ['', Validators.required],
+      stepsText: ['', Validators.required],
+      tagsText: ['']
+    });
+
+    if (this.isEditMode) {
+      this.loadRecipeData();
+    }
+  }
+
+  loadRecipeData() {
+    this.recipeService.getRecipeById(this.recipeId!).subscribe(recipe => {
+      this.recipeForm.patchValue({
+        ...recipe,
+        ingredientsText: recipe.ingredients.map((i: any) => `${i.quantity} ${i.name}`).join(', '),
+        stepsText: recipe.steps.join('\n'),
+        tagsText: recipe.tags ? recipe.tags.join(', ') : ''
+      });
+    });
+  }
 
   onSubmit() {
+    if (this.recipeForm.invalid) return;
+
     this.isSubmitting = true;
     this.error = '';
 
-    // Transform textareas into arrays that match the backend Mongoose schema
-    const ingredientsArray = this.ingredientsText
-      .split(',')
-      .map(i => i.trim())
-      .filter(i => i)
-      .map(item => {
-        // Simple heuristic: if the first word is a number (e.g. "2 cups flour"), use first two words as quantity?
-        // Let's just take the first word as quantity if there are multiple words, else default to '1'.
-        const parts = item.split(' ');
-        if (parts.length > 1 && /^\d/.test(parts[0])) {
-           // if it starts with a number, maybe grab first word or first two words (like "1/2 cup")
-           let qty = parts.shift() || '1';
-           if (parts.length > 0 && ['cup', 'cups', 'tbsp', 'tsp', 'oz', 'g', 'kg', 'lb', 'lbs', 'ml', 'l', 'slice', 'slices'].includes(parts[0].toLowerCase())) {
-             qty += ' ' + parts.shift();
-           }
-           return { name: parts.join(' '), quantity: qty };
-        }
-        return { name: item, quantity: '1' };
-      });
-
-    const stepsArray = this.stepsText
-      .split('\n')
-      .map(s => s.trim())
-      .filter(s => s);
-      
-    const tagsArray = this.tagsText
-      .split(',')
-      .map(t => t.trim())
-      .filter(t => t);
+    const formVal = this.recipeForm.value;
+    
+    // Parse Text into backend Arrays
+    const ingredientsArray = formVal.ingredientsText.split(',').map((i: string) => i.trim()).filter((i: string) => i).map((item: string) => {
+      const parts = item.split(' ');
+      return /^\d/.test(parts[0]) 
+        ? { quantity: parts.shift(), name: parts.join(' ') } 
+        : { quantity: '1', name: item };
+    });
 
     const payload = {
-      ...this.recipe,
+      ...formVal,
       ingredients: ingredientsArray,
-      steps: stepsArray,
-      tags: tagsArray
+      steps: formVal.stepsText.split('\n').map((s: string) => s.trim()).filter((s: string) => s),
+      tags: formVal.tagsText.split(',').map((t: string) => t.trim()).filter((t: string) => t)
     };
 
-    this.recipeService.createRecipe(payload).subscribe({
-      next: () => {
+    const request$ = this.isEditMode 
+      ? this.recipeService.updateRecipe(this.recipeId!, payload)
+      : this.recipeService.createRecipe(payload);
+
+    request$.subscribe({
+      next: (savedRecipe: any) => {
         this.isSubmitting = false;
-        this.router.navigate(['/recipes']);
+        this.router.navigate(['/recipes', savedRecipe._id || this.recipeId]);
       },
       error: (err) => {
         this.isSubmitting = false;
-        this.error = err.error?.message || 'Failed to create recipe. Make sure all fields are valid.';
+        this.error = err.error?.message || 'Failed to save recipe.';
       }
     });
   }

@@ -88,7 +88,7 @@ import { RecipeCardComponent } from '../shared/components/recipe-card.component'
       margin: 0;
       font-size: 28px;
       font-weight: 800;
-      color: #1a202c;
+      color: #3C2218;
       letter-spacing: -0.5px;
     }
 
@@ -136,13 +136,13 @@ import { RecipeCardComponent } from '../shared/components/recipe-card.component'
 
     .empty-icon {
       font-size: 64px;
-      margin-bottom: 20px;
+      margin-bottom: 40px;
     }
 
     .empty-state h3 {
       margin: 0 0 10px;
       font-size: 24px;
-      color: #2d3748;
+      color: #3C2218;
     }
 
     .empty-state p {

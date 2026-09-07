@@ -36,4 +36,6 @@ export interface Recipe {
 export interface RecipeResponse{
     recipes: Recipe[];
     total: number;
+    page?: number;
+    pages?: number;
 }

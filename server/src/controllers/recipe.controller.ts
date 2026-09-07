@@ -46,6 +46,27 @@ export const getRecipeById = async (req: Request, res: Response): Promise<void> 
   }
 };
 
+export const getRecipeBySlug = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { category, titleSlug } = req.params;
+    const categoryRegex = new RegExp(`^${category}$`, 'i');
+    
+    const recipes = await Recipe.find({ category: categoryRegex }).populate('owner', 'name email avatarUrl');
+    const recipe = recipes.find(r => {
+      const slug = r.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+      return slug === titleSlug;
+    });
+
+    if (!recipe) {
+      res.status(404).json({ message: 'Recipe not found' });
+      return;
+    }
+    res.json(recipe);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: (error as Error).message });
+  }
+};
+
 export const getMyRecipes = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const page = parseInt(req.query.page as string) || 1;

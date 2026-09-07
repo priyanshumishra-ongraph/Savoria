@@ -2,15 +2,22 @@ import { Request, Response } from 'express';
 import Recipe from '../models/Recipe';
 import { AuthRequest } from '../middleware/auth.middleware';
 
+import mongoose from 'mongoose';
+
 export const getDashboardStats = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    
+    const todayObjectId = new mongoose.Types.ObjectId(Math.floor(today.getTime() / 1000).toString(16) + '0000000000000000');
 
     const categoriesPipeline = [
       {
         $match: {
-          createdAt: { $gte: today }
+          $or: [
+            { createdAt: { $gte: today } },
+            { _id: { $gte: todayObjectId } }
+          ]
         }
       },
       {
@@ -33,9 +40,12 @@ export const getDashboardStats = async (req: AuthRequest, res: Response): Promis
       .sort({ createdAt: -1 })
       .populate('owner', 'name email avatarUrl');
 
+    const totalRecipes = await Recipe.countDocuments();
+
     res.json({
       todayByCategory: categoryStats,
-      latestRecipe
+      latestRecipe,
+      totalRecipes
     });
 
   } catch (error) {

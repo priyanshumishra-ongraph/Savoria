@@ -8,6 +8,7 @@ import { UsersComponent } from './features/users.component';
 import { DashboardComponent } from './features/dashboard.component';
 import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
+import { RecipeDetailComponent } from './features/recipe-detail.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -16,6 +17,8 @@ export const routes: Routes = [
   { path: 'recipes/my', component: MyRecipesComponent, canActivate: [authGuard] },
   { path: 'recipes/category/:name', component: CategoryRecipesComponent, canActivate: [authGuard] },
   { path: 'recipes/new', component: RecipeFormComponent, canActivate: [authGuard] },
+  { path: 'recipes/edit/:id', component: RecipeFormComponent, canActivate: [authGuard] },
+  { path: 'recipes/:category/:titleSlug', component: RecipeDetailComponent, canActivate: [authGuard] },
   { path: 'admin/users', component: UsersComponent, canActivate: [authGuard, adminGuard] },
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   { path: '**', component: LoginComponent } 

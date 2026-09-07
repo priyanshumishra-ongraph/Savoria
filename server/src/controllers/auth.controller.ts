@@ -12,7 +12,7 @@ const generateToken = (id: string, role: string) => {
 
 export const registerUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, avatarUrl, role } = req.body;
 
     const userExists = await User.findOne({ email });
     if (userExists) {
@@ -20,7 +20,11 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    const user = await User.create({ name, email, password });
+    const userData: any = { name, email, password };
+    if (avatarUrl) userData.avatarUrl = avatarUrl;
+    if (role) userData.role = role.toLowerCase();
+
+    const user = await User.create(userData);
 
     if (user) {
       res.status(201).json({

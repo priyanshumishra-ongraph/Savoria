@@ -43,6 +43,18 @@ This project focuses on strict REST API design, robust database schemas, secure 
 - **Automated Testing**: Built an integration test suite using `Jest` and `Supertest` covering request validation, authentication tokens, and deep RBAC permission checks.
 - **Data Seeding**: Created an automated database seed script for generating test users, admins, and sample recipes.
 
+### ✅ Day 5: Frontend Dashboard & Data Integration (Completed)
+- **Standalone Architecture**: Configured Angular routing and feature modules using modern standalone components.
+- **Dashboard UI**: Designed the main dashboard layout, featuring dynamic "Fresh Out The Oven" and "Browse by Category" sections.
+- **Data Binding**: Integrated backend API endpoints to fetch and display live recipe statistics, categories, and author details.
+- **Data Mapping Fixes**: Resolved schema mapping issues between the backend and frontend to accurately calculate and display total cooking/prep times and handle default image fallbacks.
+
+### ✅ Day 6: Responsive Design & Admin Features (Completed)
+- **Responsive Navigation**: Implemented a mobile-friendly navbar with a fully functional hamburger menu and tablet-optimized avatars.
+- **Admin Users Page**: Revamped the "Registered Users" admin interface to handle varied screen sizes, utilizing horizontally scrollable tables on tablets and stacked headers on mobile.
+- **Mobile Grid Layouts**: Refined the "Explore Recipes" page to automatically switch to a sleek single-column grid on small screens, optimizing filter spacing and removing unnecessary padding.
+- **UI Standardization**: Adjusted core UI elements like form buttons, border radii, and primary orange gradient actions (`#f97316`) for a highly polished and consistent user experience across devices.
+
 ---
 
 ## 🚀 Getting Started

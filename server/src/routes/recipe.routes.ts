@@ -2,6 +2,7 @@ import express from 'express';
 import { 
   getRecipes, 
   getRecipeById, 
+  getRecipeBySlug,
   createRecipe, 
   updateRecipe, 
   deleteRecipe,
@@ -14,6 +15,7 @@ const router = express.Router();
 
 router.get('/', getRecipes);
 router.get('/my', protect, getMyRecipes);
+router.get('/by-slug/:category/:titleSlug', getRecipeBySlug);
 router.get('/:id', recipeIdRule, validate, getRecipeById);
 
 router.post('/', protect, recipeRules, validate, createRecipe);

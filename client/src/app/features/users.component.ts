@@ -3,15 +3,26 @@ import { isPlatformBrowser, CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { AuthService } from "../core/services/auth.service";
 import { User } from "../core/models/types";
-import { Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
 import { LoadingSpinnerComponent } from '../shared/components/loading-spinner.component';
 import { ConfirmationModalComponent } from '../shared/components/confirmation-modal.component';
-
+import { MatTableModule } from '@angular/material/table';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatCardModule } from '@angular/material/card';
+import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
+import { MatTableDataSource } from '@angular/material/table';
+import { MatSelectModule } from '@angular/material/select';
+import { ViewChild, AfterViewInit } from '@angular/core';
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [CommonModule, FormsModule, LoadingSpinnerComponent, ConfirmationModalComponent],
+  imports: [
+    CommonModule, FormsModule, LoadingSpinnerComponent, ConfirmationModalComponent,
+    MatTableModule, MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule, MatCardModule,
+    MatPaginatorModule, MatSelectModule
+  ],
   template: `
     <div class="dashboard-wrapper">
       <div class="dashboard-header">
@@ -28,52 +39,69 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
       </div>
 
       <div class="dashboard-content">
-        <div class="users-table-container">
-          <table class="users-table">
-            <thead>
-              <tr>
-                <th>Avatar</th>
-                <th>Name</th>
-                <th>Username</th>
-                <th>Password</th>
-                <th>Role</th>
-                <th class="actions-col">Actions</th>
-                <th>Created At</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let u of users">
-                <td>
-                  <div class="avatar-only">
-                    <div class="avatar" *ngIf="!u.avatarUrl || u.avatarUrl === 'default-avatar.png'">{{ getInitials(u.name) }}</div>
-                    <img class="avatar-img" *ngIf="u.avatarUrl && u.avatarUrl !== 'default-avatar.png'" [src]="u.avatarUrl" alt="Avatar">
-                  </div>
-                </td>
-                <td>
-                  <span class="user-name-text">{{ u.name }}</span>
-                </td>
-                <td>
-                  <span class="user-email-text">{{ u.email }}</span>
-                </td>
-                <td>
-                  <div class="password-cell">
-                    <span class="password-mask">••••••••</span>
-                  </div>
-                </td>
-                <td>
-                  <span class="role-badge" [ngClass]="u.role">{{ u.role }}</span>
-                </td>
-                <td>
-                  <button class="delete-btn" (click)="deleteUser(u._id, u.name)" title="Delete User">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                  </button>
-                </td>
-                <td>
-                  <span class="date-text">{{ u.createdAt | date:'medium' }}</span>
-                </td>
-              </tr>
-            </tbody>
+        <div class="users-table-container mat-elevation-z2">
+          <table mat-table [dataSource]="dataSource" class="full-width-table">
+            
+            <!-- Avatar Column -->
+            <ng-container matColumnDef="avatar">
+              <th mat-header-cell *matHeaderCellDef> Avatar </th>
+              <td mat-cell *matCellDef="let u">
+                <div class="avatar-only">
+                  <div class="avatar" *ngIf="!u.avatarUrl || u.avatarUrl === 'default-avatar.png'">{{ getInitials(u.name) }}</div>
+                  <img class="avatar-img" *ngIf="u.avatarUrl && u.avatarUrl !== 'default-avatar.png'" [src]="u.avatarUrl" alt="Avatar">
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Name Column -->
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef> Name </th>
+              <td mat-cell *matCellDef="let u" class="user-name-text"> {{ u.name }} </td>
+            </ng-container>
+
+            <!-- Username Column -->
+            <ng-container matColumnDef="email">
+              <th mat-header-cell *matHeaderCellDef> Username </th>
+              <td mat-cell *matCellDef="let u" class="user-email-text"> {{ u.email }} </td>
+            </ng-container>
+
+            <!-- Password Column -->
+            <ng-container matColumnDef="password">
+              <th mat-header-cell *matHeaderCellDef> Password </th>
+              <td mat-cell *matCellDef="let u">
+                <span class="password-mask">••••••••</span>
+              </td>
+            </ng-container>
+
+            <!-- Role Column -->
+            <ng-container matColumnDef="role">
+              <th mat-header-cell *matHeaderCellDef> Role </th>
+              <td mat-cell *matCellDef="let u">
+                <span class="role-badge" [ngClass]="u.role">{{ u.role }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef class="actions-col"> Actions </th>
+              <td mat-cell *matCellDef="let u">
+                <button mat-icon-button style="color: red;" (click)="deleteUser(u._id, u.name)" title="Delete User">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <!-- Created At Column -->
+            <ng-container matColumnDef="createdAt">
+              <th mat-header-cell *matHeaderCellDef> Created At </th>
+              <td mat-cell *matCellDef="let u" class="date-text"> {{ u.createdAt | date:'medium' }} </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
           </table>
+
+          <mat-paginator [pageSize]="10" [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
         </div>
       </div>
 
@@ -84,49 +112,59 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
       <!-- Registration Modal -->
       <div class="modal-overlay" *ngIf="showModal" (click)="closeModal($event)">
         <div class="modal-content" (click)="$event.stopPropagation()">
-          <button class="close-btn" (click)="closeModal()">&times;</button>
+  
           
-          <div class="modal-header">
-            <h3>Register New User</h3>
-            <p>Add a new member to the community</p>
-          </div>
-
           <div *ngIf="!isSuccess; else successState">
-            <form (ngSubmit)="onSubmit()" #regForm="ngForm" class="modal-form">
-              <div class="input-group">
-                <label for="name">Full Name</label>
-                <input type="text" id="name" [(ngModel)]="newUser.name" name="name" required placeholder="John Doe">
-              </div>
+            <div class="modal-header">
+              <h3>Register New User</h3>
+              <p>Add a new member to the community</p>
+            </div>
 
-              <div class="input-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" [(ngModel)]="newUser.email" name="email" required placeholder="john@example.com">
-              </div>
+            <form (ngSubmit)="onSubmit()" #regForm="ngForm" class="modal-form" style="display: flex; flex-direction: column; gap: 8px;">
+              <mat-form-field appearance="outline">
+                <mat-label>Full Name</mat-label>
+                <input matInput type="text" id="name" [(ngModel)]="newUser.name" name="name" required placeholder="John Doe">
+              </mat-form-field>
 
-              <div class="input-group">
-                <label for="avatarUrl">Avatar URL (Optional)</label>
-                <input type="url" id="avatarUrl" [(ngModel)]="newUser.avatarUrl" name="avatarUrl" placeholder="https://example.com/avatar.jpg">
-              </div>
+              <mat-form-field appearance="outline">
+                <mat-label>Email Address</mat-label>
+                <input matInput type="email" id="email" [(ngModel)]="newUser.email" name="email" required placeholder="john@example.com">
+              </mat-form-field>
 
-              <div class="input-group">
-                <label for="password">Password</label>
-                <div class="password-input-wrapper">
-                  <input [type]="showRegPassword ? 'text' : 'password'" id="password" [(ngModel)]="newUser.password" name="password" required minlength="6" placeholder="••••••••">
-                  <button type="button" class="eye-btn" (click)="showRegPassword = !showRegPassword">
-                    <svg *ngIf="!showRegPassword" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                    <svg *ngIf="showRegPassword" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                  </button>
-                </div>
-              </div>
+              <mat-form-field appearance="outline">
+                <mat-label>Avatar URL (Optional)</mat-label>
+                <input matInput type="url" id="avatarUrl" [(ngModel)]="newUser.avatarUrl" name="avatarUrl" placeholder="https://example.com/avatar.jpg">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Role</mat-label>
+                <mat-select id="role" [(ngModel)]="newUser.role" name="role" required>
+                  <mat-option value="USER">User</mat-option>
+                  <mat-option value="ADMIN">Admin</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Password</mat-label>
+                <input matInput [type]="showRegPassword ? 'text' : 'password'" id="password" [(ngModel)]="newUser.password" name="password" required minlength="6">
+                <button mat-icon-button matSuffix (click)="showRegPassword = !showRegPassword" type="button">
+                  <mat-icon>{{showRegPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+                </button>
+              </mat-form-field>
 
               <div *ngIf="error" class="error-banner">
                 {{ error }}
               </div>
 
-              <button type="submit" class="submit-btn" [disabled]="!regForm.form.valid || isSubmitting">
-                <span *ngIf="!isSubmitting">Register User</span>
-                <app-loading-spinner *ngIf="isSubmitting"></app-loading-spinner>
-              </button>
+              <div style="display: flex; gap: 12px; margin-top: 8px;">
+                <button type="button" class="cancel-btn" (click)="closeModal()" style="flex: 1;">
+                  Cancel
+                </button>
+                <button class="submit-btn" type="submit" [disabled]="!regForm.form.valid || isSubmitting" style="flex: 1; gap: 8px;">
+                  <span *ngIf="!isSubmitting">Register User</span>
+                  <app-loading-spinner *ngIf="isSubmitting"></app-loading-spinner>
+                </button>
+              </div>
             </form>
           </div>
 
@@ -137,14 +175,24 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
               <p class="success-sub">The user has been successfully registered.</p>
               
               <div class="user-card">
-                <div class="user-avatar">{{ getInitials(registeredName) }}</div>
+                <ng-container *ngIf="registeredAvatarUrl && registeredAvatarUrl !== 'default-avatar.png'; else initialAvatar">
+                  <img class="user-avatar" style="padding: 0; object-fit: cover; background: none;" [src]="registeredAvatarUrl" alt="Avatar">
+                </ng-container>
+                <ng-template #initialAvatar>
+                  <div class="user-avatar">{{ getInitials(registeredName) }}</div>
+                </ng-template>
+                
                 <div class="user-info">
                   <strong>{{ registeredName }}</strong>
                   <span>{{ registeredEmail }}</span>
                 </div>
               </div>
-
-              <button class="submit-btn full-width" (click)="resetForm()">Register Another</button>
+              <div style="display: flex; gap: 12px; margin-top: 8px;">
+               <button type="button" class="cancel-btn" (click)="closeModal()" style="flex: 1;">
+                  Close
+                </button>
+              <button class="submit-btn" (click)="resetForm()" style="flex: 1;">Register Another</button>
+            </div>
             </div>
           </ng-template>
         </div>
@@ -163,14 +211,14 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
   `,
   styles: [`
     .dashboard-wrapper {
-      background-color: #f8f9fa;
+      background-color: #faf5eb;
       min-height: calc(100vh - 70px);
       font-family: 'Inter', 'Segoe UI', sans-serif;
       padding-bottom: 60px;
     }
 
     .dashboard-header {
-      background: white;
+      background-color: transparent;
       padding: 30px 20px;
       border-bottom: 1px solid #edf2f7;
       position: sticky;
@@ -191,7 +239,7 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
       margin: 0 0 4px;
       font-size: 26px;
       font-weight: 800;
-      color: #1a202c;
+      color: #3C2218;
     }
     .title-area p {
       margin: 0;
@@ -226,7 +274,7 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
     }
 
     .users-table-container {
-      background: white;
+      background-color: transparent;
       border-radius: 16px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.04);
       border: 1px solid #edf2f7;
@@ -319,27 +367,71 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
     }
 
     /* Modal Styles */
+    .full-width-table {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    
+    .mat-elevation-z2 {
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(249, 115, 22, 0.1); /* warmer shadow */
+    }
+
+    .full-width-table mat-header-row, .full-width-table tr.mat-header-row {
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    }
+
+    .full-width-table mat-header-cell, .full-width-table th.mat-header-cell {
+      font-size: 14px;
+      font-weight: 700;
+      color: white;
+      border-bottom: none;
+      background: transparent;
+    }
+
+    mat-cell {
+      font-size: 14px;
+      color: #3C2218;
+    }
+    
+    .full-width-table .mat-mdc-row:nth-child(odd), .full-width-table tr.mat-row:nth-child(odd) {
+      background-color: #ffffff;
+    }
+
+    .full-width-table .mat-mdc-row:nth-child(even), .full-width-table tr.mat-row:nth-child(even) {
+      background-color: #fff7ed;
+    }
+    
+    .full-width-table .mat-mdc-row:hover, .full-width-table tr.mat-row:hover {
+      background-color: #ffedd5 !important;
+      transition: background-color 0.2s ease;
+    }
+
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.5);
-      backdrop-filter: blur(4px);
-      z-index: 10000;
+      background: rgba(0,0,0,0.4);
       display: flex;
       align-items: center;
       justify-content: center;
+      z-index: 1000;
       animation: fadeIn 0.2s;
     }
 
     .modal-content {
-      background: white;
+      background-color: white;
       border-radius: 24px;
-      width: 100%;
+      width: calc(100% - 32px);
       max-width: 450px;
-      padding: 40px;
+      padding: 32px;
       position: relative;
       box-shadow: 0 20px 40px rgba(0,0,0,0.2);
       animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-sizing: border-box;
+      max-height: 90vh;
+      overflow-y: auto;
     }
 
     .close-btn {
@@ -393,13 +485,13 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
     }
     .input-group input:focus {
       border-color: #f97316;
-      background: white;
+      background-color: transparent;
     }
 
     .submit-btn {
       background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
       color: white;
-      border: none;
+      border: 1px solid transparent;
       padding: 14px;
       border-radius: 10px;
       font-size: 15px;
@@ -408,9 +500,30 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
       margin-top: 10px;
       display: flex;
       justify-content: center;
+      align-items: center;
       transition: 0.2s;
+      box-sizing: border-box;
     }
     .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .submit-btn:hover:not(:disabled) { transform: translateY(-1px); }
+
+    .cancel-btn {
+      background: white;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: 0.2s;
+      box-sizing: border-box;
+    }
+    .cancel-btn:hover { background: #f8fafc; border-color: #94a3b8; }
     .submit-btn:hover:not(:disabled) { transform: translateY(-1px); }
 
     .error-banner {
@@ -443,9 +556,51 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
       margin: 0 auto 16px;
     }
     .user-card {
-      display: flex; align-items: center; gap: 12px;
+      display: flex; align-items: center; gap: 16px;
       padding: 16px; background: #f7fafc; border-radius: 12px;
       margin: 20px 0; text-align: left;
+    }
+
+    .user-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .user-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      overflow: hidden;
+    }
+
+    .user-info strong {
+      font-size: 16px;
+      color: #1a202c;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-info span {
+      font-size: 14px;
+      color: #718096;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .submit-btn.full-width {
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .date-text {
@@ -551,23 +706,75 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Tablet Responsiveness */
+    @media (max-width: 1024px) {
+      .users-table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .full-width-table {
+        min-width: 900px;
+      }
+      
+      .actions-col {
+        min-width: 80px;
+      }
+
+      .user-name-text {
+        white-space: nowrap;
+      }
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 0 16px;
+      }
+      
+      .dashboard-header {
+        padding: 20px 10px;
+      }
+
+      .dashboard-content {
+        padding: 0 10px;
+      }
+
+      .title-area h2 {
+        font-size: 22px;
+        white-space: nowrap;
+      }
+
+      .create-btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
   `]
 })
-export class UsersComponent implements OnInit {
+export class UsersComponent implements OnInit, AfterViewInit {
   private authService = inject(AuthService);
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
   
-  users: any[] = []; 
+  dataSource = new MatTableDataSource<any>([]); 
+  displayedColumns: string[] = ['avatar', 'name', 'email', 'password', 'role', 'actions', 'createdAt'];
   
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+
   showModal = false;
   showRegPassword = false;
-  newUser = { name: '', email: '', password: '', avatarUrl: '' };
+  newUser: any = { name: '', email: '', password: '', avatarUrl: '', role: 'USER' };
   error = '';
   isSubmitting = false;
   isSuccess = false;
   registeredName = '';
   registeredEmail = '';
+  registeredAvatarUrl = '';
   successMessage = '';
 
   showDeleteConfirm = false;
@@ -579,10 +786,14 @@ export class UsersComponent implements OnInit {
     }
   }
 
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+  }
+
   fetchUsers() {
     this.authService.getUsers().subscribe({
       next: (data) => {
-        this.users = data;
+        this.dataSource.data = data;
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -648,6 +859,7 @@ export class UsersComponent implements OnInit {
 
     this.registeredName = this.newUser.name;
     this.registeredEmail = this.newUser.email;
+    this.registeredAvatarUrl = this.newUser.avatarUrl;
 
     this.authService.register(this.newUser).subscribe({
       next: () => {
@@ -665,10 +877,11 @@ export class UsersComponent implements OnInit {
   }
 
   resetForm() {
-    this.newUser = { name: '', email: '', password: '', avatarUrl: '' };
+    this.newUser = { name: '', email: '', password: '', avatarUrl: '', role: 'USER' };
     this.isSuccess = false;
     this.error = '';
     this.registeredName = '';
     this.registeredEmail = '';
+    this.registeredAvatarUrl = '';
   }
 }

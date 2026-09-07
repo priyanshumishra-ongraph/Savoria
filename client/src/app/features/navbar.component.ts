@@ -9,32 +9,37 @@ import { AuthService } from '../core/services/auth.service';
   imports: [CommonModule, RouterModule],
   template: `
     <nav class="navbar">
+
+      <!-- Left: Brand -->
       <div class="nav-brand">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-        <a routerLink="/dashboard">Savoria</a>
+        <a routerLink="/dashboard" (click)="closeMobileMenu()">Savoria</a>
       </div>
-      
-      <div class="nav-menu">
-        <ng-container *ngIf="authService.currentUser$ | async as user; else guestLinks">
-          <a routerLink="/recipes/new" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            <span class="add-text">Add Recipe</span>
-          </a>
-          <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">
+
+      <ng-container *ngIf="authService.currentUser$ | async as user; else guestLinks">
+
+        <!-- Center Menu -->
+        <div class="nav-menu-center" [class.mobile-open]="isMobileMenuOpen">
+          <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link" (click)="closeMobileMenu()">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
             Dashboard
           </a>
-          <a routerLink="/recipes" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">
+          <a routerLink="/recipes" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link" (click)="closeMobileMenu()">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
             Categories
           </a>
-        
-          <a *ngIf="user.role === 'admin'" routerLink="/admin/users" class="admin-link">
+          <a *ngIf="user.role === 'admin'" routerLink="/admin/users" class="nav-link" (click)="closeMobileMenu()">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
             Users
           </a>
+          <a routerLink="/recipes/new" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link" (click)="closeMobileMenu()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Add Recipe
+          </a>
+        </div>
 
-          <!-- User Profile Dropdown -->
+        <!-- Right: Profile + Hamburger -->
+        <div class="nav-right">
           <div class="profile-dropdown">
             <button class="profile-btn">
               <div class="avatar">{{ getInitials(user.name) }}</div>
@@ -66,12 +71,20 @@ import { AuthService } from '../core/services/auth.service';
             </div>
           </div>
 
-        </ng-container>
+          <!-- Hamburger: shown only on mobile/tablet -->
+          <button class="hamburger-btn" (click)="toggleMobileMenu()">
+            <svg *ngIf="!isMobileMenuOpen" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            <svg *ngIf="isMobileMenuOpen" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
 
-        <ng-template #guestLinks>
+      </ng-container>
+
+      <ng-template #guestLinks>
+        <div class="nav-right">
           <a routerLink="/login" class="login-link">Sign In</a>
-        </ng-template>
-      </div>
+        </div>
+      </ng-template>
     </nav>
   `,
   styles: [`
@@ -104,12 +117,19 @@ import { AuthService } from '../core/services/auth.service';
       letter-spacing: -0.5px;
     }
 
-    .nav-menu {
+    .nav-menu-center {
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 16px;
-      flex: 1;
+      flex: 2;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
       justify-content: flex-end;
+      flex: 1;
     }
 
     /* Standard Nav Links */
@@ -336,6 +356,7 @@ import { AuthService } from '../core/services/auth.service';
       background: none;
       border: none;
       width: 100%;
+      box-sizing: border-box;
       text-align: left;
     }
 
@@ -369,10 +390,94 @@ import { AuthService } from '../core/services/auth.service';
       background-color: #ea580c;
       box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
     }
+
+    .hamburger-btn {
+      display: none;
+      background: none;
+      border: none;
+      color: #4a5568;
+      cursor: pointer;
+      padding: 8px;
+    }
+
+    /* Tablet tweaks: hide name/badge + chevron, keep avatar */
+    @media (max-width: 1024px) {
+      .profile-info {
+        display: none;
+      }
+      .chevron {
+        display: none;
+      }
+      .nav-link {
+        padding: 8px 10px;
+        font-size: 13px;
+      }
+    }
+
+    /* Mobile: hamburger takeover */
+    @media (max-width: 768px) {
+      .hamburger-btn {
+        display: block;
+      }
+
+      .navbar {
+        padding: 12px 20px;
+        position: relative;
+      }
+
+      /* Hide the entire profile dropdown on mobile — 
+         profile info appears in the hamburger slide-down instead */
+      .profile-dropdown {
+        display: none;
+      }
+
+      .nav-menu-center {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        flex-direction: column;
+        padding: 8px 12px 16px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        border-top: 2px solid #fff7ed;
+        z-index: 999;
+        gap: 4px;
+      }
+
+      .nav-menu-center.mobile-open {
+        display: flex;
+      }
+
+      .nav-link {
+        width: 100%;
+        padding: 14px 16px;
+        font-size: 15px;
+        font-weight: 600;
+        justify-content: flex-start;
+        border-radius: 10px;
+      }
+
+      .nav-link:hover,
+      .nav-link.active {
+        background-color: #fff7ed;
+        color: #f97316;
+      }
+    }
   `]
 })
 export class NavbarComponent {
   authService = inject(AuthService);
+  isMobileMenuOpen = false;
+
+  toggleMobileMenu() {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+
+  closeMobileMenu() {
+    this.isMobileMenuOpen = false;
+  }
 
   getInitials(name: string): string {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);

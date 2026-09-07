@@ -1,180 +1,216 @@
-import { CommonModule } from "@angular/common";
-import { Component } from "@angular/core";
-import { RouterModule } from '@angular/router';
+import { Component, inject, OnInit, OnDestroy, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { RouterModule, ActivatedRoute } from '@angular/router';
+import { ReactiveFormsModule, FormControl } from '@angular/forms';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatButtonModule } from '@angular/material/button';
+import { RecipeService } from '../core/services/recipe.service';
+import { Recipe } from '../core/models/types';
+import { Observable, combineLatest, of, BehaviorSubject, Subject } from 'rxjs';
+import { debounceTime, switchMap, startWith, catchError, tap, takeUntil } from 'rxjs/operators';
+import { RecipeCardComponent } from '../shared/components/recipe-card.component';
 
 @Component({
   selector: 'app-recipe-list',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [
+    CommonModule, RouterModule, ReactiveFormsModule, RecipeCardComponent,
+    MatInputModule, MatSelectModule, MatFormFieldModule, MatProgressSpinnerModule, MatButtonModule
+  ],
   template: `
     <div class="dashboard-wrapper">
       <div class="dashboard-header">
         <div class="header-content">
           <div class="title-area">
-            <h2>Explore Categories</h2>
-            <p>What are you craving today?</p>
+            <h2>Explore Recipes</h2>
+            <p>Find your next culinary masterpiece.</p>
           </div>
           
+          <div class="filters-container">
+            <mat-form-field appearance="outline" class="filter-field">
+              <mat-label>Search recipes...</mat-label>
+              <input matInput [formControl]="searchControl" placeholder="E.g., Pasta, Vegan...">
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline" class="filter-field">
+              <mat-label>Category</mat-label>
+              <mat-select [formControl]="categoryControl">
+                <mat-option value="">All Categories</mat-option>
+                <mat-option *ngFor="let cat of categories" [value]="cat">{{ cat }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
         </div>
       </div>
 
       <div class="dashboard-content">
-        <div class="category-grid">
-          <a *ngFor="let cat of categories" [routerLink]="['/recipes/category', cat.name]" class="category-card">
-            <div class="card-bg" [style.background-image]="'url(' + cat.image + ')'"></div>
-            <div class="card-overlay"></div>
-            <div class="card-content">
-              <h3>{{ cat.name }}</h3>
-              <div class="explore-btn">
-                Explore
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-              </div>
-            </div>
-          </a>
+        <!-- Error State -->
+        <div *ngIf="error" class="error-banner">
+          {{ error }}
         </div>
+
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="loading-state">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Loading recipes...</p>
+        </div>
+
+        <!-- Recipe Grid -->
+        <ng-container *ngIf="!isLoading && !error">
+          <div>
+            
+            <div *ngIf="recipes.length > 0" class="recipe-grid">
+              <app-recipe-card *ngFor="let recipe of recipes" [recipe]="recipe" [showAuthor]="true"></app-recipe-card>
+            </div>
+
+            <!-- Empty State -->
+            <div *ngIf="recipes.length === 0" class="empty-state">
+              <div class="empty-icon">🍳</div>
+              <h3>No recipes found</h3>
+              <p>Try adjusting your search or category filters.</p>
+            </div>
+            
+            <!-- Pagination Controls -->
+            <div class="pagination-controls" *ngIf="totalPages > 1">
+              <button mat-flat-button color="primary" 
+                      [disabled]="currentPage$.value === 1" 
+                      (click)="goToPage(currentPage$.value - 1)">
+                Previous
+              </button>
+              
+              <span class="page-indicator">Page {{ currentPage$.value }} of {{ totalPages }}</span>
+              
+              <button mat-flat-button color="primary" 
+                      [disabled]="currentPage$.value === totalPages" 
+                      (click)="goToPage(currentPage$.value + 1)">
+                Next
+              </button>
+            </div>
+
+          </div>
+        </ng-container>
       </div>
     </div>
   `,
   styles: [`
-    .dashboard-wrapper {
-      background-color: #f8f9fa;
-      min-height: calc(100vh - 70px);
-      font-family: 'Inter', 'Segoe UI', sans-serif;
-      padding-bottom: 60px;
-    }
+    .dashboard-wrapper { background-color: #faf5eb; min-height: 100vh; padding-bottom: 60px; }
+    .dashboard-header { background: white; padding: 30px 20px; border-bottom: 1px solid #edf2f7; position: sticky; top: 0; z-index: 90; }
+    .header-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+    .title-area h2 { margin: 0; font-size: 28px; font-weight: 800; color: #3C2218; }
+    .title-area p { margin: 4px 0 0; color: #718096; }
+    
+    .filters-container { display: flex; gap: 16px; flex: 1; justify-content: flex-end; }
+    .filter-field { width: 100%; max-width: 250px; }
+    
+    .dashboard-content { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+    .recipe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+    
+    .loading-state, .empty-state { text-align: center; padding: 60px 20px; color: #718096; display: flex; flex-direction: column; align-items: center; }
+    .empty-icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-state h3 { color: #3C2218; margin-bottom: 8px; }
+    .error-banner { padding: 12px 16px; background: #fee2e2; color: #dc2626; border-radius: 8px; margin-bottom: 24px; }
 
-    .dashboard-header {
-      background: white;
-      padding: 30px 20px;
-      border-bottom: 1px solid #edf2f7;
-      position: sticky;
-      top: 0;
-      z-index: 90;
-    }
-
-    .header-content {
-      max-width: 1200px;
-      margin: 0 auto;
+    .pagination-controls {
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
+      gap: 20px;
+      margin-top: 40px;
     }
-
-    .title-area h2 {
-      margin: 0;
-      font-size: 28px;
-      font-weight: 800;
-      color: #1a202c;
-      letter-spacing: -0.5px;
-    }
-
-    .title-area p {
-      margin: 4px 0 0;
-      color: #718096;
-      font-size: 15px;
-    }
-
-    .dashboard-content {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 40px 20px;
-    }
-
-    .category-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 24px;
-    }
-
-    .category-card {
-      position: relative;
-      aspect-ratio: 3 / 4;
-      border-radius: 20px;
-      overflow: hidden;
-      display: block;
-      text-decoration: none;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
-    }
-
-    .category-card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 20px 35px rgba(0,0,0,0.12);
-    }
-
-    .card-bg {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-size: cover;
-      background-position: center;
-      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .category-card:hover .card-bg {
-      transform: scale(1.08);
-    }
-
-    .card-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0.1) 100%);
-    }
-
-    .card-content {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      box-sizing: border-box;
-      padding: 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-    }
-
-    .card-content h3 {
-      margin: 0;
-      color: white;
-      font-size: 26px;
-      font-weight: 800;
-      letter-spacing: 0.5px;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    }
-
-    .explore-btn {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: white;
+    .page-indicator {
       font-weight: 600;
-      font-size: 14px;
-      background: rgba(255,255,255,0.2);
-      padding: 8px 14px;
-      border-radius: 20px;
-      backdrop-filter: blur(4px);
-      border: 1px solid rgba(255,255,255,0.3);
-      transition: background 0.2s ease;
+      color: #4a5568;
     }
 
-    .category-card:hover .explore-btn {
-      background: #f97316;
-      border-color: #f97316;
+    /* Force form fields to not reserve empty space for errors/hints here */
+    ::ng-deep .filters-container .mat-mdc-form-field-subscript-wrapper {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .header-content { flex-direction: column; align-items: stretch; gap: 16px; }
+      .filters-container { justify-content: stretch; flex-direction: column; gap: 16px; margin-bottom: 8px; }
+      .filter-field { max-width: 100%; width: 100%; }
+      .dashboard-header { padding: 20px 16px; }
+      .dashboard-content { padding: 24px 16px; }
+      .recipe-grid { grid-template-columns: 1fr; gap: 16px; }
     }
   `]
 })
-export class RecipeListComponent {
-  categories = [
-    { name: 'Breakfast', image: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=800&q=80' },
-    { name: 'Lunch', image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&q=80' },
-    { name: 'Dinner', image: 'https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=800&q=80' },
-    { name: 'Dessert', image: 'https://images.unsplash.com/photo-1551024506-0bccd828d307?w=800&q=80' },
-    { name: 'Beverage', image: 'https://images.unsplash.com/photo-1544145945-f90425340c7e?w=800&q=80' },
-    { name: 'Snack', image: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=800&q=80' }
-  ];
+export class RecipeListComponent implements OnInit, OnDestroy {
+  private recipeService = inject(RecipeService);
+
+  searchControl = new FormControl('');
+  categoryControl = new FormControl('');
+  
+  categories = ['Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Beverage', 'Snack'];
+  
+  recipes: Recipe[] = [];
+  isLoading = true;
+  error: string | null = null;
+  
+  currentPage$ = new BehaviorSubject<number>(1);
+  totalPages = 1;
+
+  private destroy$ = new Subject<void>();
+  private cdr = inject(ChangeDetectorRef);
+  private platformId = inject(PLATFORM_ID);
+  private route = inject(ActivatedRoute);
+
+  ngOnInit() {
+    if (isPlatformBrowser(this.platformId)) {
+      // Read initial category from query parameters
+      const initialCategory = this.route.snapshot.queryParamMap.get('category') || '';
+      if (initialCategory) {
+        this.categoryControl.setValue(initialCategory);
+      }
+
+      const search$ = this.searchControl.valueChanges.pipe(
+        startWith(this.searchControl.value || ''), 
+        debounceTime(400),
+        tap(() => this.currentPage$.next(1))
+      );
+      const category$ = this.categoryControl.valueChanges.pipe(
+        startWith(this.categoryControl.value || ''),
+        tap(() => this.currentPage$.next(1))
+      );
+
+      combineLatest([search$, category$, this.currentPage$]).pipe(
+        takeUntil(this.destroy$),
+        tap(() => {
+          this.isLoading = true;
+          this.error = null;
+          this.cdr.detectChanges();
+        }),
+        switchMap(([search, category, page]) => 
+          this.recipeService.getRecipes(search || '', category || '', page, 12).pipe(
+            catchError(err => {
+              this.error = 'Failed to load recipes. Please try again.';
+              return of({ recipes: [], total: 0, pages: 1 });
+            })
+          )
+        )
+      ).subscribe(res => {
+        this.recipes = res.recipes || [];
+        this.totalPages = res.pages || 1;
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      });
+    }
+  }
+
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage$.next(page);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 }

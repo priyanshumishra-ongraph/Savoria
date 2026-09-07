@@ -9,7 +9,7 @@ import { TimeFormatPipe } from '../pipes/time-format.pipe';
   standalone: true,
   imports: [CommonModule, RouterModule, TimeFormatPipe],
   template: `
-    <a [routerLink]="['/recipes', recipe._id]" class="recipe-card">
+    <a [routerLink]="['/recipes', recipe.category.toLowerCase(), getSlug(recipe.title)]" class="recipe-card">
       <div class="image-wrapper">
         <img [src]="recipe.imageUrl || getCategoryImage(recipe.category)" [alt]="recipe.title">
         <div class="difficulty-badge" [ngClass]="recipe.difficulty.toLowerCase()">
@@ -143,14 +143,19 @@ export class RecipeCardComponent {
   @Input() showAuthor: boolean = false;
 
   getCategoryImage(category: string): string {
-    const c = (category || 'other').toLowerCase();
-    if (c === 'breakfast') return 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=600&q=80';
-    if (c === 'lunch') return 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80';
-    if (c === 'dinner') return 'https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=600&q=80';
-    if (c === 'dessert') return 'https://images.unsplash.com/photo-1551024506-0bccd828d307?w=600&q=80';
-    if (c === 'beverage') return 'https://images.unsplash.com/photo-1544145945-f90425340c7e?w=600&q=80';
-    if (c === 'snack') return 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=600&q=80';
-    return 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=600&q=80';
+    const images: Record<string, string> = {
+      'Breakfast': 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=800&q=80',
+      'Lunch': 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80',
+      'Dinner': 'https://images.unsplash.com/photo-1547496502-affa22d38842?w=800&q=80',
+      'Dessert': 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=800&q=80',
+      'Beverage': 'https://images.unsplash.com/photo-1544145945-f90425340c7e?w=800&q=80',
+      'Snack': 'https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=800&q=80'
+    };
+    return images[category] || 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=800&q=80';
+  }
+
+  getSlug(title: string): string {
+    return title ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
   }
 
   getOwnerName(): string {
