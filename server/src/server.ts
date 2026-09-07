@@ -20,22 +20,34 @@ const corsOptions = {
 };
 
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, 
-  max: 100, 
-  message: { message: 'Too many requests, please try again later.' }
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { message: 'Too many requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { message: 'Too many auth attempts, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: '10kb' }));
 app.use(helmet({
   contentSecurityPolicy: false,
-  crossOriginEmbedderPolicy: false
+  crossOriginEmbedderPolicy: true,
 }));
+
+app.use('/api', apiLimiter);
+app.use('/api/auth', authLimiter);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/dashboard', dashboardRoutes);
-app.use('/api', apiLimiter);
 
 app.use(notFound);
 app.use(errorHandler);

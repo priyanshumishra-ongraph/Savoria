@@ -101,7 +101,7 @@ import { ViewChild, AfterViewInit } from '@angular/core';
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
           </table>
 
-          <mat-paginator [pageSize]="10" [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+          <mat-paginator [pageSize]="2" [pageSizeOptions]="[2, 5, 10, 20]" showFirstLastButtons></mat-paginator>
         </div>
       </div>
 
@@ -139,8 +139,8 @@ import { ViewChild, AfterViewInit } from '@angular/core';
               <mat-form-field appearance="outline">
                 <mat-label>Role</mat-label>
                 <mat-select id="role" [(ngModel)]="newUser.role" name="role" required>
-                  <mat-option value="USER">User</mat-option>
-                  <mat-option value="ADMIN">Admin</mat-option>
+                  <mat-option value="user">User</mat-option>
+                  <mat-option value="admin">Admin</mat-option>
                 </mat-select>
               </mat-form-field>
 
@@ -708,52 +708,184 @@ import { ViewChild, AfterViewInit } from '@angular/core';
     @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Tablet Responsiveness */
+    /* Tablet (1024px and below) */
     @media (max-width: 1024px) {
       .users-table-container {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
       }
-
       .full-width-table {
-        min-width: 900px;
+        min-width: 700px;
       }
-      
-      .actions-col {
-        min-width: 80px;
+      .dashboard-content {
+        padding: 0 20px;
       }
-
-      .user-name-text {
-        white-space: nowrap;
+      .header-content {
+        padding: 0 20px;
       }
     }
 
-    /* Mobile Responsiveness */
+    /* Mobile (768px and below) */
     @media (max-width: 768px) {
+      .dashboard-header {
+        padding: 16px 0;
+      }
+
       .header-content {
         flex-direction: column;
         align-items: flex-start;
-        gap: 16px;
+        gap: 14px;
         padding: 0 16px;
-      }
-      
-      .dashboard-header {
-        padding: 20px 10px;
-      }
-
-      .dashboard-content {
-        padding: 0 10px;
       }
 
       .title-area h2 {
         font-size: 22px;
+      }
+
+      /* Button: auto width, don't stretch */
+      .create-btn {
+        width: auto;
+        align-self: flex-start;
+        font-size: 14px;
+        padding: 10px 16px;
+      }
+
+      .dashboard-content {
+        margin: 20px auto;
+        padding: 0 16px;
+      }
+
+      /* Switch table to card layout on mobile */
+      .users-table-container {
+        overflow-x: unset;
+        background: transparent;
+        box-shadow: none;
+        border: none;
+      }
+
+      .full-width-table {
+        min-width: unset;
+      }
+
+      /* Hide table header on mobile */
+      .full-width-table tr.mat-header-row,
+      .full-width-table mat-header-row {
+        display: none;
+      }
+
+      /* Each row becomes a card */
+      .full-width-table tr.mat-row,
+      .full-width-table mat-row {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        background: white !important;
+        border-radius: 14px;
+        margin-bottom: 12px;
+        padding: 14px 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        border: 1px solid #edf2f7;
+        height: auto;
+      }
+
+      .full-width-table tr.mat-row:hover,
+      .full-width-table mat-row:hover {
+        background: #fff7ed !important;
+      }
+
+      /* Each cell: inline block */
+      .full-width-table td.mat-cell,
+      .full-width-table mat-cell {
+        display: flex;
+        align-items: center;
+        border: none;
+        padding: 2px 0;
+        font-size: 14px;
+      }
+
+      /* Avatar cell — full row width */
+      .full-width-table td[class*="avatar"],
+      .full-width-table mat-cell[class*="avatar"] {
+        flex: 0 0 auto;
+      }
+
+      /* Name cell */
+      .full-width-table td[class*="name"],
+      .full-width-table mat-cell[class*="name"] {
+        flex: 1 1 auto;
+        font-weight: 700;
+        font-size: 15px;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
         white-space: nowrap;
       }
 
-      .create-btn {
-        width: 100%;
-        justify-content: center;
+      /* Role badge — stays on first line */
+      .full-width-table td[class*="role"],
+      .full-width-table mat-cell[class*="role"] {
+        flex: 0 0 auto;
       }
+
+      /* Actions — push to far right */
+      .full-width-table td[class*="actions"],
+      .full-width-table mat-cell[class*="actions"] {
+        flex: 0 0 auto;
+        margin-left: auto;
+      }
+
+      /* Hide password and date on mobile to reduce noise */
+      .full-width-table td[class*="password"],
+      .full-width-table mat-cell[class*="password"],
+      .full-width-table td[class*="created"],
+      .full-width-table mat-cell[class*="created"] {
+        display: none;
+      }
+
+      /* Email — second line, full width */
+      .full-width-table td[class*="email"],
+      .full-width-table mat-cell[class*="email"] {
+        flex: 1 1 100%;
+        padding-left: 48px;
+        color: #718096;
+        font-size: 13px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .modal-content {
+        border-radius: 20px 20px 0 0;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        max-width: 100%;
+        width: 100%;
+        max-height: 95vh;
+        padding: 24px 20px;
+        animation: slideUpSheet 0.3s ease-out;
+      }
+
+      @keyframes slideUpSheet {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+      }
+
+      .success-toast {
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+        text-align: center;
+      }
+    }
+
+    /* Small mobile (480px and below) */
+    @media (max-width: 480px) {
+      .title-area h2 { font-size: 20px; }
+      .title-area p { font-size: 13px; }
     }
   `]
 })
@@ -769,7 +901,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
 
   showModal = false;
   showRegPassword = false;
-  newUser: any = { name: '', email: '', password: '', avatarUrl: '', role: 'USER' };
+  newUser: any = { name: '', email: '', password: '', avatarUrl: '', role: 'user' };
   error = '';
   isSubmitting = false;
   isSuccess = false;
@@ -862,7 +994,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
     this.registeredEmail = this.newUser.email;
     this.registeredAvatarUrl = this.newUser.avatarUrl;
 
-    this.authService.register(this.newUser).subscribe({
+    this.authService.adminRegister(this.newUser).subscribe({
       next: () => {
         this.isSubmitting = false;
         this.isSuccess = true;
@@ -878,7 +1010,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
   }
 
   resetForm() {
-    this.newUser = { name: '', email: '', password: '', avatarUrl: '', role: 'USER' };
+    this.newUser = { name: '', email: '', password: '', avatarUrl: '', role: 'user' };
     this.isSuccess = false;
     this.error = '';
     this.registeredName = '';

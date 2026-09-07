@@ -588,28 +588,32 @@ async function seedDatabase() {
     await mongoose.connect(mongoUri);
     console.log('Connected to MongoDB');
 
-    // Find an owner
-    const user = await User.findOne();
+    const user =
+      (await User.findOne({ role: 'admin' }).sort({ _id: 1 })) ??
+      (await User.findOne().sort({ _id: 1 }));
+
     if (!user) {
-      console.log('No user found in the database. Please create a user first before seeding recipes.');
+      console.error('No user found. Please create at least one user before seeding.');
       process.exit(1);
     }
-    
-    console.log(`Found user: ${user.name} (${user.email}). Recipes will be assigned to this user.`);
+
+    console.log(`Seeding recipes as: ${user.name} (${user.email}, role: ${user.role})`);
+
+    const deleted = await Recipe.deleteMany({});
+    console.log(`Cleared ${deleted.deletedCount} existing recipe(s).`);
+
+    const toSlug = (title: string) =>
+      title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
     const recipesToInsert = recipesData.map(recipe => ({
       ...recipe,
-      owner: user._id
+      owner: user._id,
+      slug: toSlug(recipe.title),
     }));
 
-    // Clear existing recipes if you want, or just append. 
-    // We will just append them for now. If you want to clear, uncomment the line below.
-    // await Recipe.deleteMany({});
-    
     await Recipe.insertMany(recipesToInsert);
-    
-    console.log(`Successfully seeded ${recipesToInsert.length} incredibly detailed recipes into the database!`);
-    
+    console.log(`Successfully seeded ${recipesToInsert.length} recipes.`);
+
   } catch (error) {
     console.error('Error seeding database:', error);
   } finally {

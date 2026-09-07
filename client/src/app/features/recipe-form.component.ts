@@ -44,6 +44,7 @@ import { RecipeService } from '../core/services/recipe.service';
                 <mat-option value="Beverage">Beverage</mat-option>
                 <mat-option value="Snack">Snack</mat-option>
               </mat-select>
+              <mat-error *ngIf="recipeForm.get('category')?.hasError('required')">Category is required</mat-error>
             </mat-form-field>
 
             <mat-form-field appearance="outline">
@@ -53,7 +54,9 @@ import { RecipeService } from '../core/services/recipe.service';
                 <mat-option value="Medium">Medium</mat-option>
                 <mat-option value="Hard">Hard</mat-option>
               </mat-select>
+              <mat-error *ngIf="recipeForm.get('difficulty')?.hasError('required')">Difficulty is required</mat-error>
             </mat-form-field>
+
 
             <mat-form-field appearance="outline">
               <mat-label>Prep Time (minutes)</mat-label>
@@ -203,13 +206,19 @@ export class RecipeFormComponent implements OnInit {
   }
 
   loadRecipeData() {
-    this.recipeService.getRecipeById(this.recipeId!).subscribe(recipe => {
-      this.recipeForm.patchValue({
-        ...recipe,
-        ingredientsText: recipe.ingredients.map((i: any) => `${i.quantity} ${i.name}`).join(', '),
-        stepsText: recipe.steps.join('\n'),
-        tagsText: recipe.tags ? recipe.tags.join(', ') : ''
-      });
+    this.recipeService.getRecipeById(this.recipeId!).subscribe({
+      next: recipe => {
+        this.recipeForm.patchValue({
+          ...recipe,
+          ingredientsText: recipe.ingredients.map((i: any) => `${i.quantity} ${i.name}`).join(', '),
+          stepsText: recipe.steps.join('\n'),
+          tagsText: recipe.tags ? recipe.tags.join(', ') : ''
+        });
+      },
+      error: (err) => {
+        this.error = err.error?.message || 'Failed to load recipe for editing. Please go back and try again.';
+        this.recipeForm.disable(); // Prevent submitting an empty form
+      }
     });
   }
 

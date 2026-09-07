@@ -16,7 +16,7 @@ import { AuthService } from '../core/services/auth.service';
         <a routerLink="/dashboard" (click)="closeMobileMenu()">Savoria</a>
       </div>
 
-      <ng-container *ngIf="authService.currentUser$ | async as user; else guestLinks">
+      <ng-container *ngIf="currentUser$ | async as user; else guestLinks">
 
         <!-- Center Menu -->
         <div class="nav-menu-center" [class.mobile-open]="isMobileMenuOpen">
@@ -64,7 +64,7 @@ import { AuthService } from '../core/services/auth.service';
                 My Recipes
               </a>
               <div class="dropdown-divider"></div>
-              <button class="dropdown-item logout-item" (click)="authService.logout()">
+              <button class="dropdown-item logout-item" (click)="logout()">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                 Logout
               </button>
@@ -481,7 +481,10 @@ import { AuthService } from '../core/services/auth.service';
   `]
 })
 export class NavbarComponent {
-  authService = inject(AuthService);
+  private authService = inject(AuthService);
+
+  readonly currentUser$ = this.authService.currentUser$;
+
   isMobileMenuOpen = false;
 
   toggleMobileMenu() {
@@ -492,7 +495,13 @@ export class NavbarComponent {
     this.isMobileMenuOpen = false;
   }
 
+  logout() {
+    this.authService.logout();
+    this.closeMobileMenu();
+  }
+
   getInitials(name: string): string {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   }
 }
+

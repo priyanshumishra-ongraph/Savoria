@@ -731,7 +731,6 @@ export class DashboardComponent implements OnInit {
     if (isPlatformBrowser(this.platformId)) {
       this.http.get<any>(`${this.apiUrl}/dashboard/stats`).subscribe({
         next: (data) => {
-          console.log('DASHBOARD STATS FETCHED:', data);
           this.stats = data;
           this.cdr.detectChanges();
         },

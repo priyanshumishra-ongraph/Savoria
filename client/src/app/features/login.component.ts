@@ -20,12 +20,34 @@ import { LoadingSpinnerComponent } from '../shared/components/loading-spinner.co
         <form (ngSubmit)="onSubmit()" #loginForm="ngForm" class="login-form">
           <div class="input-group">
             <label for="email">Email Address</label>
-            <input type="email" id="email" [(ngModel)]="email" name="email" placeholder="chef@savoria.com" required>
+            <input
+              type="email"
+              id="email"
+              [(ngModel)]="email"
+              name="email"
+              placeholder="chef@savoria.com"
+              required
+              email
+              #emailRef="ngModel">
+            <span class="field-error" *ngIf="emailRef.invalid && emailRef.touched">
+              Please enter a valid email address.
+            </span>
           </div>
 
           <div class="input-group">
             <label for="password">Password</label>
-            <input type="password" id="password" [(ngModel)]="password" name="password" placeholder="••••••••" required>
+            <input
+              type="password"
+              id="password"
+              [(ngModel)]="password"
+              name="password"
+              placeholder="••••••••"
+              required
+              minlength="6"
+              #passwordRef="ngModel">
+            <span class="field-error" *ngIf="passwordRef.invalid && passwordRef.touched">
+              Password must be at least 6 characters.
+            </span>
           </div>
 
           <button type="submit" class="submit-btn" [disabled]="!loginForm.form.valid || isSubmitting">
@@ -50,7 +72,6 @@ import { LoadingSpinnerComponent } from '../shared/components/loading-spinner.co
       background-color: #f4f6f8;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-    
     .login-card {
       background: #ffffff;
       padding: 40px;
@@ -59,44 +80,12 @@ import { LoadingSpinnerComponent } from '../shared/components/loading-spinner.co
       width: 100%;
       max-width: 420px;
     }
-
-    .login-header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    .login-header h2 {
-      margin: 0;
-      color: #2c3e50;
-      font-size: 28px;
-      font-weight: 700;
-    }
-
-    .login-header p {
-      color: #7f8c8d;
-      margin-top: 8px;
-      font-size: 15px;
-      line-height: 1.5;
-    }
-
-    .login-form {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .input-group label {
-      font-size: 14px;
-      font-weight: 600;
-      color: #34495e;
-    }
-
+    .login-header { text-align: center; margin-bottom: 30px; }
+    .login-header h2 { margin: 0; color: #2c3e50; font-size: 28px; font-weight: 700; }
+    .login-header p { color: #7f8c8d; margin-top: 8px; font-size: 15px; line-height: 1.5; }
+    .login-form { display: flex; flex-direction: column; gap: 20px; }
+    .input-group { display: flex; flex-direction: column; gap: 6px; }
+    .input-group label { font-size: 14px; font-weight: 600; color: #34495e; }
     .input-group input {
       padding: 12px 16px;
       border: 1px solid #dfe6e9;
@@ -105,12 +94,9 @@ import { LoadingSpinnerComponent } from '../shared/components/loading-spinner.co
       transition: all 0.3s ease;
       outline: none;
     }
-
-    .input-group input:focus {
-      border-color: #3498db;
-      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-    }
-
+    .input-group input:focus { border-color: #3498db; box-shadow: 0 0 0 3px rgba(52,152,219,0.1); }
+    .input-group input.ng-invalid.ng-touched { border-color: #e74c3c; }
+    .field-error { font-size: 12px; color: #e74c3c; font-weight: 500; }
     .submit-btn {
       background-color: #e67e22;
       color: white;
@@ -123,20 +109,9 @@ import { LoadingSpinnerComponent } from '../shared/components/loading-spinner.co
       transition: background-color 0.3s ease, transform 0.1s;
       margin-top: 10px;
     }
-
-    .submit-btn:hover:not([disabled]) {
-      background-color: #d35400;
-    }
-
-    .submit-btn:active:not([disabled]) {
-      transform: scale(0.98);
-    }
-
-    .submit-btn[disabled] {
-      background-color: #bdc3c7;
-      cursor: not-allowed;
-    }
-
+    .submit-btn:hover:not([disabled]) { background-color: #d35400; }
+    .submit-btn:active:not([disabled]) { transform: scale(0.98); }
+    .submit-btn[disabled] { background-color: #bdc3c7; cursor: not-allowed; }
     .error-banner {
       margin-top: 25px;
       padding: 12px 15px;
@@ -170,7 +145,7 @@ export class LoginComponent {
       },
       error: (err) => {
         this.isSubmitting = false;
-        this.error = err.error.message || 'Login failed';
+        this.error = err.error?.message || 'Login failed. Please try again.';
       }
     });
   }

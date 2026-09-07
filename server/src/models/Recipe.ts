@@ -8,6 +8,7 @@ export interface IIngredient {
 export interface IRecipe extends Document {
   owner: mongoose.Types.ObjectId;
   title: string;
+  slug: string;
   description?: string;
   imageUrl?: string;
   difficulty: 'Easy' | 'Medium' | 'Hard';
@@ -27,83 +28,110 @@ const RecipeSchema: Schema = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
-      index: true
+      index: true,
     },
     title: {
       type: String,
       required: true,
       trim: true,
       minlength: 3,
-      maxlength: 100
+      maxlength: 100,
+    },
+    slug: {
+      type: String,
+      trim: true,
+      lowercase: true,
     },
     description: {
       type: String,
       maxlength: 300,
-      trim: true
+      trim: true,
     },
     imageUrl: {
       type: String,
-      default: 'placeholder-recipe.jpg'
+      default: '',
     },
     difficulty: {
       type: String,
       enum: ['Easy', 'Medium', 'Hard'],
-      default: 'Medium'
+      default: 'Medium',
     },
     ingredients: {
-      type: [{
-        name: { type: String, required: true },
-        quantity: { type: String, required: true }
-      }],
-      validate: [
-        (val: any[]) => val.length > 0,
-        'A recipe must have at least one ingredient'
-      ]
+      type: [
+        {
+          name: { type: String, required: true },
+          quantity: { type: String, required: true },
+        },
+      ],
+      validate: {
+        validator: (val: unknown[]) => val.length > 0,
+        message: 'A recipe must have at least one ingredient',
+      },
     },
     steps: {
       type: [String],
-      validate: [
-        (val: string[]) => val.length > 0,
-        'A recipe must have at least one step'
-      ]
+      validate: {
+        validator: (val: string[]) => val.length > 0,
+        message: 'A recipe must have at least one step',
+      },
     },
     category: {
       type: String,
       required: true,
-      enum: ['Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Beverage', 'Snack']
+      enum: ['Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Beverage', 'Snack'],
+      index: true,
     },
     tags: {
       type: [String],
-      index: true
+      index: true,
     },
     prepTimeMinutes: {
       type: Number,
-      min: 0
+      min: 0,
     },
     cookTimeMinutes: {
       type: Number,
-      min: 0
+      min: 0,
     },
-    likes: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    }],
-    likesCount: {
-      type: Number,
-      default: 0
-    }
+    likes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
   },
   {
-    timestamps: true
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
 
-
-RecipeSchema.index({ 
-  title: 'text', 
-  'ingredients.name': 'text',
-  tags: 'text',
-  description: 'text'
+RecipeSchema.virtual('likesCount').get(function (this: IRecipe) {
+  return this.likes ? this.likes.length : 0;
 });
 
+function toSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '');
+}
+
+RecipeSchema.pre<IRecipe>('save', function () {
+  if (this.isModified('title') || !this.slug) {
+    this.slug = toSlug(this.title);
+  }
+});
+
+RecipeSchema.index({
+  title: 'text',
+  'ingredients.name': 'text',
+  tags: 'text',
+  description: 'text',
+});
+
+RecipeSchema.index({ category: 1, slug: 1 });
+
+export { toSlug };
 export default mongoose.model<IRecipe>('Recipe', RecipeSchema);

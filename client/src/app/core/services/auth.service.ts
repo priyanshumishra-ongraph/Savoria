@@ -6,6 +6,18 @@ import { Router } from '@angular/router';
 import { AuthResponse, User } from '../models/types';
 import { environment } from '../../../environments/environment';
 
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface RegisterData {
+  name: string;
+  email: string;
+  password: string;
+  avatarUrl?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -14,7 +26,7 @@ export class AuthService {
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
   private apiUrl = `${environment.apiUrl}/auth`;
-  
+
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   currentUser$ = this.currentUserSubject.asObservable();
 
@@ -22,22 +34,17 @@ export class AuthService {
     if (isPlatformBrowser(this.platformId)) {
       const savedUser = localStorage.getItem('user');
       const token = localStorage.getItem('token');
-      
+
       if (savedUser && token) {
-        // Optimistically set user from local storage
         this.currentUserSubject.next(JSON.parse(savedUser));
-        // Silently validate the token with the backend, deferred to avoid circular dependency
         setTimeout(() => this.validateSession(), 0);
       } else {
-        
         this.clearSession();
       }
     }
   }
 
   private validateSession() {
-    // Calling /me to verify if the token is still valid.
-    // If expired, the authInterceptor will intercept the 401 and call logout().
     this.http.get<User>(`${this.apiUrl}/me`).subscribe({
       next: (freshUser) => {
         if (isPlatformBrowser(this.platformId)) {
@@ -51,14 +58,18 @@ export class AuthService {
     });
   }
 
-  login(credentials: any) {
+  login(credentials: LoginCredentials) {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials).pipe(
       tap(res => this.setSession(res))
     );
   }
 
-  register(userData: any) {
+  register(userData: RegisterData) {
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, userData);
+  }
+
+  adminRegister(userData: RegisterData & { role?: string }) {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/admin-register`, userData);
   }
 
   getUsers() {
@@ -82,7 +93,7 @@ export class AuthService {
     this.currentUserSubject.next(null);
   }
 
-  getToken() { 
+  getToken(): string | null {
     if (isPlatformBrowser(this.platformId)) {
       return localStorage.getItem('token');
     }
@@ -96,5 +107,5 @@ export class AuthService {
       localStorage.setItem('user', JSON.stringify(user));
       this.currentUserSubject.next(user);
     }
-  }   
+  }
 }
