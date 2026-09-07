@@ -3,7 +3,7 @@ import { Component, inject, OnInit, PLATFORM_ID } from "@angular/core";
 import { RouterModule } from '@angular/router';
 import { RecipeService } from "../core/services/recipe.service";
 import { Recipe } from "../core/models/types";
-import { Observable, of } from 'rxjs';
+import { of } from 'rxjs';
 import { map, catchError, finalize } from 'rxjs/operators';
 import { RecipeCardComponent } from '../shared/components/recipe-card.component';
 
@@ -39,7 +39,7 @@ import { RecipeCardComponent } from '../shared/components/recipe-card.component'
         </div>
       </div>
 
-      <div class="dashboard-content" *ngIf="!isLoading && !error && (recipes$ | async) as recipes">
+      <div class="dashboard-content" *ngIf="!isLoading && !error">
         <ng-container *ngIf="recipes.length > 0; else noRecipes">
           <div class="recipe-grid">
             <app-recipe-card *ngFor="let recipe of recipes" [recipe]="recipe"></app-recipe-card>
@@ -88,23 +88,23 @@ export class MyRecipesComponent implements OnInit {
   private recipeService = inject(RecipeService);
   private platformId = inject(PLATFORM_ID);
 
-  recipes$!: Observable<Recipe[]>;
+  recipes: Recipe[] = [];
   isLoading = false;
   error: string | null = null;
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
       this.isLoading = true;
-      this.recipes$ = this.recipeService.getMyRecipes().pipe(
+      this.recipeService.getMyRecipes().pipe(
         map(response => response.recipes),
         catchError(err => {
           this.error = err.error?.message || 'Failed to load your recipes. Please try again.';
           return of([]);
         }),
         finalize(() => { this.isLoading = false; })
-      );
-    } else {
-      this.recipes$ = of([]);
+      ).subscribe(recipes => {
+        this.recipes = recipes;
+      });
     }
   }
 }
