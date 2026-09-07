@@ -4,7 +4,7 @@ import { protect, admin } from '../middleware/auth.middleware';
 
 const router = express.Router();
 
-router.post('/register', protect, admin, registerUser);
+router.post('/register', registerUser);
 router.post('/login', loginUser);
 router.get('/me', protect, getMe);
 router.get('/users', protect, admin, getAllUsers);

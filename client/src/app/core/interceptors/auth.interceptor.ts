@@ -20,7 +20,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req).pipe(
         catchError((error: HttpErrorResponse) => {
             console.error('Interceptor caught error for URL:', req.url, 'Status:', error.status);
-            if (error.status === 401) {
+            if (error.status === 401 && !req.url.includes('/api/auth/login') && !req.url.includes('/api/auth/register')) {
                 if (isPlatformBrowser(platformId)) {
                     console.error('Triggering logout due to 401 on URL:', req.url);
                     authService.logout();

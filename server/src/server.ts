@@ -27,7 +27,10 @@ const apiLimiter = rateLimit({
 
 app.use(cors(corsOptions));
 app.use(express.json());
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false
+}));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/recipes', recipeRoutes);

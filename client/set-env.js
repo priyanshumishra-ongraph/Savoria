@@ -18,7 +18,7 @@ function parseEnv() {
 }
 
 const env = parseEnv();
-const apiUrl = env.API_URL || 'http://localhost:3000/api';
+const apiUrl = process.env.API_URL || env.API_URL || 'http://localhost:3000/api';
 
 const envConfigFile = `export const environment = {
   apiUrl: '${apiUrl}'

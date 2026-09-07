@@ -27,7 +27,9 @@ import { MatButtonModule } from '@angular/material/button';
             <mat-icon style="color: #0c831f;">category</mat-icon>
           </div>
           <h3>Browse By Category</h3>
-          <a routerLink="/recipes" class="section-badge" style="background: #0c831f; text-decoration: none; cursor: pointer;">Explore</a>
+          <a routerLink="/recipes" class="section-badge" style="background: #0c831f; text-decoration: none; cursor: pointer;">Explore 
+            <mat-icon style="color: white; font-size: 16px; width: 16px; align-items: center; justify-content: center; height: 16px;">arrow_forward</mat-icon>
+          </a>
         </div>
 
         <div class="categories-grid fade-in">
@@ -53,7 +55,7 @@ import { MatButtonModule } from '@angular/material/button';
         </div>
 
         <div class="latest-recipe-wrapper fade-in" *ngIf="stats?.latestRecipe">
-          <mat-card class="latest-recipe-card" style="padding: 0;">
+          <div class="latest-recipe-card" style="padding: 0;">
             <!-- Info on LEFT -->
             <div class="recipe-info">
               <h4 class="recipe-title">{{ stats.latestRecipe.title }}</h4>
@@ -85,7 +87,7 @@ import { MatButtonModule } from '@angular/material/button';
               <div class="recipe-image" [style.background-image]="'url(' + (stats.latestRecipe.imageUrl && stats.latestRecipe.imageUrl !== 'placeholder-recipe.jpg' ? stats.latestRecipe.imageUrl : 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=800&q=80') + ')'"></div>
               <div class="category-pill">{{ stats.latestRecipe.category }}</div>
             </div>
-          </mat-card>
+          </div>
         </div>
         
         <mat-card class="latest-recipe-card empty fade-in" *ngIf="!stats?.latestRecipe">
@@ -230,13 +232,24 @@ import { MatButtonModule } from '@angular/material/button';
       font-size: 12px;
       font-weight: 700;
       text-transform: uppercase;
-      padding: 6px 12px;
-      border-radius: 20px;
+      padding: 8px 16px;
+      border-radius: 10px;
       letter-spacing: 0.5px;
       box-shadow: 0 4px 6px rgba(249, 115, 22, 0.3);
       margin-left: auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      line-height: 1;
     }
     
+    .section-badge mat-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     .section-badge.accent {
       background: #f97316;
       box-shadow: 0 4px 6px rgba(15, 118, 110, 0.3);
@@ -393,6 +406,11 @@ import { MatButtonModule } from '@angular/material/button';
     }
 
     .recipe-image {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       width: 100%;
       height: 100%;
       background-size: cover;
@@ -403,6 +421,7 @@ import { MatButtonModule } from '@angular/material/button';
     .latest-recipe-card:hover .recipe-image {
       transform: scale(1.08);
     }
+      
     
     .category-pill {
       position: absolute;
@@ -636,25 +655,65 @@ import { MatButtonModule } from '@angular/material/button';
       }
       .view-btn {
         width: 100%;
+        box-sizing: border-box;
         text-align: center;
+        justify-content: center;
       }
     }
     
     @media (max-width: 768px) {
+      .dashboard-container {
+        padding: 0 16px 40px;
+      }
       .header-text h2 {
-        font-size: 32px;
+        font-size: 28px;
       }
       .page-header {
-        padding: 30px 20px 10px;
+        padding: 20px 10px 10px;
       }
       .dashboard-content {
         margin-top: 10px;
       }
       .stat-value {
-        font-size: 48px;
+        font-size: 40px;
       }
       .author {
         display: none;
+      }
+      .section-header {
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .section-header h3 {
+        font-size: 20px;
+      }
+      .stats-grid, .categories-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Stack recipe card for tablets and mobile */
+    @media (max-width: 1024px) {
+      .latest-recipe-card {
+        flex-direction: column !important;
+      }
+      .recipe-image-container {
+        order: 1;
+        width: 100%;
+        height: 280px;
+        flex: none;
+      }
+      .recipe-info {
+        order: 2;
+        padding: 30px !important;
+      }
+    }
+    
+    /* Ensure image container stretches fully on desktop */
+    @media (min-width: 1025px) {
+      .recipe-image-container {
+        min-height: 100%;
+        align-self: stretch;
       }
     }
   `]

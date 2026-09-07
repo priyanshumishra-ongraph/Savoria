@@ -7,11 +7,13 @@ import { Recipe } from '../core/models/types';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
+import { ConfirmationModalComponent } from '../shared/components/confirmation-modal.component';
 
 @Component({
   selector: 'app-recipe-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatButtonModule, MatProgressSpinnerModule, MatIconModule],
+  imports: [CommonModule, RouterModule, MatButtonModule, MatProgressSpinnerModule, MatIconModule, MatSnackBarModule, ConfirmationModalComponent],
   template: `
     <div class="product-page-wrapper" *ngIf="recipe; else loadingOrError">
       <div class="product-main-container">
@@ -54,7 +56,10 @@ import { MatIconModule } from '@angular/material/icon';
           </div>
 
           <div class="actions-section">
-            <button class="add-to-cart-btn" *ngIf="!canEdit()">Start Cooking</button>
+            <button class="add-to-cart-btn" *ngIf="!canEdit()" (click)="startCooking()">Start Cooking</button>
+            <button class="add-to-cart-btn buy-btn" *ngIf="!canEdit()" (click)="buyIngredients()">
+              <mat-icon style="vertical-align: middle; margin-right: 4px; font-size: 20px; width: 20px; height: 20px;">shopping_cart</mat-icon> Buy Ingredients
+            </button>
             <button class="add-to-cart-btn edit-btn" *ngIf="canEdit()" [routerLink]="['/recipes/edit', recipe._id]">Edit Recipe</button>
             <button class="add-to-cart-btn delete-btn" *ngIf="canEdit()" (click)="deleteRecipe()">Delete</button>
           </div>
@@ -136,6 +141,122 @@ import { MatIconModule } from '@angular/material/icon';
         <mat-spinner diameter="40"></mat-spinner>
       </div>
     </ng-template>
+
+    <app-confirmation-modal
+      [isOpen]="showDeleteConfirm"
+      title="Delete Recipe"
+      [message]="'Are you sure you want to completely delete ' + recipe?.title + '? This action cannot be undone.'"
+      confirmText="Delete Recipe"
+      (confirm)="confirmDelete()"
+      (cancel)="cancelDelete()">
+    </app-confirmation-modal>
+
+    <!-- Cooking Mode Overlay -->
+    <div class="cooking-overlay" *ngIf="isCookingMode">
+      <div class="cooking-header">
+        <div class="header-left">
+          <h2>{{ recipe?.title }}</h2>
+          <span class="cooking-badge">Cooking Mode</span>
+        </div>
+        <button mat-icon-button (click)="exitCookingMode()" class="close-cooking-btn">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      
+      <div class="cooking-progress">
+        <div class="progress-bar" [style.width]="((currentStepIndex + 1) / (recipe?.steps?.length || 1)) * 100 + '%'"></div>
+      </div>
+      
+      <div class="cooking-body">
+        <!-- Left Sidebar: Reference Info -->
+        <div class="cooking-sidebar">
+          <div class="sidebar-image" [style.backgroundImage]="'url(' + (recipe?.imageUrl || 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=800&q=80') + ')'"></div>
+          <div class="sidebar-content">
+            <h3>Ingredients Reference</h3>
+            <ul class="cooking-ingredients">
+              <li *ngFor="let item of recipe?.ingredients">
+                <span class="ing-qty">{{ item?.quantity }}</span>
+                <span class="ing-name">{{ item?.name }}</span>
+              </li>
+            </ul>
+            <div class="cooking-meta">
+              <span><mat-icon>schedule</mat-icon> Prep: {{ recipe?.prepTimeMinutes }}m</span>
+              <span><mat-icon>whatshot</mat-icon> Cook: {{ recipe?.cookTimeMinutes }}m</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Main: Step Content -->
+        <div class="cooking-main">
+          <div class="step-content-wrapper">
+            <div class="step-counter">Step {{ currentStepIndex + 1 }} of {{ recipe?.steps?.length }}</div>
+            <p class="step-text">{{ recipe?.steps?.[currentStepIndex] }}</p>
+          </div>
+          
+          <div class="cooking-controls">
+            <button class="cooking-nav-btn btn-prev" (click)="prevStep()" [disabled]="currentStepIndex === 0">Previous</button>
+            <button class="cooking-nav-btn btn-next" (click)="nextStep()" *ngIf="currentStepIndex < (recipe?.steps?.length || 1) - 1">Next Step</button>
+            <button class="cooking-nav-btn btn-finish" (click)="exitCookingMode()" *ngIf="currentStepIndex === (recipe?.steps?.length || 1) - 1">Finish Cooking!</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mock Checkout Modal -->
+    <div class="checkout-overlay" *ngIf="showCheckoutModal">
+      <div class="checkout-modal">
+        <div class="checkout-header">
+          <h2>Grocery Checkout</h2>
+          <button mat-icon-button (click)="closeCheckout()" [disabled]="isProcessingPayment">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        
+        <div class="checkout-body" *ngIf="!paymentSuccess">
+          <div class="cart-items">
+            <div class="cart-item" *ngFor="let item of mockCartItems">
+              <span class="item-name">{{ item.quantity }} {{ item.name }}</span>
+              <span class="item-price">{{ item.price | currency }}</span>
+            </div>
+          </div>
+          
+          <div class="cart-summary">
+            <div class="summary-row">
+              <span>Subtotal</span>
+              <span>{{ mockCartTotal | currency }}</span>
+            </div>
+            <div class="summary-row">
+              <span>Delivery Fee</span>
+              <span>$3.99</span>
+            </div>
+            <div class="summary-row">
+              <span>Taxes</span>
+              <span>{{ mockCartTotal * 0.08 | currency }}</span>
+            </div>
+            <div class="summary-row total-row">
+              <span>Total</span>
+              <span>{{ mockCartTotal + 3.99 + (mockCartTotal * 0.08) | currency }}</span>
+            </div>
+          </div>
+          
+          <div class="payment-section">
+            <button class="pay-btn" (click)="processPayment()" [disabled]="isProcessingPayment">
+              <mat-spinner *ngIf="isProcessingPayment" diameter="24" color="accent"></mat-spinner>
+              <span *ngIf="!isProcessingPayment">Pay Now</span>
+            </button>
+          </div>
+        </div>
+        
+        <div class="checkout-success" *ngIf="paymentSuccess">
+          <div class="success-icon">
+            <mat-icon>check_circle</mat-icon>
+          </div>
+          <h3>Payment Successful!</h3>
+          <p>Your ingredients are being prepared and will be delivered shortly.</p>
+          <button class="done-btn" (click)="closeCheckout()">Done</button>
+        </div>
+      </div>
+    </div>
   `,
   styles: [`
     .product-page-wrapper {
@@ -278,6 +399,13 @@ import { MatIconModule } from '@angular/material/icon';
     .add-to-cart-btn:hover {
       background: #0b731b;
     }
+    .add-to-cart-btn.buy-btn {
+      background: #ea580c;
+      box-shadow: 0 4px 6px rgba(234, 88, 12, 0.2);
+    }
+    .add-to-cart-btn.buy-btn:hover {
+      background: #c2410c;
+    }
     .add-to-cart-btn.edit-btn {
       background: #2b6cb0;
       box-shadow: 0 4px 6px rgba(43, 108, 176, 0.2);
@@ -319,6 +447,7 @@ import { MatIconModule } from '@angular/material/icon';
       font-size: 15px; color: #4a5568;
     }
     .ing-name { font-weight: 500; color: #2d3748; }
+    .ing-qty { font-weight: 700; color: #ea580c; }
     
     .instructions-list {
       padding-left: 20px; margin: 0;
@@ -443,6 +572,140 @@ import { MatIconModule } from '@angular/material/icon';
       .product-main-container { grid-template-columns: 1fr; gap: 30px; }
       .specs-grid { flex-wrap: wrap; }
     }
+
+    /* Cooking Mode Styles */
+    .cooking-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: #ffffff; z-index: 9999;
+      display: flex; flex-direction: column;
+      animation: slideUp 0.3s ease-out;
+    }
+    .cooking-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 32px; border-bottom: 1px solid #e2e8f0; background: #ffffff;
+    }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .header-left h2 { margin: 0; font-size: 24px; color: #1a202c; font-weight: 800; }
+    .cooking-badge { background: #ea580c; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+    .close-cooking-btn { color: #718096; transform: scale(1.2); }
+    
+    .cooking-progress { height: 8px; background: #f1f5f9; width: 100%; }
+    .progress-bar { height: 100%; background: #ea580c; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+    
+    .cooking-body {
+      flex: 1; display: flex; overflow: hidden;
+    }
+    
+    .cooking-sidebar {
+      width: 380px; background: #faf5eb; border-right: 1px solid #e2e8f0;
+      display: flex; flex-direction: column;
+    }
+    .sidebar-image {
+      height: 200px; background-size: cover; background-position: center;
+      border-bottom: 4px solid #ea580c;
+    }
+    .sidebar-content {
+      padding: 24px; overflow-y: auto; flex: 1;
+    }
+    .sidebar-content h3 { font-size: 18px; color: #ea580c; margin: 0 0 16px 0; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+    .cooking-ingredients { list-style: none; padding: 0; margin: 0 0 24px 0; }
+    .cooking-ingredients li { display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid #e2e8f0; font-size: 15px; }
+    .cooking-ingredients li:last-child { border-bottom: none; }
+    .cooking-ingredients .ing-qty { font-weight: 700; color: #ea580c; flex: 0 0 100px; word-wrap: break-word; }
+    .cooking-ingredients .ing-name { color: #2d3748; font-weight: 500; }
+    .cooking-meta { display: flex; flex-direction: column; gap: 12px; color: #718096; font-weight: 600; font-size: 14px; }
+    .cooking-meta span { display: flex; align-items: center; gap: 8px; }
+    
+    .cooking-main {
+      flex: 1; display: flex; flex-direction: column; background: #ffffff;
+    }
+    .step-content-wrapper {
+      flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
+      padding: 60px; text-align: center; overflow-y: auto;
+    }
+    .step-counter { font-size: 20px; color: #ea580c; font-weight: 700; margin-bottom: 32px; text-transform: uppercase; letter-spacing: 2px; }
+    .step-text { font-size: 48px; font-weight: 800; color: #1a202c; line-height: 1.3; margin: 0; max-width: 900px; }
+    
+    .cooking-controls {
+      display: flex; justify-content: space-between; padding: 24px 60px; border-top: 1px solid #e2e8f0; background: #ffffff;
+    }
+    .cooking-nav-btn {
+      font-size: 18px; font-weight: 700; padding: 0 40px; height: 56px; border-radius: 8px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+    .btn-prev {
+      background: white; color: #4a5568; border: 2px solid #e2e8f0;
+    }
+    .btn-prev:hover:not([disabled]) { border-color: #cbd5e1; background: #f8fafc; }
+    .btn-prev[disabled] { opacity: 0.5; cursor: not-allowed; }
+    
+    .btn-next, .btn-finish {
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; border: none;
+      box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
+    }
+    .btn-next:hover, .btn-finish:hover {
+      box-shadow: 0 6px 16px rgba(234, 88, 12, 0.4); transform: translateY(-1px);
+    }
+    .btn-finish { background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3); }
+    .btn-finish:hover { box-shadow: 0 6px 16px rgba(22, 163, 74, 0.4); }
+    
+    @media (max-width: 900px) {
+      .cooking-body { flex-direction: column-reverse; }
+      .cooking-sidebar { width: 100%; height: 40%; border-right: none; border-top: 1px solid #e2e8f0; }
+      .sidebar-image { display: none; }
+      .step-text { font-size: 32px; }
+      .step-content-wrapper { padding: 32px; }
+      .cooking-controls { padding: 20px 32px; }
+      .cooking-nav-btn { font-size: 16px; padding: 0 24px; height: 50px; }
+    }
+
+    /* Checkout Modal Styles */
+    .checkout-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.6); z-index: 10000;
+      display: flex; justify-content: center; align-items: center;
+      animation: fadeIn 0.2s ease-out;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .checkout-modal {
+      background: white; width: 90%; max-width: 450px;
+      border-radius: 16px; overflow: hidden;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .checkout-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 24px; background: #faf5eb; border-bottom: 1px solid #e2e8f0;
+    }
+    .checkout-header h2 { margin: 0; font-size: 20px; color: #1a202c; font-weight: 800; }
+    .checkout-body { padding: 24px; }
+    .cart-items { max-height: 250px; overflow-y: auto; margin-bottom: 24px; padding-right: 8px; }
+    .cart-items::-webkit-scrollbar { width: 6px; }
+    .cart-items::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .cart-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed #e2e8f0; }
+    .item-name { color: #4a5568; font-weight: 500; font-size: 15px; }
+    .item-price { color: #1a202c; font-weight: 700; font-size: 15px; }
+    .cart-summary { background: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 24px; }
+    .summary-row { display: flex; justify-content: space-between; margin-bottom: 8px; color: #718096; font-size: 14px; }
+    .total-row { font-size: 18px; font-weight: 800; color: #ea580c; margin-top: 12px; padding-top: 12px; border-top: 1px solid #cbd5e1; }
+    .pay-btn {
+      width: 100%; background: #16a34a; color: white; border: none;
+      height: 54px; border-radius: 8px; font-size: 18px; font-weight: 800;
+      cursor: pointer; transition: background 0.2s; display: flex; justify-content: center; align-items: center;
+    }
+    .pay-btn:hover:not([disabled]) { background: #15803d; }
+    .pay-btn[disabled] { background: #86efac; cursor: not-allowed; }
+    .checkout-success { padding: 48px 24px; text-align: center; }
+    .success-icon { color: #16a34a; margin-bottom: 16px; }
+    .success-icon mat-icon { font-size: 64px; width: 64px; height: 64px; }
+    .checkout-success h3 { font-size: 24px; color: #1a202c; margin: 0 0 12px 0; font-weight: 800; }
+    .checkout-success p { color: #718096; margin: 0 0 32px 0; font-size: 16px; line-height: 1.5; }
+    .done-btn {
+      background: #ea580c; color: white; border: none; padding: 0 32px; height: 48px;
+      border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; transition: background 0.2s;
+    }
+    .done-btn:hover { background: #c2410c; }
   `]
 })
 export class RecipeDetailComponent implements OnInit {
@@ -452,11 +715,13 @@ export class RecipeDetailComponent implements OnInit {
   private authService = inject(AuthService);
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
+  private snackBar = inject(MatSnackBar);
 
   recipe: Recipe | null = null;
   currentUser: any = null;
   similarRecipes: Recipe[] = [];
   otherRecipes: Recipe[] = [];
+  showDeleteConfirm = false;
 
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => this.currentUser = user);
@@ -479,6 +744,7 @@ export class RecipeDetailComponent implements OnInit {
   fetchRecipeDataBySlug(category: string, titleSlug: string) {
     this.recipe = null;
     this.cdr.detectChanges();
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
 
     this.recipeService.getRecipeBySlug(category, titleSlug).subscribe({
       next: (data) => {
@@ -500,6 +766,7 @@ export class RecipeDetailComponent implements OnInit {
   fetchRecipeData(id: string) {
     this.recipe = null; // show loader
     this.cdr.detectChanges();
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
 
     this.recipeService.getRecipeById(id).subscribe({
       next: (data) => {
@@ -541,10 +808,91 @@ export class RecipeDetailComponent implements OnInit {
   }
 
   deleteRecipe() {
-    if (confirm('Are you sure you want to delete this recipe?')) {
-      this.recipeService.deleteRecipe(this.recipe!._id).subscribe(() => {
+    this.showDeleteConfirm = true;
+  }
+
+  confirmDelete() {
+    this.showDeleteConfirm = false;
+    if (this.recipe) {
+      this.recipeService.deleteRecipe(this.recipe._id).subscribe(() => {
+        this.snackBar.open('The recipe has been deleted.', 'Close', {
+          duration: 3000,
+          horizontalPosition: 'center',
+          verticalPosition: 'bottom'
+        });
         this.router.navigate(['/dashboard']);
       });
+    }
+  }
+
+  cancelDelete() {
+    this.showDeleteConfirm = false;
+  }
+  
+  showCheckoutModal = false;
+  isProcessingPayment = false;
+  paymentSuccess = false;
+  mockCartItems: any[] = [];
+  mockCartTotal = 0;
+  
+  buyIngredients() {
+    this.mockCartItems = [];
+    this.mockCartTotal = 0;
+    
+    if (this.recipe?.ingredients) {
+      this.recipe.ingredients.forEach(ing => {
+        // Generate a deterministic mock price between $1.50 and $9.50 based on the ingredient name
+        const mockPrice = 1.5 + ((ing.name?.length || 5) % 8);
+        this.mockCartItems.push({
+          name: ing.name,
+          quantity: ing.quantity,
+          price: mockPrice
+        });
+        this.mockCartTotal += mockPrice;
+      });
+    } else {
+      this.mockCartTotal = 15.99;
+    }
+    
+    this.isProcessingPayment = false;
+    this.paymentSuccess = false;
+    this.showCheckoutModal = true;
+  }
+
+  closeCheckout() {
+    this.showCheckoutModal = false;
+  }
+
+  processPayment() {
+    this.isProcessingPayment = false;
+    this.paymentSuccess = true;
+  }
+
+  isCookingMode = false;
+  currentStepIndex = 0;
+  
+  startCooking() {
+    if (this.recipe && this.recipe.steps && this.recipe.steps.length > 0) {
+      this.isCookingMode = true;
+      this.currentStepIndex = 0;
+      document.body.style.overflow = 'hidden';
+    }
+  }
+  
+  exitCookingMode() {
+    this.isCookingMode = false;
+    document.body.style.overflow = '';
+  }
+  
+  nextStep() {
+    if (this.recipe && this.recipe.steps && this.currentStepIndex < this.recipe.steps.length - 1) {
+      this.currentStepIndex++;
+    }
+  }
+  
+  prevStep() {
+    if (this.currentStepIndex > 0) {
+      this.currentStepIndex--;
     }
   }
 }

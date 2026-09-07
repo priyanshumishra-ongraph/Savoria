@@ -230,6 +230,7 @@ import { ViewChild, AfterViewInit } from '@angular/core';
       max-width: 100%;
       padding: 0 40px;
       margin: 0 auto;
+      max-width: 1200px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -268,7 +269,7 @@ import { ViewChild, AfterViewInit } from '@angular/core';
     }
 
     .dashboard-content {
-      max-width: 100%;
+      max-width: 1200px;
       margin: 40px auto;
       padding: 0 40px;
     }

@@ -21,15 +21,17 @@ let recipeId: string;
 let userId: string;
 
 beforeAll(async () => {
-  await mongoose.connect(process.env.MONGODB_URI as string);
+  const testUri = (process.env.MONGODB_URI as string).replace('Savoria', 'Savoria-Test');
+  await mongoose.connect(testUri);
   await User.deleteMany();
   await Recipe.deleteMany();
 
-  const user = await request(app).post('/api/auth/register').send({
+  const userRes = await request(app).post('/api/auth/register').send({
     name: 'Normal User', email: 'user@test.com', password: 'password'
   });
-  userToken = user.body.token;
-  userId = user.body._id;
+  if (userRes.status !== 201) console.error("Register Error:", userRes.body);
+  userToken = userRes.body.token;
+  userId = userRes.body._id;
 
   const admin = await User.create({ name: 'Admin', email: 'admin@test.com', password: 'password', role: 'admin' });
   const adminLogin = await request(app).post('/api/auth/login').send({ email: 'admin@test.com', password: 'password' });
@@ -41,6 +43,7 @@ afterAll(async () => {
 });
 
 describe('Recipe API & Authorization', () => {
+  console.log("Tokens generated:", { userToken, adminToken });
   it('should FAIL validation when missing title', async () => {
     const res = await request(app).post('/api/recipes')
       .set('Authorization', `Bearer ${userToken}`)

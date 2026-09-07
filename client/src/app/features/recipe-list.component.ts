@@ -97,7 +97,7 @@ import { RecipeCardComponent } from '../shared/components/recipe-card.component'
   `,
   styles: [`
     .dashboard-wrapper { background-color: #faf5eb; min-height: 100vh; padding-bottom: 60px; }
-    .dashboard-header { background: white; padding: 30px 20px; border-bottom: 1px solid #edf2f7; position: sticky; top: 0; z-index: 90; }
+    .dashboard-header { background: white; padding: 30px 20px; border-bottom: 1px solid #edf2f7; position: relative; top: 0; z-index: 90; }
     .header-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
     .title-area h2 { margin: 0; font-size: 28px; font-weight: 800; color: #3C2218; }
     .title-area p { margin: 4px 0 0; color: #718096; }
