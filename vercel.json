@@ -1,0 +1,7 @@
+{
+  "buildCommand": "cd client && npm install && node set-env.js && npm run build",
+  "outputDirectory": "client/dist/client",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
