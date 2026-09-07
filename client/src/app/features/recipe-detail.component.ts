@@ -797,7 +797,7 @@ export class RecipeDetailComponent implements OnInit {
 
   canEdit(): boolean {
     if (!this.currentUser || !this.recipe || !this.recipe.owner) return false;
-    return this.currentUser.id === (typeof this.recipe.owner === 'object' ? this.recipe.owner._id : this.recipe.owner) || this.currentUser.role === 'admin';
+    return this.currentUser._id === (typeof this.recipe.owner === 'object' ? this.recipe.owner._id : this.recipe.owner) || this.currentUser.role === 'admin';
   }
 
   getOwnerName(): string {

@@ -223,10 +223,20 @@ export class RecipeFormComponent implements OnInit {
     
     // Parse Text into backend Arrays
     const ingredientsArray = formVal.ingredientsText.split(',').map((i: string) => i.trim()).filter((i: string) => i).map((item: string) => {
-      const parts = item.split(' ');
-      return /^\d/.test(parts[0]) 
-        ? { quantity: parts.shift(), name: parts.join(' ') } 
-        : { quantity: '1', name: item };
+      const match = item.match(/^((?:\d[\d\s\/\.\-]*|for garnish)?(?:\([^)]+\)\s*)?(?:(?:cups?|tbsp|tsp|oz|lbs?|g|ml|pinch|dash|cloves?|bunch|slices?|heads?)\b\s*)?)(.*)$/i);
+      let qty = (match && match[1].trim()) ? match[1].trim() : '-';
+      let name = match ? match[2].trim() : item;
+      
+      if (qty === '-' || qty === '') {
+        const parts = item.split(' ');
+        if (/^\d/.test(parts[0])) {
+          qty = parts.shift() || '-';
+          name = parts.join(' ');
+        } else {
+          qty = '-';
+        }
+      }
+      return { quantity: qty, name: name || item };
     });
 
     const payload = {
@@ -243,7 +253,8 @@ export class RecipeFormComponent implements OnInit {
     request$.subscribe({
       next: (savedRecipe: any) => {
         this.isSubmitting = false;
-        this.router.navigate(['/recipes', savedRecipe._id || this.recipeId]);
+        const slug = savedRecipe.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+        this.router.navigate(['/recipes', savedRecipe.category.toLowerCase(), slug]);
       },
       error: (err) => {
         this.isSubmitting = false;

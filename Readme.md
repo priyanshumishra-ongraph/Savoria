@@ -1,8 +1,84 @@
-# Savoria
+<div align="center">
+  <img src="assets/Dashboard.png" alt="Savoria Dashboard" width="100%" style="border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 14px rgba(0,0,0,0.1);"/>
+  
+  # 🍳 Savoria Recipe App
+  
+  **A robust, modern Full-Stack Recipe Web Application built with the MEAN Stack.**
+  
+  [![Angular](https://img.shields.io/badge/Angular-DD0031?style=for-the-badge&logo=angular&logoColor=white)](https://angular.io/)
+  [![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+  [![Express.js](https://img.shields.io/badge/Express.js-404D59?style=for-the-badge)](https://expressjs.com/)
+  [![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)](https://mongodb.com/)
+</div>
 
-A robust, modern Full-Stack Recipe Web Application built with the **MEAN Stack** (MongoDB, Express, Angular 17+ Standalone, Node.js). 
+---
 
-This project focuses on strict REST API design, robust database schemas, secure authentication, role-based access control, and a reactive Angular frontend.
+Savoria focuses on strict REST API design, robust database schemas, secure authentication, role-based access control, and a lightning-fast reactive Angular 17+ standalone frontend.
+
+## ✨ Features
+
+- 🔐 **Secure Authentication**: JWT-based auth with encrypted passwords and 401 handling.
+- 🧑‍🍳 **Role-Based Access Control**: Admins can moderate recipes and users.
+- 🛒 **Dynamic Checkout**: Mock checkout flow for ingredients with dynamic cart calculations.
+- 🔍 **Advanced Search**: Compound text indexes for incredibly fast title, tag, and ingredient searching.
+- 📱 **Fully Responsive**: Carefully crafted mobile, tablet, and desktop layouts.
+
+---
+
+## 📂 Folder Structure
+
+The project follows a strict monorepo architecture, separating the Angular frontend and Node.js backend.
+
+### Frontend (`client/`)
+```text
+client/
+├── src/
+│   ├── app/
+│   │   ├── core/           # Guards, Interceptors, Models, and API Services
+│   │   ├── features/       # Smart components (Dashboard, Login, RecipeDetail, etc.)
+│   │   ├── shared/         # Reusable UI components & pipes (Navbar, Footer, RecipeCard)
+│   │   ├── app.routes.ts   # Application routing configuration
+│   │   └── app.ts          # Root component
+│   └── environments/       # Environment variables (API URLs)
+```
+
+### Backend (`server/`)
+```text
+server/
+├── src/
+│   ├── controllers/        # Business logic for routes
+│   ├── middleware/         # Custom middleware (JWT protect, Admin role checking)
+│   ├── models/             # Mongoose database schemas (User, Recipe)
+│   ├── routes/             # Express router definitions
+│   ├── scripts/            # Database seeding scripts
+│   ├── tests/              # Jest integration test suites
+│   ├── validators/         # Express-validator rule chains
+│   └── server.ts           # App entry point & express configuration
+```
+
+---
+
+## 📸 Screenshots
+
+| Dashboard | Categories |
+| :---: | :---: |
+| <img src="assets/Dashboard.png" alt="Dashboard" width="400"/> | <img src="assets/Categories.png" alt="Categories" width="400"/> |
+
+| Recipe View | Cooking Mode |
+| :---: | :---: |
+| <img src="assets/Recipe see by user.png" alt="Recipe View" width="400"/> | <img src="assets/Cooking Mode.png" alt="Cooking Mode" width="400"/> |
+
+| Payment Checkout | Add Recipe |
+| :---: | :---: |
+| <img src="assets/Payment-checkout.png" alt="Checkout" width="400"/> | <img src="assets/Add Recipe.png" alt="Add Recipe" width="400"/> |
+
+| My Recipes | Admin Panel |
+| :---: | :---: |
+| <img src="assets/My Recipe.png" alt="My Recipes" width="400"/> | <img src="assets/Users.png" alt="Admin Panel" width="400"/> |
+
+| Recipe Scroll | Admin Recipes |
+| :---: | :---: |
+| <img src="assets/Recipe scroll.png" alt="Recipe Scroll" width="400"/> | <img src="assets/Recipe added by admin.png" alt="Admin Recipes" width="400"/> |
 
 ---
 
@@ -61,6 +137,32 @@ This project focuses on strict REST API design, robust database schemas, secure 
 - **Mock Checkout Flow**: Added a "Buy Ingredients" button that launches a beautifully styled, dynamic cart modal which calculates subtotals, delivery fees, and taxes based on the specific recipe's ingredients.
 - **Test Suite Enhancements**: Updated backend tests to securely execute against a dedicated `Savoria-Test` database, completely preventing accidental production data deletion during test teardowns.
 - **Deployment Configuration**: Added a `start` script for Render compatibility and updated the frontend `set-env.js` file to seamlessly integrate with Vercel's standard environment variables (`process.env.API_URL`).
+
+---
+
+## 🛡️ Authentication & Authorization Walkthrough
+
+Savoria implements strict **Role-Based Access Control (RBAC)** to ensure users can only modify their own data. This is proven and enforced by both the UI and the automated test suite.
+
+**1. Creating a Recipe (Authenticated User)**
+When a logged-in user creates a recipe, the backend automatically attaches their unique `User ID` to the recipe's `owner` field via the JWT payload.
+
+**2. Editing/Deleting (Owner)**
+If the original author clicks "Edit" or "Delete", the backend verifies that `recipe.owner === req.user.id`. Since they match, the action is permitted (`200 OK`).
+
+**3. The 403 Forbidden Guard (Different User)**
+If User B attempts to send a `PUT` or `DELETE` request to User A's recipe, the backend intercepts it:
+```typescript
+if (recipe.owner.toString() !== req.user.id && req.user.role !== 'admin') {
+  return res.status(403).json({ message: 'Forbidden' });
+}
+```
+The server immediately rejects the request with a `403 Forbidden` status. The frontend intercepts this error and displays an access denied message without crashing.
+
+**4. The Admin Override**
+If an `admin` attempts to delete User A's recipe, the same block of code sees `req.user.role === 'admin'` and allows the deletion to proceed.
+
+*Note: All of these scenarios are fully covered by the automated integration tests (`npm run test` in the server).*
 
 ---
 
