@@ -1,5 +1,5 @@
 import { CommonModule, isPlatformBrowser } from "@angular/common";
-import { Component, inject, OnInit, PLATFORM_ID } from "@angular/core";
+import { Component, inject, OnInit, PLATFORM_ID, ChangeDetectorRef } from "@angular/core";
 import { RouterModule } from '@angular/router';
 import { RecipeService } from "../core/services/recipe.service";
 import { Recipe } from "../core/models/types";
@@ -87,6 +87,7 @@ import { RecipeCardComponent } from '../shared/components/recipe-card.component'
 export class MyRecipesComponent implements OnInit {
   private recipeService = inject(RecipeService);
   private platformId = inject(PLATFORM_ID);
+  private cdr = inject(ChangeDetectorRef);
 
   recipes: Recipe[] = [];
   isLoading = false;
@@ -99,11 +100,16 @@ export class MyRecipesComponent implements OnInit {
         map(response => response.recipes),
         catchError(err => {
           this.error = err.error?.message || 'Failed to load your recipes. Please try again.';
+          this.isLoading = false;
+          this.cdr.detectChanges();
           return of([]);
-        }),
-        finalize(() => { this.isLoading = false; })
+        })
       ).subscribe(recipes => {
-        this.recipes = recipes;
+        if (recipes.length > 0 || !this.error) {
+          this.recipes = recipes;
+        }
+        this.isLoading = false;
+        this.cdr.detectChanges();
       });
     }
   }
