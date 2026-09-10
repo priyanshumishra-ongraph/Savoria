@@ -19,6 +19,7 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.4.1",
+    "@types/multer": "^2.2.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
@@ -34,7 +35,6 @@
   "devDependencies": {
     "@jest/globals": "^30.5.1",
     "@types/jest": "^30.0.0",
-    "@types/multer": "^2.2.0",
     "@types/supertest": "^7.2.1",
     "jest": "^30.5.1",
     "nodemon": "^3.1.14",

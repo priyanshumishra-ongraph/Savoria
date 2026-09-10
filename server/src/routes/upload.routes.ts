@@ -1,5 +1,5 @@
-import express from 'express';
-import multer from 'multer';
+import express, { Request } from 'express';
+import multer, { FileFilterCallback } from 'multer';
 import path from 'path';
 
 import fs from 'fs';
@@ -7,7 +7,7 @@ import fs from 'fs';
 const router = express.Router();
 
 const storage = multer.diskStorage({
-  destination(req, file, cb) {
+  destination(req: Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) {
     const folder = req.params.folder || 'misc';
     const dynamicUploadDir = path.join(__dirname, `../../uploads/${folder}`);
     if (!fs.existsSync(dynamicUploadDir)) {
@@ -15,7 +15,7 @@ const storage = multer.diskStorage({
     }
     cb(null, dynamicUploadDir);
   },
-  filename(req, file, cb) {
+  filename(req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) {
     const title = req.body.title;
     if (title) {
        const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
@@ -42,12 +42,12 @@ function checkFileType(file: Express.Multer.File, cb: multer.FileFilterCallback)
 
 const upload = multer({
   storage,
-  fileFilter: function (req, file, cb) {
+  fileFilter: function (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) {
     checkFileType(file, cb);
   },
 });
 
-router.post('/:folder', upload.single('image'), (req, res) => {
+router.post('/:folder', upload.single('image'), (req: Request, res: express.Response) => {
   const folder = req.params.folder || 'misc';
   if (req.file) {
     res.json({
