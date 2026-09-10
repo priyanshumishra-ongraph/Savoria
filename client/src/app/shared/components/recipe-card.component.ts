@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Recipe } from '../../core/models/types';
 import { TimeFormatPipe } from '../pipes/time-format.pipe';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-recipe-card',
@@ -11,7 +12,7 @@ import { TimeFormatPipe } from '../pipes/time-format.pipe';
   template: `
     <a [routerLink]="['/recipes', recipe.category.toLowerCase(), getSlug(recipe.title)]" class="recipe-card">
       <div class="image-wrapper">
-        <img [src]="recipe.imageUrl || getCategoryImage(recipe.category)" [alt]="recipe.title">
+        <img [src]="getImageUrl(recipe.imageUrl) || getCategoryImage(recipe.category)" [alt]="recipe.title">
         <div class="difficulty-badge" [ngClass]="recipe.difficulty.toLowerCase()">
           {{ recipe.difficulty }}
         </div>
@@ -141,6 +142,12 @@ import { TimeFormatPipe } from '../pipes/time-format.pipe';
 export class RecipeCardComponent {
   @Input({ required: true }) recipe!: Recipe;
   @Input() showAuthor: boolean = false;
+
+  getImageUrl(url: string | undefined): string | null {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    return `${environment.apiUrl.replace('/api', '')}${url}`;
+  }
 
   getCategoryImage(category: string): string {
     const images: Record<string, string> = {

@@ -80,6 +80,13 @@ export class AuthService {
     return this.http.delete(`${this.apiUrl}/users/${id}`);
   }
 
+  uploadImage(file: File, nameHint: string = '') {
+    const formData = new FormData();
+    if (nameHint) formData.append('title', nameHint);
+    formData.append('image', file);
+    return this.http.post<{ message: string; imageUrl: string }>(`${environment.apiUrl}/upload/avatars`, formData);
+  }
+
   logout() {
     this.clearSession();
     this.router.navigate(['/login']);

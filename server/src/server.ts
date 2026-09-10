@@ -1,10 +1,12 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import path from 'path';
 import { connectDB } from './config/db';
 import authRoutes from './routes/auth.routes';
 import recipeRoutes from './routes/recipe.routes';
 import dashboardRoutes from './routes/dashboard.routes';
+import uploadRoutes from './routes/upload.routes';
 import { errorHandler, notFound } from './middleware/error.middleware';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
@@ -39,8 +41,11 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '10kb' }));
 app.use(helmet({
   contentSecurityPolicy: false,
-  crossOriginEmbedderPolicy: true,
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
+
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.use('/api', apiLimiter);
 app.use('/api/auth', authLimiter);
@@ -48,6 +53,7 @@ app.use('/api/auth', authLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/upload', uploadRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

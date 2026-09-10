@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { environment } from '../../environments/environment';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { RecipeService } from '../core/services/recipe.service';
 import { AuthService } from '../core/services/auth.service';
@@ -21,7 +22,7 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
         <!-- Left: Image Section -->
         <div class="product-image-col">
           <div class="main-image-wrapper">
-            <img [src]="recipe.imageUrl || 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=800&q=80'" [alt]="recipe.title" class="main-image">
+            <img [src]="getImageUrl(recipe.imageUrl) || 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=800&q=80'" [alt]="recipe.title" class="main-image">
           </div>
           <div class="tags-row" *ngIf="recipe.tags && recipe.tags.length > 0">
             <span class="tag-badge" *ngFor="let tag of recipe.tags">#{{ tag }}</span>
@@ -97,7 +98,7 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
           <div class="product-carousel">
             <div class="product-card" *ngFor="let r of similarRecipes" [routerLink]="['/recipes', r.category.toLowerCase(), getSlug(r.title)]">
               <div class="card-img-wrapper">
-                <img [src]="r.imageUrl || 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=800&q=80'" class="card-img">
+                <img [src]="getImageUrl(r.imageUrl) || 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=800&q=80'" class="card-img">
                 <div class="time-badge">
                   <mat-icon style="font-size:12px; width:12px; height:12px; margin-top:2px;">schedule</mat-icon>
                   {{ r.cookTimeMinutes || 0 }} MINS
@@ -118,7 +119,7 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
           <div class="product-carousel">
             <div class="product-card" *ngFor="let r of otherRecipes" [routerLink]="['/recipes', r.category.toLowerCase(), getSlug(r.title)]">
               <div class="card-img-wrapper">
-                <img [src]="r.imageUrl || 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=800&q=80'" class="card-img">
+                <img [src]="getImageUrl(r.imageUrl) || 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=800&q=80'" class="card-img">
                 <div class="time-badge">
                   <mat-icon style="font-size:12px; width:12px; height:12px; margin-top:2px;">schedule</mat-icon>
                   {{ r.cookTimeMinutes || 0 }} MINS
@@ -170,7 +171,7 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
       <div class="cooking-body">
         <!-- Left Sidebar: Reference Info -->
         <div class="cooking-sidebar">
-          <div class="sidebar-image" [style.backgroundImage]="'url(' + (recipe?.imageUrl || 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=800&q=80') + ')'"></div>
+          <div class="sidebar-image" [style.backgroundImage]="'url(' + (getImageUrl(recipe?.imageUrl) || 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=800&q=80') + ')'"></div>
           <div class="sidebar-content">
             <h3>Ingredients Reference</h3>
             <ul class="cooking-ingredients">
@@ -722,6 +723,12 @@ export class RecipeDetailComponent implements OnInit {
   similarRecipes: Recipe[] = [];
   otherRecipes: Recipe[] = [];
   showDeleteConfirm = false;
+
+  getImageUrl(url: string | undefined): string | null {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    return `${environment.apiUrl.replace('/api', '')}${url}`;
+  }
 
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => this.currentUser = user);

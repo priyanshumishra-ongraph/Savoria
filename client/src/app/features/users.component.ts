@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, PLATFORM_ID, ChangeDetectorRef } from "@angular/core";
 import { isPlatformBrowser, CommonModule } from "@angular/common";
+import { environment } from '../../environments/environment';
 import { FormsModule } from "@angular/forms";
 import { AuthService } from "../core/services/auth.service";
 import { User } from "../core/models/types";
@@ -14,6 +15,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSelectModule } from '@angular/material/select';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ViewChild, AfterViewInit } from '@angular/core';
 @Component({
   selector: 'app-users',
@@ -21,7 +23,7 @@ import { ViewChild, AfterViewInit } from '@angular/core';
   imports: [
     CommonModule, FormsModule, LoadingSpinnerComponent, ConfirmationModalComponent,
     MatTableModule, MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule, MatCardModule,
-    MatPaginatorModule, MatSelectModule
+    MatPaginatorModule, MatSelectModule, MatProgressSpinnerModule
   ],
   template: `
     <div class="dashboard-wrapper">
@@ -48,7 +50,7 @@ import { ViewChild, AfterViewInit } from '@angular/core';
               <td mat-cell *matCellDef="let u">
                 <div class="avatar-only">
                   <div class="avatar" *ngIf="!u.avatarUrl || u.avatarUrl === 'default-avatar.png'">{{ getInitials(u.name) }}</div>
-                  <img class="avatar-img" *ngIf="u.avatarUrl && u.avatarUrl !== 'default-avatar.png'" [src]="u.avatarUrl" alt="Avatar">
+                  <img class="avatar-img" *ngIf="u.avatarUrl && u.avatarUrl !== 'default-avatar.png'" [src]="getImageUrl(u.avatarUrl)" alt="Avatar">
                 </div>
               </td>
             </ng-container>
@@ -131,10 +133,18 @@ import { ViewChild, AfterViewInit } from '@angular/core';
                 <input matInput type="email" id="email" [(ngModel)]="newUser.email" name="email" required placeholder="john@example.com">
               </mat-form-field>
 
-              <mat-form-field appearance="outline">
-                <mat-label>Avatar URL (Optional)</mat-label>
-                <input matInput type="url" id="avatarUrl" [(ngModel)]="newUser.avatarUrl" name="avatarUrl" placeholder="https://example.com/avatar.jpg">
-              </mat-form-field>
+              <div class="input-group" style="margin-bottom: 16px;">
+                <label>Avatar Image (Optional)</label>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                  <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none;">
+                  <button mat-stroked-button type="button" (click)="fileInput.click()" [disabled]="isUploadingImage">
+                    <mat-icon>cloud_upload</mat-icon>
+                    {{ newUser.avatarUrl ? 'Change Image' : 'Upload Image' }}
+                  </button>
+                  <mat-spinner *ngIf="isUploadingImage" diameter="24" style="display: inline-block;"></mat-spinner>
+                  <img *ngIf="newUser.avatarUrl && !isUploadingImage" [src]="getImageUrl(newUser.avatarUrl)" alt="Avatar Preview" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;">
+                </div>
+              </div>
 
               <mat-form-field appearance="outline">
                 <mat-label>Role</mat-label>
@@ -176,7 +186,7 @@ import { ViewChild, AfterViewInit } from '@angular/core';
               
               <div class="user-card">
                 <ng-container *ngIf="registeredAvatarUrl && registeredAvatarUrl !== 'default-avatar.png'; else initialAvatar">
-                  <img class="user-avatar" style="padding: 0; object-fit: cover; background: none;" [src]="registeredAvatarUrl" alt="Avatar">
+                  <img class="user-avatar" style="padding: 0; object-fit: cover; background: none;" [src]="getImageUrl(registeredAvatarUrl)" alt="Avatar">
                 </ng-container>
                 <ng-template #initialAvatar>
                   <div class="user-avatar">{{ getInitials(registeredName) }}</div>
@@ -912,10 +922,39 @@ export class UsersComponent implements OnInit, AfterViewInit {
 
   showDeleteConfirm = false;
   userToDelete: { id: string, name: string } | null = null;
+  isUploadingImage = false;
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
       this.fetchUsers();
+    }
+  }
+
+  getImageUrl(url: string | undefined): string | null {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    return `${environment.apiUrl.replace('/api', '')}${url}`;
+  }
+
+  onFileSelected(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    const nameHint = this.newUser.name;
+    if (file) {
+      this.isUploadingImage = true;
+      this.error = '';
+      this.cdr.detectChanges();
+      this.authService.uploadImage(file, nameHint).subscribe({
+        next: (res) => {
+          this.newUser.avatarUrl = res.imageUrl;
+          this.isUploadingImage = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.error = err.error?.message || 'Failed to upload image';
+          this.isUploadingImage = false;
+          this.cdr.detectChanges();
+        }
+      });
     }
   }
 
@@ -1003,7 +1042,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
       },
       error: (err: any) => {
         this.isSubmitting = false;
-        this.error = err?.error?.message || 'Failed to register user.';
+        this.error = err?.error?.message || (err?.error?.errors && err.error.errors[0]?.msg) || 'Failed to register user.';
         this.cdr.detectChanges();
       }
     });

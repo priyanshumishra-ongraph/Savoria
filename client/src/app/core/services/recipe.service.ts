@@ -44,4 +44,11 @@ export class RecipeService {
   deleteRecipe(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+
+  uploadImage(file: File, title: string = ''): Observable<{ message: string; imageUrl: string }> {
+    const formData = new FormData();
+    if (title) formData.append('title', title);
+    formData.append('image', file);
+    return this.http.post<{ message: string; imageUrl: string }>(`${environment.apiUrl}/upload/recipes`, formData);
+  }
 }

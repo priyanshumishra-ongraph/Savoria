@@ -1,5 +1,6 @@
 import { Component, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { environment } from '../../environments/environment';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
@@ -37,7 +38,20 @@ import { AuthService } from '../core/services/auth.service';
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
                 Email Address
               </label>
-              <input type="email" id="email" [(ngModel)]="user.email" name="email" placeholder="e.g. akshat&#64;savoria.com" required>
+              <input type="email" id="email" [(ngModel)]="user.email" name="email" placeholder="e.g. akshat@savoria.com" required>
+            </div>
+
+            <div class="input-group">
+              <label>Avatar Image (Optional)</label>
+              <div style="display: flex; gap: 12px; align-items: center; background: #f7fafc; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px;">
+                <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none;">
+                <button type="button" (click)="fileInput.click()" [disabled]="isUploadingImage" style="background: white; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                  {{ user.avatarUrl ? 'Change Image' : 'Upload Image' }}
+                </button>
+                <div *ngIf="isUploadingImage" class="spinner" style="border-top-color: #f97316;"></div>
+                <img *ngIf="user.avatarUrl && !isUploadingImage" [src]="getImageUrl(user.avatarUrl)" alt="Avatar Preview" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover; margin-left: auto;">
+              </div>
             </div>
 
             <div class="input-group">
@@ -92,7 +106,12 @@ import { AuthService } from '../core/services/auth.service';
           <p class="success-sub">{{ registeredName }} is all set to go</p>
           
           <div class="user-card">
-            <div class="user-avatar">{{ getInitials(registeredName) }}</div>
+            <ng-container *ngIf="registeredAvatarUrl && registeredAvatarUrl !== 'default-avatar.png'; else initialAvatar">
+              <img class="user-avatar" style="padding: 0; object-fit: cover; background: none;" [src]="getImageUrl(registeredAvatarUrl)" alt="Avatar">
+            </ng-container>
+            <ng-template #initialAvatar>
+              <div class="user-avatar">{{ getInitials(registeredName) }}</div>
+            </ng-template>
             <div class="user-info">
               <strong>{{ registeredName }}</strong>
               <span>{{ registeredEmail }}</span>
@@ -459,21 +478,51 @@ import { AuthService } from '../core/services/auth.service';
   `]
 })
 export class UserRegistrationComponent {
-  user = { name: '', email: '', password: '' };
+  user: any = { name: '', email: '', password: '', avatarUrl: '' };
   
   error = '';
   errorMessage = '';
   successMsg = '';
   registeredName = '';
   registeredEmail = '';
+  registeredAvatarUrl = '';
   isSubmitting = false;
   isSuccess = false;
+  isUploadingImage = false;
 
   private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
 
   getInitials(name: string): string {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  }
+
+  getImageUrl(url: string | undefined): string | null {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    return `${environment.apiUrl.replace('/api', '')}${url}`;
+  }
+
+  onFileSelected(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    const nameHint = this.user.name;
+    if (file) {
+      this.isUploadingImage = true;
+      this.error = '';
+      this.cdr.detectChanges();
+      this.authService.uploadImage(file, nameHint).subscribe({
+        next: (res) => {
+          this.user.avatarUrl = res.imageUrl;
+          this.isUploadingImage = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.error = err.error?.message || 'Failed to upload image';
+          this.isUploadingImage = false;
+          this.cdr.detectChanges();
+        }
+      });
+    }
   }
 
   onSubmit() {
@@ -483,6 +532,7 @@ export class UserRegistrationComponent {
 
     this.registeredName = this.user.name;
     this.registeredEmail = this.user.email;
+    this.registeredAvatarUrl = this.user.avatarUrl;
 
     this.authService.register(this.user).subscribe({
       next: () => {
@@ -492,22 +542,22 @@ export class UserRegistrationComponent {
       },
       error: (err: any) => {
         this.isSubmitting = false;
-        const msg = err?.error?.message || 'Failed to register user.';
-        this.error = msg;
-        this.errorMessage = msg === 'User already exists' 
+        this.error = err?.error?.message || (err?.error?.errors && err.error.errors[0]?.msg) || 'Registration failed';
+        this.errorMessage = this.error === 'User already exists' 
           ? 'A user with this email already exists in the system.' 
-          : msg;
+          : this.error;
         this.cdr.detectChanges();
       }
     });
   }
 
   resetForm() {
-    this.user = { name: '', email: '', password: '' };
+    this.user = { name: '', email: '', password: '', avatarUrl: '' };
     this.isSuccess = false;
     this.error = '';
     this.errorMessage = '';
     this.registeredName = '';
     this.registeredEmail = '';
+    this.registeredAvatarUrl = '';
   }
 }

@@ -138,6 +138,12 @@ server/
 - **Test Suite Enhancements**: Updated backend tests to securely execute against a dedicated `Savoria-Test` database, completely preventing accidental production data deletion during test teardowns.
 - **Deployment Configuration**: Added a `start` script for Render compatibility and updated the frontend `set-env.js` file to seamlessly integrate with Vercel's standard environment variables (`process.env.API_URL`).
 
+### ✅ Day 8: Advanced Image Uploads (Completed)
+- **Dynamic File Routing**: Implemented dynamic Multer storage configurations to route uploaded images into separate `uploads/avatars/` and `uploads/recipes/` directories.
+- **Contextual Filenames**: Engineered a solution to pass frontend form context (like recipe titles or user names) into the `FormData` object, allowing the backend to generate descriptive, human-readable filenames (e.g., `<timestamp>-creamy-garlic-pasta.jpg`).
+- **Database Persistence**: Updated schemas and controllers to securely store and retrieve relative image paths, ensuring seamless display across the application.
+- **State Management & UI Fixes**: Resolved Angular `NG0100` lifecycle errors during upload flows and implemented a polished, delayed success modal when publishing recipes.
+
 ---
 
 ## 🛡️ Authentication & Authorization Walkthrough

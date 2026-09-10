@@ -84,7 +84,7 @@ import { MatButtonModule } from '@angular/material/button';
 
             <!-- Image on RIGHT -->
             <div class="recipe-image-container">
-              <div class="recipe-image" [style.background-image]="'url(' + (stats.latestRecipe.imageUrl && stats.latestRecipe.imageUrl !== 'placeholder-recipe.jpg' ? stats.latestRecipe.imageUrl : 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=800&q=80') + ')'"></div>
+              <div class="recipe-image" [style.background-image]="'url(' + (getImageUrl(stats.latestRecipe.imageUrl) && stats.latestRecipe.imageUrl !== 'placeholder-recipe.jpg' ? getImageUrl(stats.latestRecipe.imageUrl) : 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=800&q=80') + ')'"></div>
               <div class="category-pill">{{ stats.latestRecipe.category }}</div>
             </div>
           </div>
@@ -737,6 +737,12 @@ export class DashboardComponent implements OnInit {
         error: (err) => console.error('Failed to load dashboard stats', err)
       });
     }
+  }
+
+  getImageUrl(url: string | undefined): string | null {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    return `${environment.apiUrl.replace('/api', '')}${url}`;
   }
 
   getCategoryIconName(cat: string): string {

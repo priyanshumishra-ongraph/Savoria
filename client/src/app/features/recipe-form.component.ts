@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
@@ -6,15 +6,17 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RecipeService } from '../core/services/recipe.service';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-recipe-form',
   standalone: true,
   imports: [
     CommonModule, ReactiveFormsModule, RouterModule,
-    MatInputModule, MatSelectModule, MatButtonModule, MatCardModule, MatProgressSpinnerModule
+    MatInputModule, MatSelectModule, MatButtonModule, MatCardModule, MatProgressSpinnerModule, MatIconModule
   ],
   template: `
     <div class="form-container">
@@ -68,10 +70,17 @@ import { RecipeService } from '../core/services/recipe.service';
               <input matInput type="number" formControlName="cookTimeMinutes" min="0">
             </mat-form-field>
 
-            <mat-form-field appearance="outline" class="col-span-2">
-              <mat-label>Image URL (Optional)</mat-label>
-              <input matInput formControlName="imageUrl" placeholder="https://...">
-            </mat-form-field>
+            <div class="col-span-2 file-upload-container">
+              <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none;">
+              <button mat-stroked-button type="button" (click)="fileInput.click()" [disabled]="isUploadingImage">
+                <mat-icon>cloud_upload</mat-icon>
+                {{ recipeForm.get('imageUrl')?.value ? 'Change Image' : 'Upload Image' }}
+              </button>
+              <mat-spinner *ngIf="isUploadingImage" diameter="24" class="inline-spinner"></mat-spinner>
+              <div *ngIf="recipeForm.get('imageUrl')?.value && !isUploadingImage" class="image-preview">
+                <img [src]="getImageUrl(recipeForm.get('imageUrl')?.value)" alt="Recipe Preview" height="100">
+              </div>
+            </div>
 
             <mat-form-field appearance="outline" class="col-span-2">
               <mat-label>Description</mat-label>
@@ -104,12 +113,29 @@ import { RecipeService } from '../core/services/recipe.service';
 
         <mat-card-actions class="actions">
           <button mat-button routerLink="/dashboard">Cancel</button>
-          <button mat-flat-button class="btn-submit" [disabled]="recipeForm.invalid || isSubmitting" (click)="onSubmit()">
+          <button mat-flat-button class="btn-submit" [disabled]="recipeForm.invalid || isSubmitting || isUploadingImage" (click)="onSubmit()">
             <mat-spinner *ngIf="isSubmitting" diameter="20" class="btn-spinner"></mat-spinner>
             <span *ngIf="!isSubmitting">{{ isEditMode ? 'Save Changes' : 'Publish Recipe' }}</span>
           </button>
         </mat-card-actions>
       </mat-card>
+      
+      <!-- Success Modal -->
+      <div class="modal-overlay" *ngIf="showSuccessPopup">
+        <div class="modal-content text-center">
+          <div class="success-badge">✓</div>
+          <h3>Recipe Published!</h3>
+          <p>Your recipe has been successfully {{ isEditMode ? 'updated' : 'created' }} and is now live.</p>
+          <div class="modal-actions">
+            <button mat-flat-button class="btn-submit popup-btn" (click)="viewRecipe()">
+              View Recipe
+            </button>
+            <button mat-button class="popup-btn" (click)="closeSuccessPopup()">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   `,
   styles: [`
@@ -134,6 +160,9 @@ import { RecipeService } from '../core/services/recipe.service';
     .btn-spinner { margin-right: 8px; display: inline-block; }
     .error-banner { background: #fee2e2; color: #dc2626; padding: 12px; border-radius: 8px; margin-top: 16px; }
     
+    .file-upload-container { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+    .inline-spinner { display: inline-block; margin-left: 12px; }
+    .image-preview img { border-radius: 8px; border: 1px solid #ffedd5; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     /* Colored Form Fields */
     ::ng-deep .recipe-form .mdc-text-field--outlined {
       background-color: #fffaf0 !important;
@@ -168,6 +197,32 @@ import { RecipeService } from '../core/services/recipe.service';
       .col-span-2 { grid-column: span 1; }
       .form-card { padding: 20px 16px; }
     }
+
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
+      z-index: 1000; animation: fadeIn 0.2s;
+    }
+    .modal-content {
+      background: white; border-radius: 20px; padding: 32px;
+      width: calc(100% - 32px); max-width: 400px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2); animation: slideUp 0.3s ease;
+      text-align: center;
+    }
+    .success-badge {
+      width: 64px; height: 64px; background: #48bb78; color: white;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 32px; margin: 0 auto 16px;
+    }
+    .modal-content h3 { font-size: 24px; color: #1a202c; margin-bottom: 8px; font-weight: 700; }
+    .modal-content p { color: #718096; margin-bottom: 24px; line-height: 1.5; }
+    .modal-actions { display: flex; flex-direction: row; gap: 16px; justify-content: center; }
+    .popup-btn { flex: 1; border-radius: 8px !important; }
+    .full-width { width: 100%; box-sizing: border-box; }
+    .mt-2 { margin-top: 8px; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
   `]
 })
 export class RecipeFormComponent implements OnInit {
@@ -175,12 +230,18 @@ export class RecipeFormComponent implements OnInit {
   private recipeService = inject(RecipeService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private cdr = inject(ChangeDetectorRef);
 
   recipeForm!: FormGroup;
   isSubmitting = false;
+  isUploadingImage = false;
   error = '';
   isEditMode = false;
   recipeId: string | null = null;
+  
+  showSuccessPopup = false;
+  createdRecipeSlug = '';
+  createdRecipeCategory = '';
 
   ngOnInit() {
     this.recipeId = this.route.snapshot.paramMap.get('id');
@@ -220,6 +281,34 @@ export class RecipeFormComponent implements OnInit {
         this.recipeForm.disable(); // Prevent submitting an empty form
       }
     });
+  }
+
+  onFileSelected(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    const title = this.recipeForm.get('title')?.value;
+    if (file) {
+      this.isUploadingImage = true;
+      this.error = '';
+      this.cdr.detectChanges();
+      this.recipeService.uploadImage(file, title).subscribe({
+        next: (res) => {
+          this.recipeForm.patchValue({ imageUrl: res.imageUrl });
+          this.isUploadingImage = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.error = err.error?.message || 'Failed to upload image';
+          this.isUploadingImage = false;
+          this.cdr.detectChanges();
+        }
+      });
+    }
+  }
+
+  getImageUrl(url: string | undefined): string {
+    if (!url) return '';
+    if (url.startsWith('http')) return url;
+    return `${environment.apiUrl.replace('/api', '')}${url}`;
   }
 
   onSubmit() {
@@ -262,13 +351,29 @@ export class RecipeFormComponent implements OnInit {
     request$.subscribe({
       next: (savedRecipe: any) => {
         this.isSubmitting = false;
-        const slug = savedRecipe.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-        this.router.navigate(['/recipes', savedRecipe.category.toLowerCase(), slug]);
+        this.createdRecipeSlug = savedRecipe.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+        this.createdRecipeCategory = savedRecipe.category.toLowerCase();
+        this.cdr.detectChanges(); // Update button state
+        
+        setTimeout(() => {
+          this.showSuccessPopup = true;
+          this.cdr.detectChanges();
+        }, 1000);
       },
       error: (err) => {
         this.isSubmitting = false;
         this.error = err.error?.message || 'Failed to save recipe.';
+        this.cdr.detectChanges();
       }
     });
+  }
+
+  viewRecipe() {
+    this.router.navigate(['/recipes', this.createdRecipeCategory, this.createdRecipeSlug]);
+  }
+
+  closeSuccessPopup() {
+    this.showSuccessPopup = false;
+    this.router.navigate(['/dashboard']);
   }
 }

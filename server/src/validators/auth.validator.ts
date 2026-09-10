@@ -4,28 +4,7 @@ export const registerRules = [
   body('name')
     .trim()
     .notEmpty().withMessage('Name is required')
-    .isLength({ max: 100 }).withMessage('Name must be 100 characters or less'),
-
-  body('email')
-    .trim()
-    .notEmpty().withMessage('Email is required')
-    .isEmail().withMessage('Please enter a valid email address'),
-
-  body('password')
-    .isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-
-  body('avatarUrl')
-    .optional()
-    .isURL().withMessage('Avatar URL must be a valid URL'),
-
-  body('role').not().exists().withMessage('Role cannot be set during registration'),
-];
-
-export const adminRegisterRules = [
-  body('name')
-    .trim()
-    .notEmpty().withMessage('Name is required')
-    .isLength({ max: 100 }).withMessage('Name must be 100 characters or less'),
+    .isLength({ min: 3, max: 100 }).withMessage('Name must be between 3 and 100 characters'),
 
   body('email')
     .trim()
@@ -37,7 +16,28 @@ export const adminRegisterRules = [
 
   body('avatarUrl')
     .optional({ values: 'falsy' })
-    .isURL().withMessage('Avatar URL must be a valid URL'),
+    .isString().withMessage('Avatar URL must be a string'),
+
+  body('role').not().exists().withMessage('Role cannot be set during registration'),
+];
+
+export const adminRegisterRules = [
+  body('name')
+    .trim()
+    .notEmpty().withMessage('Name is required')
+    .isLength({ min: 3, max: 100 }).withMessage('Name must be between 3 and 100 characters'),
+
+  body('email')
+    .trim()
+    .notEmpty().withMessage('Email is required')
+    .isEmail().withMessage('Please enter a valid email address'),
+
+  body('password')
+    .isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+
+  body('avatarUrl')
+    .optional({ values: 'falsy' })
+    .isString().withMessage('Avatar URL must be a string'),
 
   body('role')
     .optional()
