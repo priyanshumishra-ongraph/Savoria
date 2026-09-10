@@ -308,7 +308,7 @@ export class RecipeFormComponent implements OnInit {
   getImageUrl(url: string | undefined): string {
     if (!url) return '';
     if (url.startsWith('http')) return url;
-    return `${environment.apiUrl.replace('/api', '')}${url}`;
+    return `${environment.apiUrl.replace(/\/api\/?$/, '')}${url}`;
   }
 
   onSubmit() {

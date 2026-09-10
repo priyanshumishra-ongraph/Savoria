@@ -933,7 +933,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
   getImageUrl(url: string | undefined): string | null {
     if (!url) return null;
     if (url.startsWith('http')) return url;
-    return `${environment.apiUrl.replace('/api', '')}${url}`;
+    return `${environment.apiUrl.replace(/\/api\/?$/, '')}${url}`;
   }
 
   onFileSelected(event: Event) {
