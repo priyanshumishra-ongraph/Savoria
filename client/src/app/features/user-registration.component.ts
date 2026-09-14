@@ -30,7 +30,14 @@ import { AuthService } from '../core/services/auth.service';
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                 Full Name
               </label>
-              <input type="text" id="name" [(ngModel)]="user.name" name="name" placeholder="e.g. Akshat Sharma" required>
+              <input type="text" id="name" [(ngModel)]="user.name" name="name" #nameRef="ngModel"
+                placeholder="e.g. Akshat Sharma" required minlength="3" maxlength="100"
+                [class.input-error]="nameRef.invalid && nameRef.touched">
+              <div class="field-errors" *ngIf="nameRef.invalid && nameRef.touched">
+                <span *ngIf="nameRef.errors?.['required']">⚠ Name is required</span>
+                <span *ngIf="nameRef.errors?.['minlength']">⚠ Name must be at least 3 characters</span>
+                <span *ngIf="nameRef.errors?.['maxlength']">⚠ Name cannot exceed 100 characters</span>
+              </div>
             </div>
             
             <div class="input-group">
@@ -38,7 +45,13 @@ import { AuthService } from '../core/services/auth.service';
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
                 Email Address
               </label>
-              <input type="email" id="email" [(ngModel)]="user.email" name="email" placeholder="e.g. akshat@savoria.com" required>
+              <input type="email" id="email" [(ngModel)]="user.email" name="email" #emailRef="ngModel"
+                placeholder="e.g. akshat@savoria.com" required email
+                [class.input-error]="emailRef.invalid && emailRef.touched">
+              <div class="field-errors" *ngIf="emailRef.invalid && emailRef.touched">
+                <span *ngIf="emailRef.errors?.['required']">⚠ Email is required</span>
+                <span *ngIf="emailRef.errors?.['email']">⚠ Please enter a valid email address</span>
+              </div>
             </div>
 
             <div class="input-group">
@@ -59,7 +72,13 @@ import { AuthService } from '../core/services/auth.service';
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                 Password
               </label>
-              <input type="password" id="password" [(ngModel)]="user.password" name="password" placeholder="Min. 6 characters" required minlength="6">
+              <input type="password" id="password" [(ngModel)]="user.password" name="password" #passwordRef="ngModel"
+                placeholder="Min. 6 characters" required minlength="6"
+                [class.input-error]="passwordRef.invalid && passwordRef.touched">
+              <div class="field-errors" *ngIf="passwordRef.invalid && passwordRef.touched">
+                <span *ngIf="passwordRef.errors?.['required']">⚠ Password is required</span>
+                <span *ngIf="passwordRef.errors?.['minlength']">⚠ Password must be at least 6 characters</span>
+              </div>
             </div>
 
             <button type="submit" class="submit-btn" [disabled]="!registerForm.form.valid || isSubmitting">
@@ -236,6 +255,32 @@ import { AuthService } from '../core/services/auth.service';
       border-color: #f97316;
       background: #ffffff;
       box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+    }
+
+    .input-group input.input-error {
+      border-color: #e53e3e;
+      background: #fff5f5;
+    }
+
+    .input-group input.input-error:focus {
+      border-color: #e53e3e;
+      box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.12);
+    }
+
+    .field-errors {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      margin-top: 4px;
+    }
+
+    .field-errors span {
+      font-size: 12px;
+      color: #e53e3e;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
 
     .submit-btn {
