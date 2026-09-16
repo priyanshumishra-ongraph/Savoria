@@ -1,9 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
 
-export const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
-  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
+  let statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+  let message = err.message;
+
+  if (err.name === 'ValidationError') {
+    statusCode = 400;
+  }
+  if (err.name === 'CastError') {
+    statusCode = 400;
+    message = 'Invalid ID format';
+  }
+
   res.status(statusCode).json({
-    message: err.message,
+    message,
     stack: process.env.NODE_ENV === 'production' ? null : err.stack,
   });
 };

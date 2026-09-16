@@ -83,10 +83,26 @@ import { ViewChild, AfterViewInit } from '@angular/core';
               </td>
             </ng-container>
 
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef> Status </th>
+              <td mat-cell *matCellDef="let u">
+                <span class="status-badge" [ngClass]="u.isActive === false ? 'inactive' : 'active'">
+                  {{ u.isActive === false ? 'Inactive' : 'Active' }}
+                </span>
+              </td>
+            </ng-container>
+
             <!-- Actions Column -->
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef class="actions-col"> Actions </th>
               <td mat-cell *matCellDef="let u">
+                <button mat-icon-button
+                  [style.color]="u.isActive === false ? '#38a169' : '#f97316'"
+                  (click)="toggleActive(u)"
+                  [title]="u.isActive === false ? 'Activate User' : 'Deactivate User'">
+                  <mat-icon>{{ u.isActive === false ? 'toggle_off' : 'toggle_on' }}</mat-icon>
+                </button>
                 <button mat-icon-button style="color: red;" (click)="deleteUser(u._id, u.name)" title="Delete User">
                   <mat-icon>delete</mat-icon>
                 </button>
@@ -700,6 +716,24 @@ import { ViewChild, AfterViewInit } from '@angular/core';
       border-color: #e53e3e;
     }
 
+    .status-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .status-badge.active {
+      background: #c6f6d5;
+      color: #276749;
+    }
+    .status-badge.inactive {
+      background: #fed7d7;
+      color: #9b2c2c;
+    }
+
     .success-toast {
       position: fixed;
       bottom: 24px;
@@ -905,7 +939,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
   private cdr = inject(ChangeDetectorRef);
   
   dataSource = new MatTableDataSource<any>([]); 
-  displayedColumns: string[] = ['avatar', 'name', 'email', 'password', 'role', 'actions', 'createdAt'];
+  displayedColumns: string[] = ['avatar', 'name', 'email', 'password', 'role', 'status', 'actions', 'createdAt'];
   
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -1003,6 +1037,23 @@ export class UsersComponent implements OnInit, AfterViewInit {
   cancelDelete() {
     this.showDeleteConfirm = false;
     this.userToDelete = null;
+  }
+
+  toggleActive(user: any) {
+    this.authService.toggleUserActive(user._id).subscribe({
+      next: (res) => {
+        user.isActive = res.isActive;
+        this.successMessage = res.message;
+        this.cdr.detectChanges();
+        setTimeout(() => {
+          this.successMessage = '';
+          this.cdr.detectChanges();
+        }, 3000);
+      },
+      error: (err) => {
+        alert(err?.error?.message || 'Failed to toggle user status.');
+      }
+    });
   }
 
   getInitials(name: string): string {

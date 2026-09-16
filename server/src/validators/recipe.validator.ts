@@ -1,4 +1,4 @@
-import { body, param, validationResult } from 'express-validator';
+import { body, param, query, validationResult } from 'express-validator';
 import { Request, Response, NextFunction } from 'express';
 
 export const validate = (req: Request, res: Response, next: NextFunction): void => {
@@ -22,8 +22,18 @@ export const recipeRules = [
   body('steps.*').isString().notEmpty().withMessage('Step description cannot be empty'),
   body('prepTimeMinutes').optional().isInt({ min: 0 }).withMessage('Prep time must be a positive number'),
   body('cookTimeMinutes').optional().isInt({ min: 0 }).withMessage('Cook time must be a positive number'),
+  body('tags').optional().isArray().withMessage('Tags must be an array'),
+  body('tags.*').optional().isString().trim().notEmpty().withMessage('Tag must be a non-empty string'),
+  body('imageUrl').optional({ values: 'falsy' }).isString().withMessage('Image URL must be a string'),
 ];
 
 export const recipeIdRule = [
   param('id').isMongoId().withMessage('Invalid Recipe ID format')
+];
+
+export const recipeQueryRules = [
+  query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
+  query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
+  query('category').optional().isString().withMessage('Category must be a string'),
+  query('search').optional().isString().withMessage('Search must be a string')
 ];

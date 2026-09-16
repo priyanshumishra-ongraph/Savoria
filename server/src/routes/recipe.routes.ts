@@ -9,12 +9,12 @@ import {
   getMyRecipes
 } from '../controllers/recipe.controller';
 import { protect } from '../middleware/auth.middleware';
-import { recipeRules, recipeIdRule, validate } from '../validators/recipe.validator';
+import { recipeRules, recipeIdRule, recipeQueryRules, validate } from '../validators/recipe.validator';
 
 const router = express.Router();
 
-router.get('/', getRecipes);
-router.get('/my', protect, getMyRecipes);
+router.get('/', recipeQueryRules, validate, getRecipes);
+router.get('/my', protect, recipeQueryRules, validate, getMyRecipes);
 router.get('/by-slug/:category/:titleSlug', getRecipeBySlug);
 router.get('/:id', recipeIdRule, validate, getRecipeById);
 

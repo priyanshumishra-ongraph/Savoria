@@ -1,16 +1,10 @@
-import { Response } from 'express';
+import { Response, NextFunction } from 'express';
 import Recipe from '../models/Recipe';
 import { AuthRequest } from '../middleware/auth.middleware';
 
-const serverError = (res: Response, error: unknown): void => {
-  if (process.env.NODE_ENV !== 'production') {
-    res.status(500).json({ message: 'Server error', error: (error as Error).message });
-  } else {
-    res.status(500).json({ message: 'Server error' });
-  }
-};
 
-export const getDashboardStats = async (req: AuthRequest, res: Response): Promise<void> => {
+
+export const getDashboardStats = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -49,6 +43,6 @@ export const getDashboardStats = async (req: AuthRequest, res: Response): Promis
       totalRecipes,
     });
   } catch (error) {
-    serverError(res, error);
+    next(error);
   }
 };

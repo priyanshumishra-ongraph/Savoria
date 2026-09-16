@@ -12,7 +12,9 @@ import { environment } from '../../../environments/environment';
   template: `
     <a [routerLink]="['/recipes', recipe.category.toLowerCase(), getSlug(recipe.title)]" class="recipe-card">
       <div class="image-wrapper">
-        <img [src]="getImageUrl(recipe.imageUrl) || getCategoryImage(recipe.category)" [alt]="recipe.title">
+        <img [src]="getImageUrl(recipe.imageUrl) || getCategoryImage(recipe.category)"
+             [alt]="recipe.title"
+             (error)="onImageError($event, recipe.category)">
         <div class="difficulty-badge" [ngClass]="recipe.difficulty.toLowerCase()">
           {{ recipe.difficulty }}
         </div>
@@ -163,6 +165,12 @@ export class RecipeCardComponent {
 
   getSlug(title: string): string {
     return title ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
+  }
+
+  onImageError(event: Event, category: string): void {
+    const img = event.target as HTMLImageElement;
+    img.src = this.getCategoryImage(category);
+    img.onerror = null; // prevent infinite loop if fallback also fails
   }
 
   getOwnerName(): string {

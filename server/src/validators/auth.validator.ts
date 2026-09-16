@@ -1,4 +1,4 @@
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
 
 export const registerRules = [
   body('name')
@@ -52,4 +52,8 @@ export const loginRules = [
 
   body('password')
     .notEmpty().withMessage('Password is required'),
+];
+
+export const userIdRule = [
+  param('id').isMongoId().withMessage('Invalid User ID format')
 ];

@@ -1,14 +1,8 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import Recipe, { IRecipe, toSlug } from '../models/Recipe';
 import { AuthRequest } from '../middleware/auth.middleware';
 
-const serverError = (res: Response, error: unknown): void => {
-  if (process.env.NODE_ENV !== 'production') {
-    res.status(500).json({ message: 'Server error', error: (error as Error).message });
-  } else {
-    res.status(500).json({ message: 'Server error' });
-  }
-};
+
 
 const ALLOWED_RECIPE_FIELDS: (keyof IRecipe)[] = [
   'title', 'description', 'imageUrl', 'difficulty',
@@ -16,7 +10,7 @@ const ALLOWED_RECIPE_FIELDS: (keyof IRecipe)[] = [
   'prepTimeMinutes', 'cookTimeMinutes',
 ];
 
-export const getRecipes = async (req: Request, res: Response): Promise<void> => {
+export const getRecipes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const page  = Math.max(1, parseInt(req.query.page as string) || 1);
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
@@ -27,7 +21,7 @@ export const getRecipes = async (req: Request, res: Response): Promise<void> => 
     if (req.query.search)   query.$text    = { $search: req.query.search as string };
 
     const recipes = await Recipe.find(query)
-      .populate('owner', 'name email avatarUrl')
+      .populate('owner', 'name avatarUrl')
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 });
@@ -41,11 +35,11 @@ export const getRecipes = async (req: Request, res: Response): Promise<void> => 
       total,
     });
   } catch (error) {
-    serverError(res, error);
+    next(error);
   }
 };
 
-export const getRecipeById = async (req: Request, res: Response): Promise<void> => {
+export const getRecipeById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const recipe = await Recipe.findById(req.params.id).populate('owner', 'name email avatarUrl');
     if (!recipe) {
@@ -54,18 +48,21 @@ export const getRecipeById = async (req: Request, res: Response): Promise<void> 
     }
     res.json(recipe);
   } catch (error) {
-    serverError(res, error);
+    next(error);
   }
 };
 
-export const getRecipeBySlug = async (req: Request, res: Response): Promise<void> => {
+export const getRecipeBySlug = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { category, titleSlug } = req.params;
 
+    // Escape regex special characters in the category string
+    const safeCategory = String(category).replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+
     const recipe = await Recipe.findOne({
       slug: titleSlug,
-      category: new RegExp(`^${category}$`, 'i'),
-    }).populate('owner', 'name email avatarUrl');
+      category: new RegExp(`^${safeCategory}$`, 'i'),
+    }).populate('owner', 'name avatarUrl');
 
     if (!recipe) {
       res.status(404).json({ message: 'Recipe not found' });
@@ -73,11 +70,11 @@ export const getRecipeBySlug = async (req: Request, res: Response): Promise<void
     }
     res.json(recipe);
   } catch (error) {
-    serverError(res, error);
+    next(error);
   }
 };
 
-export const getMyRecipes = async (req: AuthRequest, res: Response): Promise<void> => {
+export const getMyRecipes = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const page  = Math.max(1, parseInt(req.query.page as string) || 1);
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
@@ -99,11 +96,11 @@ export const getMyRecipes = async (req: AuthRequest, res: Response): Promise<voi
       total,
     });
   } catch (error) {
-    serverError(res, error);
+    next(error);
   }
 };
 
-export const createRecipe = async (req: AuthRequest, res: Response): Promise<void> => {
+export const createRecipe = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const safeBody: Partial<IRecipe> = {};
     for (const field of ALLOWED_RECIPE_FIELDS) {
@@ -120,11 +117,11 @@ export const createRecipe = async (req: AuthRequest, res: Response): Promise<voi
     const savedRecipe = await newRecipe.save();
     res.status(201).json(savedRecipe);
   } catch (error) {
-    serverError(res, error);
+    next(error);
   }
 };
 
-export const updateRecipe = async (req: AuthRequest, res: Response): Promise<void> => {
+export const updateRecipe = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const recipe = await Recipe.findById(req.params.id);
     if (!recipe) {
@@ -145,11 +142,11 @@ export const updateRecipe = async (req: AuthRequest, res: Response): Promise<voi
     const updatedRecipe = await recipe.save();
     res.json(updatedRecipe);
   } catch (error) {
-    serverError(res, error);
+    next(error);
   }
 };
 
-export const deleteRecipe = async (req: AuthRequest, res: Response): Promise<void> => {
+export const deleteRecipe = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const recipe = await Recipe.findById(req.params.id);
     if (!recipe) {
@@ -164,6 +161,6 @@ export const deleteRecipe = async (req: AuthRequest, res: Response): Promise<voi
     await recipe.deleteOne();
     res.status(204).send();
   } catch (error) {
-    serverError(res, error);
+    next(error);
   }
 };

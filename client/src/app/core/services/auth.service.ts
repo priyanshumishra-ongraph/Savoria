@@ -80,6 +80,10 @@ export class AuthService {
     return this.http.delete(`${this.apiUrl}/users/${id}`);
   }
 
+  toggleUserActive(id: string) {
+    return this.http.patch<{ isActive: boolean; message: string }>(`${this.apiUrl}/users/${id}/toggle-active`, {});
+  }
+
   uploadImage(file: File, nameHint: string = '') {
     const formData = new FormData();
     if (nameHint) formData.append('title', nameHint);
