@@ -1,58 +1,58 @@
 import express, { Request } from 'express';
-import multer, { FileFilterCallback } from 'multer';
-import path from 'path';
-import fs from 'fs';
+import multer from 'multer';
+import { v2 as cloudinary } from 'cloudinary';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import { protect } from '../middleware/auth.middleware';
 import { param } from 'express-validator';
 import { validate } from '../validators/recipe.validator';
+import path from 'path';
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const router = express.Router();
 
-const storage = multer.diskStorage({
-  destination(req: Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) {
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: async (req: Request, file: Express.Multer.File) => {
     const folder = req.params.folder || 'misc';
-    const dynamicUploadDir = path.join(__dirname, `../../uploads/${folder}`);
-    if (!fs.existsSync(dynamicUploadDir)) {
-      fs.mkdirSync(dynamicUploadDir, { recursive: true });
-    }
-    cb(null, dynamicUploadDir);
-  },
-  filename(req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) {
+    
+    // Attempt to generate a public_id based on the title or original name
+    let public_id = '';
     const title = req.body.title;
     if (title) {
-      const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
-      const ext = path.extname(file.originalname);
-      cb(null, `${Date.now()}-${safeTitle}${ext}`);
+      public_id = title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
     } else {
-      const safeName = file.originalname.replace(/[^a-zA-Z0-9.]/g, '-');
-      cb(null, `${Date.now()}-${safeName}`);
+      const ext = path.extname(file.originalname);
+      const nameWithoutExt = file.originalname.slice(0, -ext.length);
+      public_id = nameWithoutExt.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
     }
+    
+    public_id = `${Date.now()}-${public_id}`;
+
+    return {
+      folder: `savoria/${folder}`,
+      allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+      public_id: public_id,
+    };
   },
 });
-
-function checkFileType(file: Express.Multer.File, cb: multer.FileFilterCallback) {
-  const filetypes = /jpg|jpeg|png|webp/;
-  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = filetypes.test(file.mimetype);
-
-  if (extname && mimetype) {
-    return cb(null, true);
-  } else {
-    cb(new Error('Images only!'));
-  }
-}
 
 const ALLOWED_FOLDERS = ['avatars', 'recipes'];
 
 const upload = multer({
-  storage,
+  storage: storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB max
   fileFilter: function (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) {
     const folder = String(req.params.folder ?? '');
     if (!ALLOWED_FOLDERS.includes(folder)) {
       return cb(new Error('Invalid upload folder'));
     }
-    checkFileType(file, cb);
+    cb(null, true);
   },
 });
 
@@ -64,11 +64,10 @@ router.post(
   (req: Request, res: express.Response, next: express.NextFunction) => {
     upload.single('image')(req, res, (err) => {
       if (err) return next(err);
-      const folder = req.params.folder || 'misc';
       if (req.file) {
         res.json({
           message: 'Image uploaded successfully',
-          imageUrl: `/uploads/${folder}/${req.file.filename}`,
+          imageUrl: req.file.path, // Cloudinary provides the secure URL in req.file.path
         });
       } else {
         res.status(400).json({ message: 'No image file provided' });

@@ -21,6 +21,7 @@
     "@types/multer": "^2.2.0",
     "@types/node": "^26.4.1",
     "bcryptjs": "^3.0.3",
+    "cloudinary": "^1.41.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
@@ -30,6 +31,7 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.9.4",
     "multer": "^2.3.0",
+    "multer-storage-cloudinary": "^4.0.0",
     "typescript": "^5.9.3"
   },
   "devDependencies": {
