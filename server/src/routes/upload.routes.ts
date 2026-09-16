@@ -8,16 +8,21 @@ import { validate } from '../validators/recipe.validator';
 import path from 'path';
 
 // Configure Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+const getCloudinary = () => {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+    timeout: 120000, // 2 minutes for slow networks
+  });
+  return cloudinary;
+};
 
 const router = express.Router();
 
 const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
+  cloudinary: getCloudinary(),
+
   params: async (req: Request, file: Express.Multer.File) => {
     const folder = req.params.folder || 'misc';
     
