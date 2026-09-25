@@ -12,6 +12,11 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
     statusCode = 400;
     message = 'Invalid ID format';
   }
+  // MongoDB $text / bad query operator errors (e.g. search="(")
+  if (err.name === 'MongoServerError' || err.name === 'MongoError') {
+    statusCode = 400;
+    message = 'Invalid search query';
+  }
 
   res.status(statusCode).json({
     message,

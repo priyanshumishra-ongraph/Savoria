@@ -3,8 +3,6 @@ import { Component, inject, OnInit } from "@angular/core";
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { RecipeService } from "../core/services/recipe.service";
 import { Recipe } from "../core/models/types";
-import { map, switchMap } from 'rxjs/operators';
-import { Observable, of } from 'rxjs';
 import { RecipeCardComponent } from '../shared/components/recipe-card.component';
 
 @Component({
@@ -25,21 +23,36 @@ import { RecipeCardComponent } from '../shared/components/recipe-card.component'
         </div>
       </div>
 
-      <div class="dashboard-content" *ngIf="recipes$ | async as recipes">
-        <ng-container *ngIf="recipes.length > 0; else noRecipes">
-          <div class="recipe-grid">
-            <app-recipe-card *ngFor="let recipe of recipes" [recipe]="recipe" [showAuthor]="true"></app-recipe-card>
-          </div>
+      <div class="dashboard-content">
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading recipes...</p>
+        </div>
+
+        <!-- Error State -->
+        <div *ngIf="error && !isLoading" class="error-banner">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          {{ error }}
+        </div>
+
+        <!-- Content -->
+        <ng-container *ngIf="!isLoading && !error">
+          <ng-container *ngIf="recipes.length > 0; else noRecipes">
+            <div class="recipe-grid">
+              <app-recipe-card *ngFor="let recipe of recipes" [recipe]="recipe" [showAuthor]="true"></app-recipe-card>
+            </div>
+          </ng-container>
+
+          <ng-template #noRecipes>
+            <div class="empty-state">
+              <div class="empty-icon">🍽️</div>
+              <h3>No {{ categoryName }} recipes yet</h3>
+              <p>Be the first to share a delicious {{ categoryName.toLowerCase() }} recipe!</p>
+              <a routerLink="/recipes/new" class="create-btn empty-create-btn">Create Recipe</a>
+            </div>
+          </ng-template>
         </ng-container>
-        
-        <ng-template #noRecipes>
-          <div class="empty-state">
-            <div class="empty-icon">🍽️</div>
-            <h3>No {{ categoryName }} recipes yet</h3>
-            <p>Be the first to share a delicious {{ categoryName.toLowerCase() }} recipe!</p>
-            <a routerLink="/recipes/new" class="create-btn empty-create-btn">Create Recipe</a>
-          </div>
-        </ng-template>
       </div>
     </div>
   `,
@@ -80,9 +93,7 @@ import { RecipeCardComponent } from '../shared/components/recipe-card.component'
       transition: color 0.2s;
     }
     
-    .back-link:hover {
-      color: #f97316;
-    }
+    .back-link:hover { color: #f97316; }
 
     .title-area h2 {
       margin: 0;
@@ -112,10 +123,7 @@ import { RecipeCardComponent } from '../shared/components/recipe-card.component'
       box-shadow: 0 6px 16px rgba(249, 115, 22, 0.35);
     }
     
-    .empty-create-btn {
-      display: inline-flex;
-      margin-top: 10px;
-    }
+    .empty-create-btn { display: inline-flex; margin-top: 10px; }
 
     .dashboard-content {
       max-width: 1200px;
@@ -129,6 +137,39 @@ import { RecipeCardComponent } from '../shared/components/recipe-card.component'
       gap: 24px;
     }
 
+    /* Loading */
+    .loading-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: #718096;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid #e2e8f0;
+      border-top-color: #f97316;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Error */
+    .error-banner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 18px;
+      background: #fee2e2;
+      color: #dc2626;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+
+    /* Empty */
     .empty-state {
       text-align: center;
       padding: 100px 20px;
@@ -138,51 +179,41 @@ import { RecipeCardComponent } from '../shared/components/recipe-card.component'
       max-width: 600px;
       margin: 0 auto;
     }
-
-    .empty-icon {
-      font-size: 64px;
-      margin-bottom: 20px;
-    }
-
-    .empty-state h3 {
-      margin: 0 0 10px;
-      font-size: 24px;
-      color: #2d3748;
-    }
-
-    .empty-state p {
-      color: #718096;
-      margin: 0 0 24px;
-      font-size: 16px;
-    }
+    .empty-icon { font-size: 64px; margin-bottom: 20px; }
+    .empty-state h3 { margin: 0 0 10px; font-size: 24px; color: #2d3748; }
+    .empty-state p { color: #718096; margin: 0 0 24px; font-size: 16px; }
   `]
 })
 export class CategoryRecipesComponent implements OnInit {
   private recipeService = inject(RecipeService);
   private route = inject(ActivatedRoute);
-  
+
   categoryName: string = '';
-  recipes$!: Observable<Recipe[]>;
+  recipes: Recipe[] = [];
+  isLoading = true;
+  error: string | null = null;
 
   ngOnInit() {
-    this.recipes$ = this.route.paramMap.pipe(
-      switchMap(params => {
-        this.categoryName = params.get('name') || 'Other';
-        return this.recipeService.getRecipes().pipe(
-          map(response => response.recipes.filter(r => (r.category || 'Other').toLowerCase() === this.categoryName.toLowerCase()))
-        );
-      })
-    );
+    this.route.paramMap.subscribe(params => {
+      this.categoryName = params.get('name') || 'Other';
+      this.loadRecipes();
+    });
   }
 
-  getCategoryImage(category: string): string {
-    const c = category.toLowerCase();
-    if (c === 'breakfast') return 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=600&q=80';
-    if (c === 'lunch') return 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80';
-    if (c === 'dinner') return 'https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=600&q=80';
-    if (c === 'dessert') return 'https://images.unsplash.com/photo-1551024506-0bccd828d307?w=600&q=80';
-    if (c === 'beverage') return 'https://images.unsplash.com/photo-1544145945-f90425340c7e?w=600&q=80';
-    if (c === 'snack') return 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=600&q=80';
-    return 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=600&q=80';
+  loadRecipes() {
+    this.isLoading = true;
+    this.error = null;
+    this.recipeService.getRecipes().subscribe({
+      next: (response) => {
+        this.recipes = response.recipes.filter(
+          (r: Recipe) => (r.category || 'Other').toLowerCase() === this.categoryName.toLowerCase()
+        );
+        this.isLoading = false;
+      },
+      error: (err) => {
+        this.error = err.error?.message || 'Failed to load recipes. Please try again.';
+        this.isLoading = false;
+      }
+    });
   }
 }

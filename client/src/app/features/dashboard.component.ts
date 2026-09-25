@@ -6,10 +6,11 @@ import { RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({  selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatCardModule, MatIconModule, MatButtonModule],
+  imports: [CommonModule, RouterModule, MatCardModule, MatIconModule, MatButtonModule, MatProgressSpinnerModule],
   template: `
     <div class="dashboard-wrapper">
       <!-- Header Section -->
@@ -20,8 +21,22 @@ import { MatButtonModule } from '@angular/material/button';
         </div>
       </div>
 
+      <!-- Loading State -->
+      <div class="dashboard-content" *ngIf="isLoading" style="margin-top: 40px; text-align: center; color: #718096; min-height: 200px;">
+        <mat-spinner diameter="40" style="margin: 0 auto 16px;"></mat-spinner>
+        <p>Loading your dashboard...</p>
+      </div>
+
+      <!-- Error State -->
+      <div class="dashboard-content" *ngIf="error && !isLoading" style="margin-top: 40px;">
+        <div style="display: flex; align-items: center; gap: 10px; padding: 14px 18px; background: #fee2e2; color: #dc2626; border-radius: 10px; font-weight: 500;">
+          <mat-icon>error_outline</mat-icon>
+          {{ error }}
+        </div>
+      </div>
+
       <!-- Categories Section -->
-      <div class="dashboard-content" style="margin-top: 40px;">
+      <div class="dashboard-content" *ngIf="!isLoading && !error" style="margin-top: 40px;">
         <div class="section-header">
           <div class="section-icon category-icon">
             <mat-icon style="color: #0c831f;">category</mat-icon>
@@ -44,7 +59,7 @@ import { MatButtonModule } from '@angular/material/button';
         </div>
       </div>
 
-      <div class="dashboard-content" style="margin-top: 60px;">
+      <div class="dashboard-content" *ngIf="!isLoading && !error" style="margin-top: 60px;">
         <!-- Fresh Out The Oven -->
         <div class="section-header">
           <div class="section-icon star">
@@ -100,7 +115,7 @@ import { MatButtonModule } from '@angular/material/button';
 
       </div>
 
-      <div class="dashboard-content" style="margin-top: 60px;">
+      <div class="dashboard-content" *ngIf="!isLoading && !error" style="margin-top: 60px;">
         
         <!-- Recipes Added Today -->
         <div class="section-header">
@@ -726,16 +741,26 @@ export class DashboardComponent implements OnInit {
   
   stats: any = { todayByCategory: {}, latestRecipe: null, totalRecipes: 0 };
   categoryKeys: string[] = ['Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Beverage', 'Snack'];
+  isLoading = true;
+  error: string | null = null;
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
       this.http.get<any>(`${this.apiUrl}/dashboard/stats`).subscribe({
         next: (data) => {
           this.stats = data;
+          this.isLoading = false;
           this.cdr.detectChanges();
         },
-        error: (err) => console.error('Failed to load dashboard stats', err)
+        error: (err) => {
+          this.error = 'Failed to load dashboard data. Please try again.';
+          this.isLoading = false;
+          console.error('Failed to load dashboard stats', err);
+          this.cdr.detectChanges();
+        }
       });
+    } else {
+      this.isLoading = false;
     }
   }
 

@@ -138,9 +138,23 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
     </div>
 
     <ng-template #loadingOrError>
-      <div class="loading-state">
-        <mat-spinner diameter="40"></mat-spinner>
+      <!-- Error State -->
+      <div *ngIf="loadError; else loadingSpinner" class="detail-error-state">
+        <div class="detail-error-icon">⚠️</div>
+        <h2>Recipe Not Found</h2>
+        <p>{{ loadError }}</p>
+        <a routerLink="/recipes" class="detail-back-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          Back to Recipes
+        </a>
       </div>
+      <!-- Loading State -->
+      <ng-template #loadingSpinner>
+        <div class="detail-loading-state">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Loading recipe...</p>
+        </div>
+      </ng-template>
     </ng-template>
 
     <app-confirmation-modal
@@ -707,6 +721,26 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
       border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; transition: background 0.2s;
     }
     .done-btn:hover { background: #c2410c; }
+    .detail-loading-state {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 60vh; gap: 16px; color: #718096; font-size: 16px;
+    }
+    .detail-error-state {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 60vh; text-align: center; padding: 40px 20px;
+    }
+    .detail-error-icon { font-size: 64px; margin-bottom: 16px; }
+    .detail-error-state h2 { font-size: 28px; color: #1a202c; margin: 0 0 12px; }
+    .detail-error-state p { color: #718096; font-size: 16px; margin: 0 0 28px; }
+    .detail-back-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+      color: white; text-decoration: none; padding: 12px 24px;
+      border-radius: 12px; font-weight: 600; font-size: 15px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
+    }
+    .detail-back-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(249, 115, 22, 0.35); }
   `]
 })
 export class RecipeDetailComponent implements OnInit {
@@ -719,6 +753,7 @@ export class RecipeDetailComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
 
   recipe: Recipe | null = null;
+  loadError: string | null = null;
   currentUser: any = null;
   similarRecipes: Recipe[] = [];
   otherRecipes: Recipe[] = [];
@@ -750,6 +785,7 @@ export class RecipeDetailComponent implements OnInit {
 
   fetchRecipeDataBySlug(category: string, titleSlug: string) {
     this.recipe = null;
+    this.loadError = null;
     this.cdr.detectChanges();
     if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -760,8 +796,10 @@ export class RecipeDetailComponent implements OnInit {
         this.fetchRelatedRecipes();
       },
       error: (err) => {
-        console.error('Failed to load recipe', err);
-        this.router.navigate(['/recipes']);
+        this.loadError = err.status === 404
+          ? 'This recipe does not exist or may have been deleted.'
+          : (err.error?.message || 'Failed to load recipe. Please try again.');
+        this.cdr.detectChanges();
       }
     });
   }
@@ -771,7 +809,8 @@ export class RecipeDetailComponent implements OnInit {
   }
 
   fetchRecipeData(id: string) {
-    this.recipe = null; // show loader
+    this.recipe = null;
+    this.loadError = null;
     this.cdr.detectChanges();
     if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -782,8 +821,10 @@ export class RecipeDetailComponent implements OnInit {
         this.fetchRelatedRecipes();
       },
       error: (err) => {
-        console.error('Failed to load recipe', err);
-        this.router.navigate(['/recipes']);
+        this.loadError = err.status === 404
+          ? 'This recipe does not exist or may have been deleted.'
+          : (err.error?.message || 'Failed to load recipe. Please try again.');
+        this.cdr.detectChanges();
       }
     });
   }

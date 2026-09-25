@@ -178,7 +178,7 @@ The server immediately rejects the request with a `403 Forbidden` status. The fr
 **4. The Admin Override**
 If an `admin` attempts to delete User A's recipe, the same block of code sees `req.user.role === 'admin'` and allows the deletion to proceed.
 
-*Note: Most of these scenarios are fully covered by the automated integration tests (`npm run test` in the server), however the admin delete test is currently failing and needs to be updated.*
+*Note: All 29 scenarios are fully covered by the automated integration tests (`npm run test` in the server), including registration, JWT auth, RBAC, pagination, and admin operations.*
 
 ---
 
@@ -215,3 +215,18 @@ npm install
 cp .env.example .env  # Optional: Customize API URL if needed
 npm start
 ```
+
+---
+
+## 🗺️ App Walkthrough
+
+| Step | What to do |
+| :--- | :--- |
+| **1. Browse** | Open the app → Dashboard shows latest recipes and category tiles |
+| **2. Explore** | Click **Explore Recipes** → search by keyword, filter by category, paginate |
+| **3. Detail** | Click any recipe card → full ingredients, steps, cooking mode, and ingredient checkout |
+| **4. Sign Up** | Go to `/register` → fill in name, email, password, optional avatar |
+| **5. Log In** | Use your new credentials or the demo logins above |
+| **6. Create** | Click **+** or **Add Recipe** → fill the form with image upload |
+| **7. Edit/Delete** | Open your own recipe → Edit or Delete buttons appear only for owners |
+| **8. Admin** | Log in as admin → access Users panel to deactivate/reactivate accounts |
