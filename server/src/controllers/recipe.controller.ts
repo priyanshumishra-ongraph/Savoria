@@ -41,7 +41,7 @@ export const getRecipes = async (req: Request, res: Response, next: NextFunction
 
 export const getRecipeById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const recipe = await Recipe.findById(req.params.id).populate('owner', 'name email avatarUrl');
+    const recipe = await Recipe.findById(req.params.id).populate('owner', 'name avatarUrl');
     if (!recipe) {
       res.status(404).json({ message: 'Recipe not found' });
       return;
