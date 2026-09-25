@@ -22,7 +22,10 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
         <!-- Left: Image Section -->
         <div class="product-image-col">
           <div class="main-image-wrapper">
-            <img [src]="getImageUrl(recipe.imageUrl) || 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=800&q=80'" [alt]="recipe.title" class="main-image">
+            <img [src]="getImageUrl(recipe.imageUrl) || getFallbackImage(recipe.category)" 
+                 [alt]="recipe.title" 
+                 class="main-image"
+                 (error)="onImageError($event, recipe.category)">
           </div>
           <div class="tags-row" *ngIf="recipe.tags && recipe.tags.length > 0">
             <span class="tag-badge" *ngFor="let tag of recipe.tags">#{{ tag }}</span>
@@ -300,9 +303,10 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
     .main-image-wrapper {
       width: 100%;
       aspect-ratio: 1;
-      border-radius: 16px;
+      border-radius: 20px;
       overflow: hidden;
-      border: 1px solid #edf2f7;
+      border: 1px solid rgba(0,0,0,0.04);
+      box-shadow: 0 20px 40px -10px rgba(0,0,0,0.08);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -347,10 +351,12 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
       text-decoration: underline;
     }
     .product-title {
-      font-size: 32px;
-      font-weight: 800;
-      margin: 0 0 8px 0;
-      line-height: 1.2;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 42px;
+      font-weight: 700;
+      margin: 0 0 12px 0;
+      line-height: 1.15;
+      color: #1c1917;
     }
     .product-author {
       font-size: 15px;
@@ -441,10 +447,13 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
       gap: 32px;
     }
     .info-block h3 {
-      font-size: 18px;
-      font-weight: 800;
-      margin: 0 0 12px 0;
-      color: #1a202c;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0 0 16px 0;
+      color: #1c1917;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 8px;
     }
     .info-block p {
       font-size: 15px;
@@ -492,24 +501,25 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
     .product-carousel::-webkit-scrollbar { display: none; }
     
     .product-card {
-      min-width: 200px;
-      max-width: 200px;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
+      min-width: 220px;
+      max-width: 220px;
+      border: 1px solid rgba(0,0,0,0.04);
+      border-radius: 16px;
       padding: 12px;
       cursor: pointer;
       background: white;
-      transition: box-shadow 0.2s;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .product-card:hover {
-      box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+      box-shadow: 0 12px 24px -10px rgba(0,0,0,0.1);
+      transform: translateY(-4px);
     }
     .card-img-wrapper {
       position: relative;
       width: 100%;
-      height: 140px;
+      height: 160px;
       margin-bottom: 12px;
-      border-radius: 8px;
+      border-radius: 12px;
       overflow: hidden;
       display: flex;
       align-items: center;
@@ -519,34 +529,42 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
       width: 100%;
       height: 100%;
       object-fit: cover;
+      transition: transform 0.6s ease;
+    }
+    .product-card:hover .card-img {
+      transform: scale(1.05);
     }
     .time-badge {
       position: absolute;
-      bottom: 6px;
-      left: 6px;
-      background: white;
-      padding: 2px 6px;
-      border-radius: 4px;
+      bottom: 8px;
+      left: 8px;
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(4px);
+      padding: 4px 8px;
+      border-radius: 6px;
       font-size: 10px;
       font-weight: 700;
       display: flex;
       align-items: center;
       gap: 4px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      color: #2d3748;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      color: #1c1917;
     }
     .card-title {
-      font-size: 14px;
-      font-weight: 600;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 17px;
+      font-weight: 700;
       margin: 0 0 4px 0;
-      color: #2d3748;
+      color: #1c1917;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
     .card-subtitle {
       font-size: 12px;
-      color: #718096;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #ea580c;
       margin: 0 0 12px 0;
     }
     .card-bottom {
@@ -853,6 +871,24 @@ export class RecipeDetailComponent implements OnInit {
       return this.recipe.owner.name;
     }
     return 'Unknown';
+  }
+
+  getFallbackImage(category: string): string {
+    const images: Record<string, string> = {
+      'Breakfast': 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=800&q=80',
+      'Lunch': 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80',
+      'Dinner': 'https://images.unsplash.com/photo-1547496502-affa22d38842?w=800&q=80',
+      'Dessert': 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=800&q=80',
+      'Beverage': 'https://images.unsplash.com/photo-1544145945-f90425340c7e?w=800&q=80',
+      'Snack': 'https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=800&q=80'
+    };
+    return images[category] || 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=800&q=80';
+  }
+
+  onImageError(event: Event, category: string): void {
+    const img = event.target as HTMLImageElement;
+    img.src = this.getFallbackImage(category);
+    img.onerror = null;
   }
 
   deleteRecipe() {

@@ -2,8 +2,13 @@ import { Request, Response, NextFunction } from 'express';
 
 export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
   let statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-  console.error('Captured error in middleware:', err);
   let message = err.message;
+
+  if (statusCode !== 404) {
+    console.error('Captured error in middleware:', err);
+  } else if (!req.originalUrl.startsWith('/uploads/')) {
+    console.warn(`404 Not Found: ${req.originalUrl}`);
+  }
 
   if (err.name === 'ValidationError') {
     statusCode = 400;

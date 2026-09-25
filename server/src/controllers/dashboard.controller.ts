@@ -9,7 +9,7 @@ export const getDashboardStats = async (req: AuthRequest, res: Response, next: N
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const [categoryStatsRaw, latestRecipe, totalRecipes] = await Promise.all([
+    const [categoryStatsRaw, latestRecipe, totalRecipes, recentRecipes, quickAndEasy] = await Promise.all([
       Recipe.aggregate([
         {
           $match: {
@@ -25,8 +25,24 @@ export const getDashboardStats = async (req: AuthRequest, res: Response, next: N
       ]),
       Recipe.findOne()
         .sort({ createdAt: -1 })
-        .populate('owner', 'name email avatarUrl'),
+        .populate('owner', 'name avatarUrl'),
       Recipe.countDocuments(),
+      Recipe.find()
+        .sort({ createdAt: -1 })
+        .limit(4)
+        .populate('owner', 'name avatarUrl'),
+      Recipe.aggregate([
+        {
+          $addFields: {
+            totalTime: { $add: [{ $ifNull: ['$prepTimeMinutes', 0] }, { $ifNull: ['$cookTimeMinutes', 0] }] }
+          }
+        },
+        {
+          $match: { totalTime: { $lte: 30, $gt: 0 } }
+        },
+        { $sort: { createdAt: -1 } },
+        { $limit: 4 }
+      ])
     ]);
 
     const categoryStats = categoryStatsRaw.reduce(
@@ -41,6 +57,8 @@ export const getDashboardStats = async (req: AuthRequest, res: Response, next: N
       todayByCategory: categoryStats,
       latestRecipe,
       totalRecipes,
+      recentRecipes,
+      quickAndEasy,
     });
   } catch (error) {
     next(error);

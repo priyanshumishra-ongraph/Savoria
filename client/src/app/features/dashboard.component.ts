@@ -3,21 +3,45 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { RouterModule } from '@angular/router';
+import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { RecipeCardComponent } from '../shared/components/recipe-card.component';
+import { NewsletterService } from '../core/services/newsletter.service';
 
 @Component({  selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatCardModule, MatIconModule, MatButtonModule, MatProgressSpinnerModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, MatCardModule, MatIconModule, MatButtonModule, MatProgressSpinnerModule, RecipeCardComponent],
   template: `
     <div class="dashboard-wrapper">
-      <!-- Header Section -->
-      <div class="page-header">
-        <div class="header-text">
-          <h2>Welcome to Savoria</h2>
-          <p>Your culinary command center. Track daily trends and fresh recipes.</p>
+      <!-- Premium Hero Section -->
+      <div class="hero-section">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <span class="hero-badge">Curated Recipes</span>
+          <h2 class="playfair">Welcome to Savoria</h2>
+          <p>Your culinary command center. Discover daily trends, seasonal ingredients, and fresh recipes tailored for your kitchen.</p>
+        </div>
+      </div>
+
+      <!-- How It Works Section -->
+      <div class="dashboard-content features-section">
+        <div class="feature-item">
+          <div class="feature-icon-wrapper"><mat-icon>search</mat-icon></div>
+          <h4>Discover</h4>
+          <p>Explore hundreds of community-curated recipes filtered by category, difficulty, or diet.</p>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon-wrapper"><mat-icon>restaurant</mat-icon></div>
+          <h4>Cook</h4>
+          <p>Follow along with interactive cooking modes, step-by-step instructions, and timed phases.</p>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon-wrapper"><mat-icon>favorite_border</mat-icon></div>
+          <h4>Share</h4>
+          <p>Upload your own culinary masterpieces, save favorites, and inspire home chefs everywhere.</p>
         </div>
       </div>
 
@@ -73,17 +97,21 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
           <div class="latest-recipe-card" style="padding: 0;">
             <!-- Info on LEFT -->
             <div class="recipe-info">
-              <h4 class="recipe-title">{{ stats.latestRecipe.title }}</h4>
-              <p class="recipe-desc">{{ stats.latestRecipe.description || 'A delicious new recipe just added to Savoria.' }}</p>
-              
-              <div class="recipe-metrics">
-                <div class="metric" *ngIf="stats.latestRecipe.prepTimeMinutes || stats.latestRecipe.cookTimeMinutes">
-                  <mat-icon style="color: #f97316; font-size: 18px; width: 18px; height: 18px;">schedule</mat-icon>
-                  {{ (stats.latestRecipe.prepTimeMinutes || 0) + (stats.latestRecipe.cookTimeMinutes || 0) }} mins
+              <div class="recipe-header-row">
+                <div class="recipe-titles">
+                  <h4 class="recipe-title">{{ stats.latestRecipe.title }}</h4>
+                  <p class="recipe-desc">{{ stats.latestRecipe.description || 'A delicious new recipe just added to Savoria.' }}</p>
                 </div>
-                <div class="metric">
-                  <mat-icon style="color: #f97316; font-size: 18px; width: 18px; height: 18px;">trending_up</mat-icon>
-                  {{ stats.latestRecipe.difficulty }}
+                
+                <div class="recipe-metrics">
+                  <div class="metric" *ngIf="stats.latestRecipe.prepTimeMinutes || stats.latestRecipe.cookTimeMinutes">
+                    <mat-icon style="color: #f97316; font-size: 18px; width: 18px; height: 18px;">schedule</mat-icon>
+                    {{ (stats.latestRecipe.prepTimeMinutes || 0) + (stats.latestRecipe.cookTimeMinutes || 0) }} mins
+                  </div>
+                  <div class="metric">
+                    <mat-icon style="color: #f97316; font-size: 18px; width: 18px; height: 18px;">trending_up</mat-icon>
+                    {{ stats.latestRecipe.difficulty }}
+                  </div>
                 </div>
               </div>
 
@@ -113,6 +141,32 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
           </div>
         </mat-card>
 
+      </div>
+
+      <!-- Quick & Easy Section -->
+      <div class="dashboard-content" *ngIf="!isLoading && !error && stats?.quickAndEasy?.length > 0" style="margin-top: 60px;">
+        <div class="section-header">
+          <div class="section-icon">
+            <mat-icon style="color: #0c831f;">bolt</mat-icon>
+          </div>
+          <h3>Quick & Easy <span style="font-size: 14px; font-weight: normal; color: #718096; margin-left: 8px;">Ready in 30 mins or less</span></h3>
+        </div>
+        <div class="card-grid">
+          <app-recipe-card *ngFor="let recipe of stats.quickAndEasy" [recipe]="recipe"></app-recipe-card>
+        </div>
+      </div>
+
+      <!-- Trending Now Section -->
+      <div class="dashboard-content" *ngIf="!isLoading && !error && stats?.recentRecipes?.length > 0" style="margin-top: 60px;">
+        <div class="section-header">
+          <div class="section-icon">
+            <mat-icon style="color: #eab308;">local_fire_department</mat-icon>
+          </div>
+          <h3>Trending Now</h3>
+        </div>
+        <div class="card-grid">
+          <app-recipe-card *ngFor="let recipe of stats.recentRecipes" [recipe]="recipe"></app-recipe-card>
+        </div>
       </div>
 
       <div class="dashboard-content" *ngIf="!isLoading && !error" style="margin-top: 60px;">
@@ -169,6 +223,38 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
         </div>
 
       </div>
+
+      <!-- Newsletter Section -->
+      <div class="newsletter-section">
+        <div class="newsletter-content">
+          <h3 class="playfair">Join the Savoria Weekly Digest</h3>
+          <p>Get the most trending recipes, seasonal cooking tips, and chef interviews delivered straight to your inbox every Sunday morning.</p>
+          <div class="newsletter-form">
+            <input type="email" [formControl]="newsletterControl" placeholder="Enter your email address" class="newsletter-input" (keyup.enter)="subscribeToNewsletter()">
+            <button class="newsletter-btn" (click)="subscribeToNewsletter()" [disabled]="isSubscribing">
+              <span *ngIf="!isSubscribing">Subscribe</span>
+              <mat-spinner *ngIf="isSubscribing" diameter="20" style="margin: 0 auto;"></mat-spinner>
+            </button>
+          </div>
+          <div *ngIf="newsletterControl.invalid && newsletterControl.touched" class="newsletter-message error">
+            Please enter a valid email address.
+          </div>
+          <div *ngIf="newsletterMessage" class="newsletter-message" [ngClass]="{'error': newsletterError}">
+            {{ newsletterMessage }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Community CTA Section -->
+      <div class="community-cta">
+        <h2 class="playfair">Ready to inspire others?</h2>
+        <p>Join thousands of home chefs sharing their culinary masterpieces on Savoria.</p>
+        <div class="cta-buttons">
+          <a routerLink="/recipes/new" class="cta-btn primary">Share a Recipe</a>
+          <a routerLink="/recipes" class="cta-btn secondary">Explore Kitchens</a>
+        </div>
+      </div>
+
     </div>
   `,
   styles: [`
@@ -179,27 +265,61 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
       padding-bottom: 80px;
     }
 
-    .page-header {
-      max-width: 1200px;
+    .hero-section {
+      position: relative;
+      height: 380px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background-image: url('https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=1600&q=80');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+
+    .hero-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(to bottom, rgba(28, 25, 23, 0.4), rgba(28, 25, 23, 0.7));
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      color: white;
+      max-width: 800px;
+      padding: 0 20px;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(4px);
+      padding: 6px 14px;
+      border-radius: 30px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .hero-content h2 {
+      font-size: 56px;
+      margin: 0 0 16px;
+      line-height: 1.1;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    .hero-content p {
+      font-size: 19px;
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.9);
       margin: 0 auto;
-      padding: 40px 20px 30px 20px;
-    }
-
-    .header-text h2 {
-      
-      font-size: 38px;
-      font-weight: 800;
-      
-      letter-spacing: -1px;
-      color:  #3C2218; /* Charcoal Text */
-    }
-
-    .header-text p {
-      margin: 8px 0 0;
-      font-size: 18px;
-      font-weight: 500;
-      color: #4a5568; /* Slightly lighter charcoal */
-      max-width: 600px;
+      line-height: 1.5;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.2);
     }
 
     .dashboard-content {
@@ -268,6 +388,12 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     .section-badge.accent {
       background: #f97316;
       box-shadow: 0 4px 6px rgba(15, 118, 110, 0.3);
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 24px;
     }
 
     .stats-grid {
@@ -463,11 +589,23 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
       background: white;
     }
 
+    .recipe-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .recipe-titles {
+      flex: 1;
+    }
+
     .recipe-title {
       font-size: 32px;
       font-weight: 800;
       color:  #3C2218;
-      margin: 0 0 16px 0;
+      margin: 0 0 12px 0;
       letter-spacing: -1px;
       line-height: 1.2;
     }
@@ -476,15 +614,15 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
       color: #4a5568;
       font-size: 17px;
       line-height: 1.6;
-      margin: 0 0 32px 0;
+      margin: 0;
       font-weight: 400;
     }
     
     .recipe-metrics {
       display: flex;
-      gap: 16px;
-      margin-bottom: 32px;
+      gap: 12px;
       flex-wrap: wrap;
+      justify-content: flex-end;
     }
     
     .metric {
@@ -663,13 +801,29 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
       .recipe-title {
         font-size: 26px;
       }
+      .recipe-metrics {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        gap: 12px;
+        justify-content: flex-start;
+      }
+      .metric {
+        flex: none;
+        justify-content: flex-start;
+        font-size: 14px;
+        padding: 8px 16px;
+        white-space: nowrap;
+      }
       .meta {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 20px;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
       }
       .view-btn {
-        width: 100%;
+        width: auto;
+        padding: 12px 16px;
+        font-size: 14px;
         box-sizing: border-box;
         text-align: center;
         justify-content: center;
@@ -702,8 +856,15 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
       .section-header h3 {
         font-size: 20px;
       }
-      .stats-grid, .categories-grid {
+      .stats-grid {
         grid-template-columns: 1fr;
+      }
+      .categories-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+      .category-card {
+        padding: 16px 12px;
       }
     }
 
@@ -730,6 +891,197 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
         min-height: 100%;
         align-self: stretch;
       }
+    }
+    
+    /* Features Section */
+    .features-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+      margin-top: -40px;
+      margin-bottom: 40px;
+    }
+    .feature-item {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+      border: 1px solid #d6d3d1; /* Warm stone border */
+      transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+    }
+    .feature-item:hover {
+      border-color: #ea580c; /* Terracotta border on hover */
+      box-shadow: 0 12px 30px rgba(60, 34, 24, 0.08); /* Espresso shadow on hover */
+      transform: translateY(-5px);
+    }
+    .feature-icon-wrapper {
+      width: 60px;
+      height: 60px;
+      background: #fff7ed;
+      color: #ea580c;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+    .feature-icon-wrapper mat-icon {
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+    }
+    .feature-item h4 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1c1917;
+      margin: 0 0 10px 0;
+    }
+    .feature-item p {
+      color: #78716c;
+      font-size: 15px;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    /* Newsletter Section */
+    .newsletter-section {
+      max-width: 1200px;
+      margin: 80px auto;
+      padding: 0 20px;
+    }
+    .newsletter-content {
+      background: #3C2218; /* Rich Espresso Brown */
+      border-radius: 24px;
+      padding: 60px 40px;
+      text-align: center;
+      color: #faf5eb; /* Warm Cream text */
+      box-shadow: 0 20px 40px rgba(60, 34, 24, 0.15);
+    }
+    .newsletter-content h3 {
+      font-size: 36px;
+      margin: 0 0 16px 0;
+      color: #ffffff;
+      line-height: 1.3;
+    }
+    .newsletter-content p {
+      color: rgba(250, 245, 235, 0.85);
+      font-size: 17px;
+      max-width: 600px;
+      margin: 0 auto 30px;
+      line-height: 1.6;
+    }
+    .newsletter-form {
+      display: flex;
+      gap: 12px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    .newsletter-input {
+      flex: 1;
+      padding: 16px 20px;
+      border-radius: 12px;
+      border: 2px solid transparent;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .newsletter-input:focus {
+      border-color: #ea580c;
+    }
+    .newsletter-btn {
+      background: #ea580c; /* Terracotta Orange */
+      color: white;
+      border: none;
+      padding: 0 32px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+      box-shadow: 0 4px 12px rgba(234, 88, 12, 0.2);
+    }
+    .newsletter-btn:hover:not([disabled]) { 
+      background: #c2410c; 
+      transform: translateY(-2px);
+    }
+    .newsletter-btn[disabled] {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    .newsletter-message {
+      margin-top: 16px;
+      font-size: 14px;
+      color: #48bb78;
+      font-weight: 500;
+      animation: fadeIn 0.3s;
+    }
+    .newsletter-message.error {
+      color: #f56565;
+    }
+    
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* Community CTA Section */
+    .community-cta {
+      text-align: center;
+      padding: 80px 20px 40px;
+    }
+    .community-cta h2 {
+      font-size: 44px;
+      color: #3C2218;
+      margin: 0 0 16px 0;
+      line-height: 1.3;
+    }
+    .community-cta p {
+      color: #57534e;
+      font-size: 19px;
+      margin: 0 0 40px 0;
+    }
+    .cta-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+    }
+    .cta-btn {
+      padding: 16px 36px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 16px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .cta-btn.primary {
+      background: #ea580c; /* Terracotta Orange */
+      color: white;
+      box-shadow: 0 8px 20px rgba(234, 88, 12, 0.25);
+    }
+    .cta-btn.primary:hover { 
+      background: #c2410c; 
+      transform: translateY(-3px);
+      box-shadow: 0 12px 24px rgba(234, 88, 12, 0.3);
+    }
+    .cta-btn.secondary {
+      background: transparent;
+      color: #3C2218;
+      border: 2px solid #3C2218;
+    }
+    .cta-btn.secondary:hover { 
+      background: #3C2218; 
+      color: white;
+      transform: translateY(-3px);
+      box-shadow: 0 12px 24px rgba(60, 34, 24, 0.15);
+    }
+
+    @media (max-width: 600px) {
+      .newsletter-form { flex-direction: column; }
+      .newsletter-btn { padding: 16px; }
+      .cta-buttons { flex-direction: column; }
+      .community-cta h2 { font-size: 36px; }
+      .newsletter-content h3 { font-size: 32px; }
     }
   `]
 })
@@ -781,4 +1133,38 @@ export class DashboardComponent implements OnInit {
     };
     return icons[cat] || 'restaurant';
   }
+
+  // Newsletter Logic
+  newsletterControl = new FormControl('', [Validators.required, Validators.email]);
+  isSubscribing = false;
+  newsletterMessage = '';
+  newsletterError = false;
+  private newsletterService = inject(NewsletterService);
+
+  subscribeToNewsletter() {
+    if (this.newsletterControl.invalid) {
+      this.newsletterControl.markAsTouched();
+      return;
+    }
+
+    this.isSubscribing = true;
+    this.newsletterMessage = '';
+    this.newsletterError = false;
+
+    this.newsletterService.subscribe(this.newsletterControl.value!).subscribe({
+      next: (res) => {
+        this.isSubscribing = false;
+        this.newsletterMessage = res.message;
+        this.newsletterControl.reset();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isSubscribing = false;
+        this.newsletterError = true;
+        this.newsletterMessage = err.error?.message || 'Subscription failed. Try again later.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
 }
+

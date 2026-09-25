@@ -139,18 +139,22 @@ import { environment } from '../../environments/environment';
     </div>
   `,
   styles: [`
-    .form-container { background-color: #faf5eb; min-height: calc(100vh - 70px); padding: 40px 20px; display: flex; justify-content: center; align-items: flex-start; }
-    .form-card { width: 100%; max-width: 1200px; padding: 24px 32px; border-radius: 16px; background-color: #ffffff; box-shadow: 0 10px 25px -5px rgba(249, 115, 22, 0.1), 0 8px 10px -6px rgba(249, 115, 22, 0.05); border: 1px solid #ffedd5; }
-    mat-card-title { font-size: 32px; font-weight: 800; color: #ea580c; margin-bottom: 4px; }
-    mat-card-subtitle { font-size: 16px; color: #7c2d12; margin-bottom: 24px; font-weight: 500; }
-    .recipe-form { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+    .form-container { background-color: #faf5eb; min-height: calc(100vh - 70px); padding: 60px 20px; display: flex; justify-content: center; align-items: flex-start; }
+    .form-card { 
+      width: 100%; max-width: 900px; padding: 40px 48px; border-radius: 20px; background-color: #ffffff; 
+      box-shadow: 0 10px 40px rgba(60, 34, 24, 0.05); border: 1px solid #d6d3d1; 
+    }
+    mat-card-title { font-family: 'Playfair Display', Georgia, serif; font-size: 38px; font-weight: 700; color: #3C2218; margin-bottom: 8px; }
+    mat-card-subtitle { font-size: 16px; color: #78716c; margin-bottom: 32px; font-weight: 400; letter-spacing: 0.2px; }
+    .recipe-form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 10px; }
     .recipe-form mat-form-field { width: 100%; }
     .col-span-2 { grid-column: span 2; }
-    .actions { display: flex; justify-content: flex-end; padding: 24px 0 0 0; gap: 12px; margin-top: 16px; border-top: 1px solid #ffedd5; }
+    .actions { display: flex; justify-content: flex-end; padding: 32px 0 0 0; gap: 16px; margin-top: 16px; border-top: 1px solid #d6d3d1; }
     .actions button { border-radius: 8px !important; font-weight: 600; padding: 0 24px; height: 44px; }
     .btn-submit { 
-      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important; 
+      background: #ea580c !important; 
       color: white !important; 
+      box-shadow: 0 4px 12px rgba(234, 88, 12, 0.2);
     }
     .btn-submit:disabled {
       background: #fdba74 !important;
@@ -162,28 +166,29 @@ import { environment } from '../../environments/environment';
     
     .file-upload-container { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
     .inline-spinner { display: inline-block; margin-left: 12px; }
-    .image-preview img { border-radius: 8px; border: 1px solid #ffedd5; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .image-preview img { border-radius: 8px; border: 1px solid #d6d3d1; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     /* Colored Form Fields */
     ::ng-deep .recipe-form .mdc-text-field--outlined {
-      background-color: #fffaf0 !important;
+      background-color: #faf5eb !important;
     }
     ::ng-deep .recipe-form .mdc-notched-outline__leading,
     ::ng-deep .recipe-form .mdc-notched-outline__notch,
     ::ng-deep .recipe-form .mdc-notched-outline__trailing {
-      border-color: #fed7aa !important;
+      border-color: #d6d3d1 !important; /* Visible warm stone border */
     }
     ::ng-deep .recipe-form .mdc-text-field--outlined:not(.mdc-text-field--disabled):hover .mdc-notched-outline__leading,
     ::ng-deep .recipe-form .mdc-text-field--outlined:not(.mdc-text-field--disabled):hover .mdc-notched-outline__notch,
     ::ng-deep .recipe-form .mdc-text-field--outlined:not(.mdc-text-field--disabled):hover .mdc-notched-outline__trailing {
-      border-color: #f97316 !important;
+      border-color: #ea580c !important; /* Terracotta hover */
     }
     ::ng-deep .recipe-form .mdc-text-field--outlined.mdc-text-field--focused .mdc-notched-outline__leading,
     ::ng-deep .recipe-form .mdc-text-field--outlined.mdc-text-field--focused .mdc-notched-outline__notch,
     ::ng-deep .recipe-form .mdc-text-field--outlined.mdc-text-field--focused .mdc-notched-outline__trailing {
-      border-color: #ea580c !important;
+      border-color: #3C2218 !important; /* Espresso focus */
+      border-width: 2px !important;
     }
     ::ng-deep .recipe-form .mat-mdc-form-field-focus-overlay {
-      background-color: rgba(249, 115, 22, 0.03) !important;
+      background-color: transparent !important;
     }
     ::ng-deep .recipe-form .mat-mdc-form-field-subscript-wrapper {
       display: none;

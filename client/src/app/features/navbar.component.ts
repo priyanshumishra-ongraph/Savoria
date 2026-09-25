@@ -90,20 +90,23 @@ import { AuthService } from '../core/services/auth.service';
   `,
   styles: [`
     .navbar {
-      background-color: #ffffff;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
+      background-color: rgba(250, 245, 235, 0.85); /* Premium warm cream with transparency */
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 4px 30px rgba(60, 34, 24, 0.05); /* Espresso tinted shadow */
+      border-bottom: 1px solid rgba(214, 211, 209, 0.5); /* Warm stone border */
       position: sticky;
       top: 0;
-      z-index: 10;
-      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      z-index: 1000;
+      transition: background-color 0.3s ease;
     }
 
     .nav-container {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px 20px;
-      max-width: 1200px;
+      padding: 16px 24px;
+      max-width: 1280px;
       margin: 0 auto;
       width: 100%;
       box-sizing: border-box;
@@ -112,15 +115,15 @@ import { AuthService } from '../core/services/auth.service';
     .nav-brand {
       display: flex;
       align-items: center;
-      gap: 10px;
-      color: #e67e22;
+      gap: 12px;
       flex: 1;
     }
 
     .nav-brand a {
-      font-size: 22px;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 28px;
       font-weight: 700;
-      color: #e53e3e;
+      color: #ea580c; /* Terracotta */
       text-decoration: none;
       letter-spacing: -0.5px;
     }
@@ -145,24 +148,25 @@ import { AuthService } from '../core/services/auth.service';
       display: flex;
       align-items: center;
       gap: 6px;
-      color: #4a5568;
+      color: #57534e; /* Warm stone text */
       text-decoration: none;
       font-weight: 600;
       font-size: 14px;
-      padding: 8px 14px;
-      border-radius: 8px;
-      transition: all 0.2s ease;
+      padding: 8px 16px;
+      border-radius: 12px;
+      transition: all 0.3s ease;
       white-space: nowrap;
     }
 
     .nav-link:hover {
-      background-color: #f7fafc;
-      color: #2d3748;
+      background-color: rgba(234, 88, 12, 0.08); /* Terracotta tint */
+      color: #3C2218; /* Espresso hover text */
     }
 
     .nav-link.active {
-      color: #f97316;
-      background-color: #fff7ed;
+      color: #ea580c;
+      background-color: rgba(234, 88, 12, 0.1);
+      font-weight: 700;
     }
 
     /* Admin Link */
@@ -170,17 +174,17 @@ import { AuthService } from '../core/services/auth.service';
       display: flex;
       align-items: center;
       gap: 6px;
-      color: #f97316;
+      color: #ea580c; /* Terracotta */
       text-decoration: none;
       font-weight: 600;
       font-size: 14px;
-      padding: 8px 14px;
-      border-radius: 8px;
-      transition: all 0.2s ease;
+      padding: 8px 16px;
+      border-radius: 12px;
+      transition: all 0.3s ease;
     }
 
     .admin-link:hover {
-      background-color: #fff7ed;
+      background-color: rgba(234, 88, 12, 0.08);
     }
 
     /* Profile Dropdown */
@@ -192,35 +196,36 @@ import { AuthService } from '../core/services/auth.service';
       display: flex;
       align-items: center;
       gap: 10px;
-      background: none;
-      border: 2px solid transparent;
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid #d6d3d1; /* warm stone */
       padding: 6px 12px 6px 6px;
-      border-radius: 12px;
+      border-radius: 20px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.3s ease;
     }
 
     .profile-btn:hover {
-      background: #f7fafc;
-      border-color: #e2e8f0;
+      background: #ffffff;
+      border-color: #ea580c;
+      box-shadow: 0 4px 12px rgba(234, 88, 12, 0.1);
     }
 
     .profile-dropdown:hover .profile-btn {
-      background: #f7fafc;
-      border-color: #e2e8f0;
+      background: #ffffff;
+      border-color: #ea580c;
     }
 
     .avatar {
       width: 36px;
       height: 36px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-      color: white;
+      border-radius: 14px;
+      background: #3C2218; /* Espresso Background */
+      color: #faf5eb; /* Warm cream text */
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      font-size: 13px;
+      font-size: 14px;
       flex-shrink: 0;
     }
 
@@ -232,8 +237,8 @@ import { AuthService } from '../core/services/auth.service';
 
     .profile-name {
       font-size: 14px;
-      font-weight: 600;
-      color: #2d3748;
+      font-weight: 700;
+      color: #3C2218; /* Espresso */
       display: flex;
       align-items: center;
       gap: 6px;
@@ -241,7 +246,7 @@ import { AuthService } from '../core/services/auth.service';
 
     .badge {
       font-size: 10px;
-      font-weight: 700;
+      font-weight: 800;
       padding: 2px 7px;
       border-radius: 6px;
       text-transform: uppercase;
@@ -290,19 +295,19 @@ import { AuthService } from '../core/services/auth.service';
     /* Dropdown Menu */
     .dropdown-menu {
       position: absolute;
-      top: calc(100% + 8px);
+      top: calc(100% + 12px);
       right: 0;
-      background: #ffffff;
-      border-radius: 14px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
-      min-width: 240px;
-      padding: 8px;
+      background: #faf5eb; /* Warm Cream */
+      border-radius: 16px;
+      box-shadow: 0 16px 40px rgba(60, 34, 24, 0.12), 0 4px 12px rgba(60, 34, 24, 0.04);
+      min-width: 260px;
+      padding: 12px;
       opacity: 0;
       visibility: hidden;
-      transform: translateY(-8px);
-      transition: all 0.2s ease;
+      transform: translateY(-10px);
+      transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
       z-index: 1001;
-      border: 1px solid #f0f0f0;
+      border: 1px solid rgba(214, 211, 209, 0.6);
     }
 
     .profile-dropdown:hover .dropdown-menu {
@@ -314,54 +319,57 @@ import { AuthService } from '../core/services/auth.service';
     .dropdown-header {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 16px;
       padding: 12px;
+      background: #ffffff;
+      border-radius: 12px;
+      margin-bottom: 8px;
     }
 
     .avatar-lg {
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-      color: white;
+      width: 44px;
+      height: 44px;
+      border-radius: 16px;
+      background: #3C2218; /* Espresso */
+      color: #faf5eb;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      font-size: 15px;
+      font-size: 16px;
       flex-shrink: 0;
     }
 
     .dropdown-name {
       font-size: 15px;
       font-weight: 700;
-      color: #1a202c;
+      color: #3C2218;
     }
 
     .dropdown-email {
-      font-size: 13px;
-      color: #a0aec0;
+      font-size: 12px;
+      color: #78716c;
       margin-top: 2px;
     }
 
     .dropdown-divider {
       height: 1px;
-      background: #f0f0f0;
-      margin: 4px 0;
+      background: rgba(214, 211, 209, 0.5);
+      margin: 8px 0;
     }
 
     .dropdown-item {
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 10px 12px;
-      border-radius: 8px;
+      padding: 10px 14px;
+      border-radius: 10px;
       font-size: 14px;
-      font-weight: 500;
-      color: #4a5568;
+      font-weight: 600;
+      color: #57534e;
       text-decoration: none;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: all 0.2s ease;
       background: none;
       border: none;
       width: 100%;
@@ -370,8 +378,8 @@ import { AuthService } from '../core/services/auth.service';
     }
 
     .dropdown-item:hover {
-      background: #f7fafc;
-      color: #2d3748;
+      background: rgba(234, 88, 12, 0.08);
+      color: #ea580c;
     }
 
     .logout-item {
