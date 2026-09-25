@@ -13,7 +13,17 @@
 
 ---
 
+**🔗 Live App**: [savoria-p.vercel.app](https://savoria-p.vercel.app)  
+**🔗 Live API**: [savoria-xmme.onrender.com](https://savoria-xmme.onrender.com)
+
 Savoria focuses on strict REST API design, robust database schemas, secure authentication, role-based access control, and a lightning-fast reactive Angular 17+ standalone frontend.
+
+## 🔑 Demo Logins
+
+| Role | Email | Password |
+| :--- | :--- | :--- |
+| **Admin** | admin@savoria.com | admin123 |
+| **User** | chef@savoria.com | password123 |
 
 ## ✨ Features
 
@@ -168,11 +178,22 @@ The server immediately rejects the request with a `403 Forbidden` status. The fr
 **4. The Admin Override**
 If an `admin` attempts to delete User A's recipe, the same block of code sees `req.user.role === 'admin'` and allows the deletion to proceed.
 
-*Note: All of these scenarios are fully covered by the automated integration tests (`npm run test` in the server).*
+*Note: Most of these scenarios are fully covered by the automated integration tests (`npm run test` in the server), however the admin delete test is currently failing and needs to be updated.*
 
 ---
 
 ## 🚀 Getting Started
+
+### ⚙️ Environment Variables
+
+Create a `.env` file in the `server/` directory (you can use `server/.env.example` as a template):
+
+| Variable | Description | Example |
+| :--- | :--- | :--- |
+| `MONGODB_URI` | Your MongoDB connection string | `mongodb+srv://...` |
+| `JWT_SECRET` | Secret key used to sign JWTs | `super_secret_key` |
+| `CLIENT_URL` | The URL of the frontend (for CORS) | `http://localhost:4200` |
+| `API_URL` | *(Optional)* Override API url for client | `http://localhost:3000/api` |
 
 ### Prerequisites
 - Node.js (v20+)
@@ -183,6 +204,7 @@ If an `admin` attempts to delete User A's recipe, the same block of code sees `r
 ```bash
 cd server
 npm install
+cp .env.example .env  # Update with your details
 npm run dev
 ```
 
@@ -190,5 +212,6 @@ npm run dev
 ```bash
 cd client
 npm install
+cp .env.example .env  # Optional: Customize API URL if needed
 npm start
 ```
