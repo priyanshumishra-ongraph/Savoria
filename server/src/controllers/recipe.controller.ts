@@ -83,7 +83,7 @@ export const getMyRecipes = async (req: AuthRequest, res: Response, next: NextFu
     const query = { owner: req.user?.id };
 
     const recipes = await Recipe.find(query)
-      .populate('owner', 'name email avatarUrl')
+      .populate('owner', 'name avatarUrl')
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 });
