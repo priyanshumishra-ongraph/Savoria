@@ -10,11 +10,11 @@ import { FooterComponent } from './shared/components/footer.component';
   imports: [CommonModule, RouterOutlet, NavbarComponent, FooterComponent],
   template: `
     <div class="app-container">
-      <app-navbar *ngIf="router.url !== '/login'" style="position: relative; z-index: 9999; display: block;"></app-navbar>
+      <app-navbar *ngIf="router.url !== '/login' && router.url !== '/register'" style="position: relative; z-index: 9999; display: block;"></app-navbar>
       <main class="main-content">
         <router-outlet></router-outlet>
       </main>
-      <app-footer *ngIf="router.url !== '/login'"></app-footer>
+      <app-footer *ngIf="router.url !== '/login' && router.url !== '/register'"></app-footer>
     </div>
   `,
   styles: [`
