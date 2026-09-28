@@ -154,6 +154,37 @@ server/
 - **Database Persistence**: Updated schemas and controllers to securely store and retrieve relative image paths, ensuring seamless display across the application.
 - **State Management & UI Fixes**: Resolved Angular `NG0100` lifecycle errors during upload flows and implemented a polished, delayed success modal when publishing recipes.
 
+
+# Daily Log of Advanced Sprint
+
+### ✅ Day 9: AI Ratings & Reviews (Completed)
+- **AI Sentiment Analysis**: Integrated `@xenova/transformers` directly in the browser via an Angular Web Worker to perform sentiment and toxicity analysis on user reviews without blocking the main UI thread.
+- **Robust Aggregation**: Engineered MongoDB `$facet` aggregation pipelines to automatically recalculate and synchronize a recipe's `averageRating`, `reviewCount`, and 5-star distribution whenever a review is posted or deleted.
+- **Interactive Review UI**: Built a standalone `review-section.component.ts` featuring helpful voting, author replies, dynamic sorting, and a custom deletion confirmation modal.
+- **Recipe Card Enhancements**: Overhauled the frontend layout to cleanly display inline star ratings directly beside recipe titles across all dashboard carousels and search lists.
+- **Review API Testing**: Expanded the Jest integration suite to specifically test the Ratings & Reviews flow, verifying full data integrity and strict authorization checks (ensuring 32/32 tests pass).
+
+---
+
+## 🤖 In-Browser AI Add-ons
+This project fulfills the requirement of at least 2 free AI add-ons running entirely in the browser using Web Workers (displaying a non-blocking loading state).
+
+1. **Sentiment Analysis** 
+   - **Model**: `Xenova/distilbert-base-uncased-finetuned-sst-2-english` (via Transformers.js).
+   - **What it does**: Analyzes the text of user reviews before submission to determine if the tone is POSITIVE or NEGATIVE, automatically attaching a colored sentiment badge to the review.
+2. **Toxicity Detection**
+   - **Model**: `@tensorflow-models/toxicity` (via TensorFlow.js).
+   - **What it does**: Scans review comments for insults, profanity, and toxic language. It calculates the probability of toxicity and attaches the metadata to keep the community safe.
+
+*(Both models dynamically download and initialize asynchronously in the background. The UI displays a clear "AI engines warming up..." loading state inside the review box until they are ready to process data).*
+
+## 📸 Screenshots
+> **Note for submission:** Replace the placeholders below with actual image links of the live app.
+
+- **Dashboard:** `[Screenshot link here]`
+- **AI Sentiment & Toxicity in action:** `[Screenshot link here]`
+- **Recipe Creation & Uploads:** `[Screenshot link here]`
+
 ---
 
 ## 🛡️ Authentication & Authorization Walkthrough

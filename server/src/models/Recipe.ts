@@ -20,6 +20,15 @@ export interface IRecipe extends Document {
   cookTimeMinutes?: number;
   likes: mongoose.Types.ObjectId[];
   likesCount: number;
+  averageRating: number;
+  reviewCount: number;
+  ratingDistribution: {
+    1: number;
+    2: number;
+    3: number;
+    4: number;
+    5: number;
+  };
 }
 
 const RecipeSchema: Schema = new Schema(
@@ -99,6 +108,24 @@ const RecipeSchema: Schema = new Schema(
         ref: 'User',
       },
     ],
+    averageRating: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5,
+    },
+    reviewCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    ratingDistribution: {
+      1: { type: Number, default: 0 },
+      2: { type: Number, default: 0 },
+      3: { type: Number, default: 0 },
+      4: { type: Number, default: 0 },
+      5: { type: Number, default: 0 },
+    }
   },
   {
     timestamps: true,

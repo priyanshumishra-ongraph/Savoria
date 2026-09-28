@@ -33,7 +33,16 @@ import { environment } from '../../../environments/environment';
       </div>
       <div class="recipe-info">
         <p class="category">{{ recipe.category }}</p>
-        <h4 class="playfair">{{ recipe.title }}</h4>
+        <div class="title-row">
+          <h4 class="playfair">{{ recipe.title }}</h4>
+          <div class="inline-rating" *ngIf="recipe.averageRating">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#f59e0b" stroke="none">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+            <span class="rating-val">{{ recipe.averageRating }}</span>
+            <span class="review-count">({{ recipe.reviewCount }})</span>
+          </div>
+        </div>
         <div class="author-row" *ngIf="showAuthor && recipe.owner">
           <span class="author-prefix">By&nbsp;</span><span class="author-name">{{ getOwnerName() }}</span>
         </div>
@@ -146,6 +155,33 @@ import { environment } from '../../../environments/environment';
       text-transform: uppercase;
       letter-spacing: 1px;
       color: #ea580c;
+    }
+
+    .title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .inline-rating {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #3C2218;
+      background: #faf5eb;
+      padding: 4px 8px;
+      border-radius: 12px;
+      white-space: nowrap;
+    }
+    
+    .inline-rating .review-count {
+      font-size: 11px;
+      color: #78716c;
+      font-weight: 400;
     }
 
     .recipe-info h4 {

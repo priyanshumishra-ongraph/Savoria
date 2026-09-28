@@ -112,6 +112,14 @@ import { NewsletterService } from '../core/services/newsletter.service';
                     <mat-icon style="color: #f97316; font-size: 18px; width: 18px; height: 18px;">trending_up</mat-icon>
                     {{ stats.latestRecipe.difficulty }}
                   </div>
+                  <div class="metric" *ngIf="stats.latestRecipe.averageRating">
+                    <mat-icon style="color: #f97316; font-size: 18px; width: 18px; height: 18px;">star</mat-icon>
+                    {{ stats.latestRecipe.averageRating | number:'1.1-1' }} ({{ stats.latestRecipe.reviewCount }})
+                  </div>
+                  <div class="metric" *ngIf="!stats.latestRecipe.averageRating">
+                    <mat-icon style="color: #f97316; font-size: 18px; width: 18px; height: 18px;">new_releases</mat-icon>
+                    New
+                  </div>
                 </div>
               </div>
 

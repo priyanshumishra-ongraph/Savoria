@@ -10,11 +10,12 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmationModalComponent } from '../shared/components/confirmation-modal.component';
+import { ReviewSectionComponent } from './review-section.component';
 
 @Component({
   selector: 'app-recipe-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatButtonModule, MatProgressSpinnerModule, MatIconModule, MatSnackBarModule, ConfirmationModalComponent],
+  imports: [CommonModule, RouterModule, MatButtonModule, MatProgressSpinnerModule, MatIconModule, MatSnackBarModule, ConfirmationModalComponent, ReviewSectionComponent],
   template: `
     <div class="product-page-wrapper" *ngIf="recipe; else loadingOrError">
       <div class="product-main-container">
@@ -94,6 +95,13 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
         </div>
       </div>
 
+      <div class="product-bottom-container" style="padding: 0 5%;">
+        <app-review-section 
+          [recipeId]="recipe._id" 
+          [recipeOwnerId]="recipe.owner._id || ''">
+        </app-review-section>
+      </div>
+
       <!-- Bottom: Horizontal Scrolling Sections -->
       <div class="product-bottom-container">
         <div class="horizontal-section" *ngIf="similarRecipes.length > 0">
@@ -110,7 +118,8 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
               <h4 class="card-title">{{ r.title }}</h4>
               <p class="card-subtitle">{{ r.difficulty }}</p>
               <div class="card-bottom">
-                <span class="card-price"></span>
+                <span class="card-price" *ngIf="r.averageRating"><mat-icon style="font-size:14px; width:14px; height:14px; color:#ea580c; vertical-align:middle; margin-right:2px; margin-top:-2px;">star</mat-icon> {{ r.averageRating | number:'1.1-1' }} ({{ r.reviewCount }})</span>
+                <span class="card-price" *ngIf="!r.averageRating">New</span>
                 <button class="add-btn">VIEW</button>
               </div>
             </div>
@@ -131,7 +140,8 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
               <h4 class="card-title">{{ r.title }}</h4>
               <p class="card-subtitle">{{ r.difficulty }}</p>
               <div class="card-bottom">
-                <span class="card-price"></span>
+                <span class="card-price" *ngIf="r.averageRating"><mat-icon style="font-size:14px; width:14px; height:14px; color:#ea580c; vertical-align:middle; margin-right:2px; margin-top:-2px;">star</mat-icon> {{ r.averageRating | number:'1.1-1' }} ({{ r.reviewCount }})</span>
+                <span class="card-price" *ngIf="!r.averageRating">New</span>
                 <button class="add-btn">VIEW</button>
               </div>
             </div>
@@ -862,8 +872,10 @@ export class RecipeDetailComponent implements OnInit {
   }
 
   canEdit(): boolean {
-    if (!this.currentUser || !this.recipe || !this.recipe.owner) return false;
-    return this.currentUser._id === (typeof this.recipe.owner === 'object' ? this.recipe.owner._id : this.recipe.owner) || this.currentUser.role === 'admin';
+    if (!this.currentUser || !this.recipe) return false;
+    if (this.currentUser.role === 'admin') return true;
+    if (!this.recipe.owner) return false;
+    return this.currentUser._id === (typeof this.recipe.owner === 'object' ? this.recipe.owner._id : this.recipe.owner);
   }
 
   getOwnerName(): string {

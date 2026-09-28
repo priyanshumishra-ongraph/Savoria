@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import { afterAll, beforeAll, describe, expect, it } from '@jest/globals';
 import authRoutes from '../routes/auth.routes';
 import recipeRoutes from '../routes/recipe.routes';
+import reviewRoutes from '../routes/review.routes';
 import User from '../models/User';
 import Recipe from '../models/Recipe';
 import dotenv from 'dotenv';
@@ -14,6 +15,7 @@ const app = express();
 app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/recipes', recipeRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 let userToken: string;
 let adminToken: string;
@@ -340,5 +342,64 @@ describe('Recipe API - CRUD & Authorization', () => {
     expect(before).toBeGreaterThanOrEqual(1);
     const recipe = await Recipe.findById(secondRecipeId);
     expect(recipe).not.toBeNull();
+  });
+});
+
+describe('Reviews API - Ratings & Reviews Flow', () => {
+  let reviewRecipeId: string;
+  let reviewId: string;
+
+  beforeAll(async () => {
+    // Create a recipe to review
+    const recipe = await Recipe.create({
+      title: 'Review Test Recipe',
+      difficulty: 'Easy',
+      category: 'Dinner',
+      owner: regularUserId,
+      ingredients: [{ name: 'Ingredient 1', quantity: '1' }],
+      steps: ['Step 1'],
+    });
+    reviewRecipeId = recipe._id.toString();
+  });
+
+  it('CREATE a review updates recipe stats (201)', async () => {
+    const res = await request(app)
+      .post('/api/reviews')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({
+        recipeId: reviewRecipeId,
+        rating: 5,
+        comment: 'Great recipe for automated testing!',
+        sentiment: 'POSITIVE'
+      });
+    expect(res.status).toBe(201);
+    expect(res.body).toHaveProperty('_id');
+    reviewId = res.body._id;
+
+    // Check stats on recipe
+    const recipe = await Recipe.findById(reviewRecipeId);
+    expect(recipe?.averageRating).toBe(5);
+    expect(recipe?.reviewCount).toBe(1);
+  });
+
+  it('FETCH reviews returns the new review (200)', async () => {
+    const res = await request(app)
+      .get(`/api/reviews/${reviewRecipeId}`)
+      .set('Authorization', `Bearer ${userToken}`);
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBeGreaterThanOrEqual(1);
+    expect(res.body.some((r: any) => r._id === reviewId)).toBe(true);
+  });
+
+  it('DELETE a review reverts recipe stats (200)', async () => {
+    const res = await request(app)
+      .delete(`/api/reviews/${reviewId}`)
+      .set('Authorization', `Bearer ${userToken}`);
+    expect(res.status).toBe(200);
+
+    const recipe = await Recipe.findById(reviewRecipeId);
+    expect(recipe?.averageRating).toBe(0);
+    expect(recipe?.reviewCount).toBe(0);
   });
 });

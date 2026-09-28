@@ -9,6 +9,7 @@ import recipeRoutes from './routes/recipe.routes';
 import dashboardRoutes from './routes/dashboard.routes';
 import uploadRoutes from './routes/upload.routes';
 import newsletterRoutes from './routes/newsletter.routes';
+import reviewRoutes from './routes/review.routes';
 import { errorHandler, notFound } from './middleware/error.middleware';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
@@ -60,6 +61,7 @@ app.use('/api/auth', authLimiter);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/recipes', recipeRoutes);
+app.use('/api/reviews', reviewRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/newsletter', newsletterRoutes);

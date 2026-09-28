@@ -32,6 +32,15 @@ export interface Recipe {
     tags?: string[];
     likes?: string[];
     likesCount?: number;
+    averageRating?: number;
+    reviewCount?: number;
+    ratingDistribution?: {
+        1: number;
+        2: number;
+        3: number;
+        4: number;
+        5: number;
+    };
 }
 
 export interface RecipeResponse{
@@ -39,4 +48,17 @@ export interface RecipeResponse{
     total: number;
     page?: number;
     pages?: number;
+}
+
+export interface Review {
+    _id: string;
+    recipeId: string;
+    userId: User; // Populated user
+    rating: number;
+    comment: string;
+    sentiment?: string;
+    helpfulVotes?: string[];
+    ownerReply?: string;
+    createdAt?: string;
+    updatedAt?: string;
 }
