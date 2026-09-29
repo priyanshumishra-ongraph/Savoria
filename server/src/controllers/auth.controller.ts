@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
+import Collection from '../models/Collection';
 import { AuthRequest } from '../middleware/auth.middleware';
 
 
