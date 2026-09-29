@@ -10,6 +10,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RecipeService } from '../core/services/recipe.service';
 import { environment } from '../../environments/environment';
+import * as mobilenet from '@tensorflow-models/mobilenet';
+import * as tf from '@tensorflow/tfjs';
 
 @Component({
   selector: 'app-recipe-form',
@@ -76,8 +78,17 @@ import { environment } from '../../environments/environment';
                 <mat-icon>cloud_upload</mat-icon>
                 {{ recipeForm.get('imageUrl')?.value ? 'Change Image' : 'Upload Image' }}
               </button>
-              <mat-spinner *ngIf="isUploadingImage" diameter="24" class="inline-spinner"></mat-spinner>
-              <div *ngIf="recipeForm.get('imageUrl')?.value && !isUploadingImage" class="image-preview">
+              
+                <mat-spinner *ngIf="isUploadingImage || isClassifying" diameter="24" class="inline-spinner"></mat-spinner>
+                <span *ngIf="isClassifying" style="margin-left: 8px; color: #64748b; font-size: 14px;">Analyzing image...</span>
+                
+                <div *ngIf="aiWarning" class="ai-warning" style="margin-top: 12px; padding: 12px; background: #fffbeb; color: #b45309; border-radius: 8px; display: flex; align-items: center; gap: 8px; width: 100%;">
+                  <mat-icon>warning</mat-icon>
+                  <span><strong>AI Warning:</strong> This doesn't look like food! Are you sure you want to upload this image?</span>
+                </div>
+
+                <div *ngIf="recipeForm.get('imageUrl')?.value && !isUploadingImage && !isClassifying" class="image-preview" style="margin-top: 16px;">
+  
                 <img [src]="getImageUrl(recipeForm.get('imageUrl')?.value)" alt="Recipe Preview" height="100">
               </div>
             </div>
@@ -240,15 +251,29 @@ export class RecipeFormComponent implements OnInit {
   recipeForm!: FormGroup;
   isSubmitting = false;
   isUploadingImage = false;
+  private model: any;
   error = '';
   isEditMode = false;
+  isClassifying = false;
+  aiWarning = false;
   recipeId: string | null = null;
   
   showSuccessPopup = false;
   createdRecipeSlug = '';
   createdRecipeCategory = '';
 
+  async loadAiModel() {
+    try {
+      await tf.setBackend('cpu');
+      await tf.ready();
+      this.model = await mobilenet.load();
+    } catch (e) {
+      console.error('Error loading mobilenet', e);
+    }
+  }
+
   ngOnInit() {
+    this.loadAiModel();
     this.recipeId = this.route.snapshot.paramMap.get('id');
     this.isEditMode = !!this.recipeId;
 
@@ -288,32 +313,70 @@ export class RecipeFormComponent implements OnInit {
     });
   }
 
-  onFileSelected(event: Event) {
+  async onFileSelected(event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0];
     const title = this.recipeForm.get('title')?.value;
-    if (file) {
-      this.isUploadingImage = true;
-      this.error = '';
+    if (!file) return;
+
+    this.aiWarning = false;
+    
+    if (this.model) {
+      this.isClassifying = true;
       this.cdr.detectChanges();
-      this.recipeService.uploadImage(file, title).subscribe({
-        next: (res) => {
-          this.recipeForm.patchValue({ imageUrl: res.imageUrl });
-          this.isUploadingImage = false;
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          this.error = err.error?.message || 'Failed to upload image';
-          this.isUploadingImage = false;
-          this.cdr.detectChanges();
+      
+      try {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        
+        await new Promise((resolve) => {
+          img.onload = resolve;
+        });
+
+        const predictions = await this.model.classify(img);
+        this.isClassifying = false;
+        
+        const foodKeywords = ['food', 'fruit', 'vegetable', 'meat', 'dish', 'plate', 'bowl', 'cup', 'pizza', 'burger', 'sandwich', 'dessert', 'cake', 'bread', 'pasta', 'soup', 'salad', 'recipe', 'meal'];
+        
+        let isFood = false;
+        for (let p of predictions) {
+          const classNames = p.className.toLowerCase();
+          if (foodKeywords.some(kw => classNames.includes(kw))) {
+            isFood = true;
+            break;
+          }
         }
-      });
+        
+        if (!isFood) {
+          this.aiWarning = true;
+        }
+      } catch(e) {
+        console.error('Classification error', e);
+        this.isClassifying = false;
+      }
     }
+
+    this.isUploadingImage = true;
+    this.error = '';
+    this.cdr.detectChanges();
+    this.recipeService.uploadImage(file, title).subscribe({
+      next: (res) => {
+        this.recipeForm.patchValue({ imageUrl: res.imageUrl });
+        this.isUploadingImage = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.error = err.error?.message || 'Failed to upload image';
+        this.isUploadingImage = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
-  getImageUrl(url: string | undefined): string {
-    if (!url) return '';
-    if (url.startsWith('http')) return url;
-    return `${environment.apiUrl.replace(/\/api\/?$/, '')}${url}`;
+
+  getImageUrl(path: string): string {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    return `${environment.apiUrl.replace(/\/api\/?$/, '')}${path}`;
   }
 
   onSubmit() {

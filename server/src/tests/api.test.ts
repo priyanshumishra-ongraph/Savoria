@@ -5,8 +5,11 @@ import { afterAll, beforeAll, describe, expect, it } from '@jest/globals';
 import authRoutes from '../routes/auth.routes';
 import recipeRoutes from '../routes/recipe.routes';
 import reviewRoutes from '../routes/review.routes';
+import collectionRoutes from '../routes/collection.routes';
+import favoriteRoutes from '../routes/favorite.routes';
 import User from '../models/User';
 import Recipe from '../models/Recipe';
+import Review from '../models/Review';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -16,6 +19,8 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/collections', collectionRoutes);
+app.use('/api/favorites', favoriteRoutes);
 
 let userToken: string;
 let adminToken: string;
@@ -401,5 +406,140 @@ describe('Reviews API - Ratings & Reviews Flow', () => {
     const recipe = await Recipe.findById(reviewRecipeId);
     expect(recipe?.averageRating).toBe(0);
     expect(recipe?.reviewCount).toBe(0);
+  });
+
+  it('DELETE a review by unauthorized user fails (403)', async () => {
+    // Create another user to test unauthorized delete
+    const anotherUser = await User.create({
+      name: 'Other User',
+      email: 'other@example.com',
+      password: 'password123',
+      role: 'user'
+    });
+    const tokenResponse = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'other@example.com', password: 'password123' });
+    const otherToken = tokenResponse.body.token;
+
+    // Create a review by original user
+    const review = await Review.create({
+      recipeId: reviewRecipeId,
+      userId: regularUserId,
+      rating: 5,
+      comment: 'Test comment'
+    });
+
+    const res = await request(app)
+      .delete(`/api/reviews/${review._id}`)
+      .set('Authorization', `Bearer ${otherToken}`);
+    
+    expect(res.status).toBe(403);
+  });
+
+  it('POST review with invalid recipe ID fails (400)', async () => {
+    const res = await request(app)
+      .post('/api/reviews')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({
+        recipeId: 'invalid123',
+        rating: 5,
+        comment: 'Nice recipe'
+      });
+    expect(res.status).toBe(400);
+  });
+});
+
+describe('Collection API & Favorites API Integration', () => {
+  let testCollectionId = '';
+  let testRecipeId = '';
+
+  beforeAll(async () => {
+    // We need a recipe to use for favorites and recipes testing
+    const recipe = await Recipe.create({
+      title: 'Collection & Favorite Test Recipe',
+      difficulty: 'Medium',
+      category: 'Dinner',
+      owner: regularUserId,
+      ingredients: [{ name: 'Test', quantity: '1' }],
+      steps: ['Test'],
+    });
+    testRecipeId = recipe._id.toString();
+  });
+
+  // COLLECTIONS TESTS
+  it('should create a new collection (201)', async () => {
+    const res = await request(app)
+      .post('/api/collections')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ name: 'My Test Cookbook', description: 'Test description' });
+    
+    expect(res.status).toBe(201);
+    expect(res.body.name).toBe('My Test Cookbook');
+    testCollectionId = res.body._id;
+  });
+
+  it('should get collections for the user (200)', async () => {
+    const res = await request(app)
+      .get('/api/collections')
+      .set('Authorization', `Bearer ${userToken}`);
+      
+    expect(res.status).toBe(200);
+    expect(res.body.collections.length).toBeGreaterThanOrEqual(1);
+    expect(res.body.collections.some((c: any) => c._id === testCollectionId)).toBe(true);
+  });
+
+  it('should add a recipe to a collection (Save to Cookbook) (200)', async () => {
+    const res = await request(app)
+      .post(`/api/collections/${testCollectionId}/recipes`)
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ recipeId: testRecipeId });
+      
+    expect(res.status).toBe(200);
+    expect(res.body.recipes.some((r: any) => (r._id || r) === testRecipeId)).toBe(true);
+  });
+
+  it('should remove a recipe from a collection (200)', async () => {
+    const res = await request(app)
+      .delete(`/api/collections/${testCollectionId}/recipes/${testRecipeId}`)
+      .set('Authorization', `Bearer ${userToken}`);
+      
+    expect(res.status).toBe(200);
+    expect((res.body.recipes || []).some((r: any) => (r._id || r) === testRecipeId)).toBe(false);
+  });
+
+  // FAVORITES TESTS
+  it('should add a recipe to favorites (200)', async () => {
+    const res = await request(app)
+      .post(`/api/favorites/${testRecipeId}`)
+      .set('Authorization', `Bearer ${userToken}`);
+      
+    expect(res.status).toBe(200);
+    expect(res.body.favorites).toContain(testRecipeId);
+  });
+
+  it('should prevent adding duplicate to favorites (400)', async () => {
+    const res = await request(app)
+      .post(`/api/favorites/${testRecipeId}`)
+      .set('Authorization', `Bearer ${userToken}`);
+      
+    expect(res.status).toBe(400);
+  });
+
+  it('should return user favorites (200)', async () => {
+    const res = await request(app)
+      .get('/api/favorites')
+      .set('Authorization', `Bearer ${userToken}`);
+      
+    expect(res.status).toBe(200);
+    expect(res.body.some((r: any) => r._id === testRecipeId)).toBe(true);
+  });
+
+  it('should remove a recipe from favorites (200)', async () => {
+    const res = await request(app)
+      .delete(`/api/favorites/${testRecipeId}`)
+      .set('Authorization', `Bearer ${userToken}`);
+      
+    expect(res.status).toBe(200);
+    expect(res.body.favorites).not.toContain(testRecipeId);
   });
 });

@@ -3,7 +3,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ReviewService } from '../core/services/review.service';
 import { AuthService } from '../core/services/auth.service';
-import { Review } from '../core/models/types';
+import { Review, User } from '../core/models/types';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -14,7 +14,7 @@ import { ConfirmationModalComponent } from '../shared/components/confirmation-mo
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, MatIconModule, MatButtonModule, ConfirmationModalComponent],
   template: `
-    <div class="reviews-container" ngSkipHydration>
+    <div class="reviews-container">
       <h3>Reviews & Ratings</h3>
       
       <!-- Rating Distribution Histogram -->
@@ -566,6 +566,7 @@ export class ReviewSectionComponent implements OnInit, OnDestroy {
 
   reviews: Review[] = [];
   isLoggedIn = false;
+  currentUser: User | null = null;
   currentUserId: string | null = null;
   userHasReviewed = false;
   isRecipeOwner = false;
@@ -602,6 +603,7 @@ export class ReviewSectionComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
       this.isLoggedIn = !!user;
+      this.currentUser = user || null;
       this.currentUserId = user?._id || null;
       this.isRecipeOwner = this.currentUserId === this.recipeOwnerId;
       this.checkUserReviewed();
@@ -780,7 +782,7 @@ export class ReviewSectionComponent implements OnInit, OnDestroy {
 
   canDelete(review: Review): boolean {
     if (!this.currentUserId) return false;
-    return review.userId?._id === this.currentUserId || this.isRecipeOwner;
+    return review.userId?._id === this.currentUserId || this.isRecipeOwner || this.currentUser?.role === 'admin';
   }
 
   deleteReview(reviewId: string) {

@@ -166,8 +166,8 @@ server/
 
 ---
 
-## 🤖 In-Browser AI Add-ons
-This project fulfills the requirement of at least 2 free AI add-ons running entirely in the browser using Web Workers (displaying a non-blocking loading state).
+## 🤖 In-Browser AI Add-ons for Day 9
+This project fulfills the requirement free AI add-ons running entirely in the browser using Web Workers (displaying a non-blocking loading state).
 
 1. **Sentiment Analysis** 
    - **Model**: `Xenova/distilbert-base-uncased-finetuned-sst-2-english` (via Transformers.js).
@@ -178,12 +178,34 @@ This project fulfills the requirement of at least 2 free AI add-ons running enti
 
 *(Both models dynamically download and initialize asynchronously in the background. The UI displays a clear "AI engines warming up..." loading state inside the review box until they are ready to process data).*
 
-## 📸 Screenshots
-> **Note for submission:** Replace the placeholders below with actual image links of the live app.
+## 📸 Screenshots of Day 9
 
-- **Dashboard:** `[Screenshot link here]`
-- **AI Sentiment & Toxicity in action:** `[Screenshot link here]`
-- **Recipe Creation & Uploads:** `[Screenshot link here]`
+- **Reviews & Ratings:** <br><img src="assets/Reviews-Ratings.png" width="600"/>
+- **Ratings:** <br><img src="assets/Ratings.png" width="600"/>
+- **AI Sentiment & Toxicity in action:** <br><img src="assets/Review-Toxic.png" width="600"/>
+
+---
+
+### ✅ Day 10: Favorites and Collections (Completed)
+
+- **My Cookbooks Dashboard**: Added the "My Cookbooks" page with built-in pagination for seamlessly managing your saved bookmarks and favorited recipe cards.
+- **MobileNet Image Warning**: Integrated TensorFlow.js MobileNet directly into the recipe upload form to classify images locally, showing a warning banner if the uploaded image is not food.
+- **Favorites Integration**: Upgraded the backend favorites logic and wired it up to a 1-click "Heart" button on recipe cards, with animated Toast notifications.
+- **Auto-Cookbooks**: Favoriting a recipe automatically provisions and syncs a custom "Favorites" Cookbook on the collections dashboard for seamless organization.
+- **Privacy & CSS Fixes**: Scrubbed user emails from MongoDB populated collaborator lists to prevent PII leaks, and fixed complex mobile CSS layout bugs on the navbar.
+- **Favourite API Testing**: Expanded the Jest integration suite to specifically test the favourite and collections flow, verifying full data integrity and strict authorization checks (ensuring 42/42 tests pass).
+
+## 🤖 In-Browser AI Add-ons for Day 10
+1. **Image Content Warning**
+   - **Model**: `@tensorflow-models/mobilenet` (via TensorFlow.js).
+   - **What it does**: Analyzes recipe image uploads directly in the browser to ensure the image contains food. If the image is not food-related, a warning banner alerts the user before uploading.
+
+## 📸 Screenshots of Day 10
+
+- **My Cookbook:** <br><img src="assets/My Cookbooks.png" width="600"/>
+- **Favorites Collections:** <br><img src="assets/Favorites.png" width="600"/>
+- **Collection Popup:** <br><img src="assets/Save to Cookbook.png" width="600"/>
+- **AI Warning:** <br><img src="assets/Ai Warning.png" width="600"/>
 
 ---
 

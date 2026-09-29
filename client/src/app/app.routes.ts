@@ -50,6 +50,25 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'collections',
+    loadComponent: () => import('./features/collections-dashboard.component').then(m => m.CollectionsDashboardComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'collections/:slug/:id',
+    loadComponent: () => import('./features/collection-detail.component').then(m => m.CollectionDetailComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'collections/:id',
+    loadComponent: () => import('./features/collection-detail.component').then(m => m.CollectionDetailComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'collections/shared/:token',
+    loadComponent: () => import('./features/collection-detail.component').then(m => m.CollectionDetailComponent),
+  },
+  {
     path: 'admin/users',
     loadComponent: () => import('./features/users.component').then(m => m.UsersComponent),
     canActivate: [authGuard, adminGuard],

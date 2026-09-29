@@ -1,23 +1,51 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostBinding, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Recipe } from '../../core/models/types';
 import { TimeFormatPipe } from '../pipes/time-format.pipe';
 import { environment } from '../../../environments/environment';
+import { SaveToCollectionModalComponent } from './save-to-collection-modal.component';
+import { FavoriteService } from '../../core/services/favorite.service';
+import { AuthService } from '../../core/services/auth.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-recipe-card',
   standalone: true,
-  imports: [CommonModule, RouterModule, TimeFormatPipe],
+  imports: [CommonModule, RouterModule, TimeFormatPipe, SaveToCollectionModalComponent],
   template: `
-    <a [routerLink]="['/recipes', recipe.category.toLowerCase(), getSlug(recipe.title)]" class="recipe-card premium-hover">
+    <a [routerLink]="['/recipes', recipe.category.toLowerCase(), getSlug(recipe.title)]" 
+       class="recipe-card premium-hover">
       <div class="image-wrapper">
         <img [src]="getImageUrl(recipe.imageUrl) || getCategoryImage(recipe.category)"
              [alt]="recipe.title"
              (error)="onImageError($event, recipe.category)">
         <div class="card-overlay"></div>
-        <div class="badges-top">
-          <span class="difficulty-badge" [ngClass]="recipe.difficulty.toLowerCase()">
+
+        <button *ngIf="context === 'default'" class="favorite-btn" [class.is-favorite]="isFavorite" (click)="toggleFavorite($event)" title="Add to Favorites">
+          <svg *ngIf="!isFavorite" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+          <svg *ngIf="isFavorite" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#ef4444" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+        </button>
+
+        
+        <button *ngIf="context === 'default'" class="save-bookmark-btn" (click)="openSaveModal($event)" title="Save to Collection">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </button>
+
+        <button *ngIf="context === 'collection'" class="remove-btn" (click)="onRemove($event)" title="Remove from Cookbook">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line>
+          </svg>
+        </button>
+
+        <div class="badges-top" *ngIf="context !== 'collection'">
+          <span class="difficulty-badge" [ngClass]="(recipe.difficulty || '').toLowerCase()">
             {{ recipe.difficulty }}
           </span>
         </div>
@@ -48,9 +76,25 @@ import { environment } from '../../../environments/environment';
         </div>
       </div>
     </a>
+    
+    <app-save-to-collection-modal 
+      *ngIf="showSaveModal" 
+      [recipeId]="recipe._id" 
+      [recipeDetails]="recipe" 
+      (close)="showSaveModal = false"
+      (saved)="onSaved()">
+    </app-save-to-collection-modal>
+
+    <div class="toast-notification" [class.show]="showToast">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+      <span>{{ toastMessage }}</span>
+    </div>
   `,
   styles: [`
     .recipe-card {
+      position: relative;
       background: #ffffff;
       border-radius: 12px;
       overflow: hidden;
@@ -204,11 +248,202 @@ import { environment } from '../../../environments/environment';
 
     .author-prefix { color: #a8a29e; }
     .author-name { color: #57534e; font-weight: 500; }
+    
+    
+      .favorite-btn {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        z-index: 3;
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #57534e;
+        opacity: 0;
+        transform: translateY(-5px);
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .recipe-card:hover .favorite-btn {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .favorite-btn:hover {
+        background: #fef2f2;
+        color: #ef4444;
+        transform: scale(1.1) !important;
+      }
+      .favorite-btn.is-favorite {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .save-bookmark-btn {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      z-index: 3;
+      background: rgba(255, 255, 255, 0.9);
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #3C2218;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: all 0.2s ease;
+      opacity: 0;
+      transform: translateY(-5px);
+    }
+    
+    .remove-btn {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 4;
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(239, 68, 68, 0.3);
+      transition: all 0.2s;
+      opacity: 0;
+      transform: translateY(-5px);
+    }
+    
+    .recipe-card:hover .save-bookmark-btn,
+    .recipe-card:hover .remove-btn {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .save-bookmark-btn:hover {
+      background: #ea580c;
+      color: white;
+      transform: scale(1.1);
+    }
+    
+    .remove-btn:hover {
+      background: #dc2626;
+      transform: scale(1.05);
+    }
+    .toast-notification {
+      position: fixed;
+      bottom: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #10b981;
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 50px;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 600;
+      box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3);
+      transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 100000;
+    }
+    .toast-notification.show {
+      bottom: 2rem;
+    }
   `]
 })
-export class RecipeCardComponent {
+
+export class RecipeCardComponent implements OnInit, OnDestroy {
   @Input({ required: true }) recipe!: Recipe;
   @Input() showAuthor: boolean = false;
+  @Input() context: 'default' | 'collection' = 'default';
+  @Output() remove = new EventEmitter<string>();
+  
+  showSaveModal = false;
+  showToast = false;
+  toastMessage = 'Recipe added to cookbook!';
+  isFavorite = false;
+  private favoriteService = inject(FavoriteService);
+  private authService = inject(AuthService);
+  private cdr = inject(ChangeDetectorRef);
+  private sub?: Subscription;
+
+  ngOnInit() {
+    this.sub = this.favoriteService.favoriteIds$.subscribe(ids => {
+      if (this.recipe) {
+        this.isFavorite = ids.has(this.recipe._id);
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.sub) this.sub.unsubscribe();
+  }
+
+  toggleFavorite(event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!this.authService.currentUserValue) {
+      alert('Please log in to add favorites!');
+      return;
+    }
+    
+    if (this.isFavorite) {
+      this.favoriteService.removeFavorite(this.recipe._id).subscribe(() => {
+          this.showToastMessage('Removed from favorites!');
+        });
+    } else {
+      this.favoriteService.addFavorite(this.recipe._id).subscribe(() => {
+          this.showToastMessage('Recipe added to favorites!');
+        });
+    }
+  }
+
+
+  onSaved() {
+    this.showSaveModal = false;
+    this.showToastMessage('Recipe added to cookbook!');
+  }
+
+  showToastMessage(msg: string) {
+    this.toastMessage = msg;
+    this.showToast = true;
+    this.cdr.detectChanges();
+    setTimeout(() => {
+      this.showToast = false;
+      this.cdr.detectChanges();
+    }, 3000);
+  }
+
+  @HostBinding('style.z-index') get zIndex() {
+    return this.showSaveModal ? 9999 : 'auto';
+  }
+
+  @HostBinding('style.position') get position() {
+    return this.showSaveModal ? 'relative' : 'static';
+  }
+
+  openSaveModal(event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.showSaveModal = true;
+  }
+
+  onRemove(event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.remove.emit(this.recipe._id);
+  }
 
   getImageUrl(url: string | undefined): string | null {
     if (!url) return null;
@@ -234,7 +469,7 @@ export class RecipeCardComponent {
 
   onImageError(event: Event, category: string): void {
     const img = event.target as HTMLImageElement;
-    img.src = this.getCategoryImage(category);
+    img.src = 'https://placehold.co/600x400/e2e8f0/475569?text=Recipe';
     img.onerror = null; // prevent infinite loop if fallback also fails
   }
 
@@ -244,3 +479,6 @@ export class RecipeCardComponent {
     return this.recipe.owner.name || 'Unknown';
   }
 }
+
+
+

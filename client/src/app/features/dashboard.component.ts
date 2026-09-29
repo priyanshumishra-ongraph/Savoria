@@ -335,7 +335,6 @@ import { NewsletterService } from '../core/services/newsletter.service';
       margin: 20px auto 0;
       padding: 0 20px;
       position: relative;
-      z-index: 10;
     }
 
     .section-header {
