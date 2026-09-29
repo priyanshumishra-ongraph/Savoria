@@ -8,6 +8,7 @@ export interface IUser extends Document {
   role: 'user' | 'admin';
   avatarUrl?: string;
   isActive: boolean;
+  favorites: mongoose.Types.ObjectId[];
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -46,6 +47,12 @@ const UserSchema: Schema = new Schema(
       type: Boolean,
       default: true,
     },
+    favorites: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Recipe',
+      }
+    ],
   },
   {
     timestamps: true,

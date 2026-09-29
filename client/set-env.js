@@ -13,12 +13,12 @@ function parseEnv() {
     return envVars;
   } catch (err) {
     console.warn('No .env file found in client directory, using defaults.');
-    return { API_URL: 'http://localhost:3000/api' };
+    return { API_URL: 'http://localhost:5000/api' };
   }
 }
 
 const env = parseEnv();
-const apiUrl = process.env.API_URL || env.API_URL || 'http://localhost:3000/api';
+const apiUrl = process.env.API_URL || 'http://localhost:5000/api';
 
 const envConfigFile = `export const environment = {
   apiUrl: '${apiUrl}'

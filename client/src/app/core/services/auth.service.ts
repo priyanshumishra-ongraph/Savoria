@@ -30,13 +30,24 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   currentUser$ = this.currentUserSubject.asObservable();
 
+  get currentUserValue(): User | null {
+    return this.currentUserSubject.value;
+  }
+
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
       const savedUser = localStorage.getItem('user');
       const token = localStorage.getItem('token');
 
       if (savedUser && token) {
-        this.currentUserSubject.next(JSON.parse(savedUser));
+        // Immediately hydrate from localStorage so the guard passes fast
+        try {
+          this.currentUserSubject.next(JSON.parse(savedUser));
+        } catch {
+          this.clearSession();
+          return;
+        }
+        // Then validate the token against the real server in the background
         setTimeout(() => this.validateSession(), 0);
       } else {
         this.clearSession();
@@ -53,7 +64,13 @@ export class AuthService {
         this.currentUserSubject.next(freshUser);
       },
       error: (err) => {
-        console.error('Session validation failed:', err);
+        // *** THE BUG WAS HERE ***
+        // If the token is invalid/expired (e.g. server restarted, port changed),
+        // we MUST clear the session. Failing silently leaves the user with a 
+        // dead token that causes every protected API call to 401 and hang on "Loading..."
+        console.warn('Session invalid, clearing:', err.status);
+        this.clearSession();
+        this.router.navigate(['/login']);
       }
     });
   }

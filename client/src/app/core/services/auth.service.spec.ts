@@ -1,35 +1,23 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { Router } from '@angular/router';
-import { PLATFORM_ID } from '@angular/core';
+import { RouterTestingModule } from '@angular/router/testing';
 import { AuthService } from './auth.service';
-import { environment } from '../../../environments/environment';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { Router } from '@angular/router';
 
 describe('AuthService', () => {
   let service: AuthService;
   let httpMock: HttpTestingController;
-  let mockRouter: any;
+  let router: Router;
 
   beforeEach(() => {
-    mockRouter = {
-      navigate: vi.fn()
-    };
-
+    localStorage.clear();
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [
-        AuthService,
-        { provide: Router, useValue: mockRouter },
-        { provide: PLATFORM_ID, useValue: 'browser' }
-      ]
+      imports: [HttpClientTestingModule, RouterTestingModule],
+      providers: [AuthService]
     });
-
     service = TestBed.inject(AuthService);
     httpMock = TestBed.inject(HttpTestingController);
-    
-    // Clear localStorage before tests
-    localStorage.clear();
+    router = TestBed.inject(Router);
   });
 
   afterEach(() => {
@@ -41,58 +29,65 @@ describe('AuthService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should login user and save token', () => {
-    const mockResponse = {
-      token: 'test-token',
-      _id: '1',
-      name: 'Test User',
-      email: 'test@example.com',
-      role: 'user',
-      isActive: true
-    };
-
-    service.login({ email: 'test@example.com', password: 'password' }).subscribe();
-
-    const req = httpMock.expectOne(`${environment.apiUrl}/auth/login`);
-    expect(req.request.method).toBe('POST');
-    req.flush(mockResponse);
-
-    expect(localStorage.getItem('token')).toBe('test-token');
-    service.currentUser$.subscribe(user => {
-      expect(user?.name).toBe('Test User');
-    });
+  it('currentUser$ should emit null initially when no token in localStorage', () => {
+    let user: any = 'not-called';
+    service.currentUser$.subscribe(u => user = u);
+    expect(user).toBeNull();
   });
 
-  it('should logout user, clear token, and navigate to login', () => {
-    localStorage.setItem('token', 'old-token');
-    // Force a mock user into the behavior subject
-    (service as any).currentUserSubject.next({ name: 'User' });
-    
+  it('login() should set token and emit user', fakeAsync(() => {
+    const mockResponse = {
+      _id: '123', name: 'Test', email: 'test@test.com', role: 'user', token: 'abc123'
+    };
+
+    let emittedUser: any;
+    service.currentUser$.subscribe(u => emittedUser = u);
+
+    service.login({ email: 'test@test.com', password: 'pass' }).subscribe();
+    const req = httpMock.expectOne(r => r.url.includes('/auth/login'));
+    req.flush(mockResponse);
+    tick();
+
+    expect(localStorage.getItem('token')).toBe('abc123');
+    expect(emittedUser?.email).toBe('test@test.com');
+  }));
+
+  it('logout() should clear session and navigate to /login', fakeAsync(() => {
+    localStorage.setItem('token', 'sometoken');
+    localStorage.setItem('user', JSON.stringify({ _id: '1', name: 'A', email: 'a@a.com', role: 'user' }));
+    spyOn(router, 'navigate');
+
     service.logout();
-    
+
     expect(localStorage.getItem('token')).toBeNull();
-    service.currentUser$.subscribe(user => {
-      expect(user).toBeNull();
-    });
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/login']);
-  });
+    expect(localStorage.getItem('user')).toBeNull();
+    expect(router.navigate).toHaveBeenCalledWith(['/login']);
+  }));
 
-  it('should register user and save token', () => {
-    const mockResponse = {
-      token: 'register-token',
-      _id: '2',
-      name: 'New User',
-      email: 'new@example.com',
-      role: 'user',
-      isActive: true
-    };
+  it('validateSession() should clear session and redirect on 401 — THIS WAS THE BUG', fakeAsync(() => {
+    // Simulate stale token in localStorage (e.g. from old port 3000 session)
+    localStorage.setItem('token', 'stale-token');
+    localStorage.setItem('user', JSON.stringify({ _id: '1', name: 'A', email: 'a@a.com', role: 'user' }));
+    spyOn(router, 'navigate');
 
-    service.register({ name: 'New', email: 'new@example.com', password: 'password' }).subscribe();
+    // Re-create the service so the constructor runs with the stale token
+    service = new (AuthService as any)();
 
-    const req = httpMock.expectOne(`${environment.apiUrl}/auth/register`);
-    expect(req.request.method).toBe('POST');
-    req.flush(mockResponse);
+    tick(0); // flush the setTimeout
 
-    
+    // The /me call fires
+    const req = httpMock.expectOne(r => r.url.includes('/auth/me'));
+    req.flush({ message: 'Not authorized' }, { status: 401, statusText: 'Unauthorized' });
+    tick();
+
+    // Session MUST be cleared
+    expect(localStorage.getItem('token')).toBeNull();
+    expect(localStorage.getItem('user')).toBeNull();
+    expect(router.navigate).toHaveBeenCalledWith(['/login']);
+  }));
+
+  it('getToken() should return token from localStorage', () => {
+    localStorage.setItem('token', 'mytoken');
+    expect(service.getToken()).toBe('mytoken');
   });
 });

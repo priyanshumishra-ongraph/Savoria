@@ -150,6 +150,14 @@ export const toggleUserActive = async (req: AuthRequest, res: Response, next: Ne
     user.isActive = !user.isActive;
     await user.save();
 
+    // Create default Favorites collection
+    await Collection.create({
+      name: 'Favorites',
+      user: user._id,
+      isPublic: false,
+      recipes: []
+    });
+
     res.json({
       _id: user._id,
       name: user.name,

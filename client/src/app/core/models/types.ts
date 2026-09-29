@@ -4,6 +4,7 @@ export interface User {
     email: string;
     role: 'user' | 'admin';
     avatarUrl?: string;
+  favorites?: string[];
     isActive?: boolean;
     createdAt?: string;
 }
@@ -61,4 +62,24 @@ export interface Review {
     ownerReply?: string;
     createdAt?: string;
     updatedAt?: string;
+}
+
+export interface Collection {
+    _id: string;
+    name: string;
+    user: string | User;
+    recipes: Recipe[];
+    collaborators?: User[];
+    coverImage?: string;
+    isPublic: boolean;
+    shareToken?: string;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
+export interface CollectionResponse {
+    collections: Collection[];
+    total: number;
+    page: number;
+    pages: number;
 }

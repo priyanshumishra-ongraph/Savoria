@@ -74,6 +74,11 @@ export const addReview = async (req: AuthRequest, res: Response): Promise<void> 
       return;
     }
 
+    if (!mongoose.isValidObjectId(recipeId)) {
+      res.status(400).json({ message: 'Invalid recipe ID' });
+      return;
+    }
+
     const recipeObjId = new mongoose.Types.ObjectId(recipeId);
 
     // Check if recipe exists
@@ -181,8 +186,7 @@ export const deleteReview = async (req: AuthRequest, res: Response): Promise<voi
     // Permissions: only review owner, recipe owner, or admin can delete
     const isReviewOwner = review.userId.toString() === userId;
     const isRecipeOwner = recipe.owner.toString() === userId;
-    // Assuming req.user has an isAdmin flag (added manually if needed, checking standard ways)
-    const isAdmin = (req.user as any)?.isAdmin === true;
+    const isAdmin = req.user?.role === 'admin';
 
     if (!isReviewOwner && !isRecipeOwner && !isAdmin) {
       res.status(403).json({ message: 'Not authorized to delete this review' });
@@ -217,20 +221,17 @@ export const toggleHelpfulVote = async (req: AuthRequest, res: Response): Promis
       return;
     }
 
-    if (!review.helpfulVotes) {
-      review.helpfulVotes = [];
-    }
+    const hasVoted = review.helpfulVotes && review.helpfulVotes.some(v => v.toString() === userId);
 
-    const hasVoted = review.helpfulVotes.some(v => v.toString() === userId);
-    if (hasVoted) {
-      review.helpfulVotes = review.helpfulVotes.filter(v => v.toString() !== userId);
-    } else {
-      review.helpfulVotes.push(new mongoose.Types.ObjectId(userId));
-    }
+    const updatedReview = await Review.findByIdAndUpdate(
+      reviewId,
+      hasVoted 
+        ? { $pull: { helpfulVotes: userId } }
+        : { $addToSet: { helpfulVotes: userId } },
+      { new: true }
+    ).populate('userId', 'name avatarUrl');
 
-    await review.save();
-    await review.populate('userId', 'name avatarUrl');
-    res.json(review);
+    res.json(updatedReview);
   } catch (error) {
     console.error('Error toggling helpful vote:', error);
     res.status(500).json({ message: 'Server Error' });
