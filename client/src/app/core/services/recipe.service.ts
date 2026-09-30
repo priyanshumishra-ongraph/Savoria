@@ -1,5 +1,5 @@
 import { Injectable, inject } from "@angular/core";
-import { Recipe, RecipeResponse } from "../models/types";
+import { Recipe, RecipeResponse, SearchParams } from "../models/types";
 import { Observable } from "rxjs/internal/Observable";
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { environment } from "../../../environments/environment";
@@ -11,14 +11,29 @@ export class RecipeService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/recipes`;
   
-  getRecipes(search:string = '', category: string = '', page: number = 1, limit: number = 12): Observable<RecipeResponse> {
-    let params = new HttpParams();
-    if(search) params = params.set('search', search);
-    if(category) params = params.set('category', category);
-    params = params.set('page', page.toString());
-    params = params.set('limit', limit.toString());
+  getRecipes(params: SearchParams = {}): Observable<RecipeResponse> {
+    let p = new HttpParams();
+    if (params.search)      p = p.set('search', params.search);
+    if (params.category)    p = p.set('category', params.category);
+    if (params.ingredients) p = p.set('ingredients', params.ingredients);
+    if (params.maxCookTime != null) p = p.set('maxCookTime', params.maxCookTime.toString());
+    if (params.minRating   != null) p = p.set('minRating',   params.minRating.toString());
+    if (params.sort)        p = p.set('sort', params.sort);
+    p = p.set('page',  (params.page  ?? 1).toString());
+    p = p.set('limit', (params.limit ?? 12).toString());
+    return this.http.get<RecipeResponse>(this.apiUrl, { params: p });
+  }
 
-    return this.http.get<RecipeResponse>(this.apiUrl, { params });
+  getTrending(): Observable<RecipeResponse> {
+    return this.http.get<RecipeResponse>(`${this.apiUrl}/trending`);
+  }
+
+  getRecommended(): Observable<RecipeResponse> {
+    return this.http.get<RecipeResponse>(`${this.apiUrl}/recommended`);
+  }
+
+  getSimilar(id: string): Observable<RecipeResponse> {
+    return this.http.get<RecipeResponse>(`${this.apiUrl}/${id}/similar`);
   }
 
   getRecipeById(id: string): Observable<Recipe> {

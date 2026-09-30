@@ -35,5 +35,9 @@ export const recipeQueryRules = [
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
   query('category').optional().isString().withMessage('Category must be a string'),
-  query('search').optional().isString().withMessage('Search must be a string')
+  query('search').optional().isString().withMessage('Search must be a string'),
+  query('ingredients').optional().isString().withMessage('Ingredients must be a string'),
+  query('maxCookTime').optional().isInt({ min: 0 }).withMessage('Max cook time must be a positive integer'),
+  query('minRating').optional().isFloat({ min: 0, max: 5 }).withMessage('Min rating must be between 0 and 5'),
+  query('sort').optional().isIn(['newest', 'rating', 'cookTime', 'mostReviewed']).withMessage('Invalid sort option')
 ];

@@ -1,6 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, Router } from '@angular/router';
+import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { NavbarComponent } from './features/navbar.component';
 import { FooterComponent } from './shared/components/footer.component';
 
@@ -28,6 +29,23 @@ import { FooterComponent } from './shared/components/footer.component';
     }
   `]
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   router = inject(Router);
+  
+  private previousPath = '';
+
+  ngOnInit() {
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: any) => {
+      // Extract just the path without query params
+      const currentPath = event.urlAfterRedirects.split('?')[0];
+      
+      // Only scroll to top if the actual path changed (not just query params/filters)
+      if (currentPath !== this.previousPath) {
+        window.scrollTo({ top: 0, left: 0 });
+        this.previousPath = currentPath;
+      }
+    });
+  }
 }

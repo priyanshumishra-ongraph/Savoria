@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+﻿import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
 import Collection from '../models/Collection';
@@ -150,14 +150,6 @@ export const toggleUserActive = async (req: AuthRequest, res: Response, next: Ne
 
     user.isActive = !user.isActive;
     await user.save();
-
-    // Create default Favorites collection
-    await Collection.create({
-      name: 'Favorites',
-      user: user._id,
-      isPublic: false,
-      recipes: []
-    });
 
     res.json({
       _id: user._id,

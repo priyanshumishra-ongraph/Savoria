@@ -10,10 +10,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RecipeCardComponent } from '../shared/components/recipe-card.component';
 import { NewsletterService } from '../core/services/newsletter.service';
+import { TrendingSectionComponent } from '../shared/components/trending-section.component';
 
 @Component({  selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, MatCardModule, MatIconModule, MatButtonModule, MatProgressSpinnerModule, RecipeCardComponent],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, MatCardModule, MatIconModule, MatButtonModule, MatProgressSpinnerModule, RecipeCardComponent, TrendingSectionComponent],
   template: `
     <div class="dashboard-wrapper">
       <!-- Premium Hero Section -->
@@ -26,24 +27,7 @@ import { NewsletterService } from '../core/services/newsletter.service';
         </div>
       </div>
 
-      <!-- How It Works Section -->
-      <div class="dashboard-content features-section">
-        <div class="feature-item">
-          <div class="feature-icon-wrapper"><mat-icon>search</mat-icon></div>
-          <h4>Discover</h4>
-          <p>Explore hundreds of community-curated recipes filtered by category, difficulty, or diet.</p>
-        </div>
-        <div class="feature-item">
-          <div class="feature-icon-wrapper"><mat-icon>restaurant</mat-icon></div>
-          <h4>Cook</h4>
-          <p>Follow along with interactive cooking modes, step-by-step instructions, and timed phases.</p>
-        </div>
-        <div class="feature-item">
-          <div class="feature-icon-wrapper"><mat-icon>favorite_border</mat-icon></div>
-          <h4>Share</h4>
-          <p>Upload your own culinary masterpieces, save favorites, and inspire home chefs everywhere.</p>
-        </div>
-      </div>
+
 
       <!-- Loading State -->
       <div class="dashboard-content" *ngIf="isLoading" style="margin-top: 40px; text-align: center; color: #718096; min-height: 200px;">
@@ -57,6 +41,11 @@ import { NewsletterService } from '../core/services/newsletter.service';
           <mat-icon>error_outline</mat-icon>
           {{ error }}
         </div>
+      </div>
+
+      <!-- Trending Section -->
+      <div class="dashboard-content" *ngIf="!isLoading && !error" style="margin-top: 40px;">
+        <app-trending-section />
       </div>
 
       <!-- Categories Section -->
@@ -164,18 +153,7 @@ import { NewsletterService } from '../core/services/newsletter.service';
         </div>
       </div>
 
-      <!-- Trending Now Section -->
-      <div class="dashboard-content" *ngIf="!isLoading && !error && stats?.recentRecipes?.length > 0" style="margin-top: 60px;">
-        <div class="section-header">
-          <div class="section-icon">
-            <mat-icon style="color: #eab308;">local_fire_department</mat-icon>
-          </div>
-          <h3>Trending Now</h3>
-        </div>
-        <div class="card-grid">
-          <app-recipe-card *ngFor="let recipe of stats.recentRecipes" [recipe]="recipe"></app-recipe-card>
-        </div>
-      </div>
+
 
       <div class="dashboard-content" *ngIf="!isLoading && !error" style="margin-top: 60px;">
         
@@ -230,6 +208,25 @@ import { NewsletterService } from '../core/services/newsletter.service';
           </mat-card>
         </div>
 
+      </div>
+
+      <!-- How It Works Section -->
+      <div class="dashboard-content features-section">
+        <div class="feature-item">
+          <div class="feature-icon-wrapper"><mat-icon>search</mat-icon></div>
+          <h4>Discover</h4>
+          <p>Explore hundreds of community-curated recipes filtered by category, difficulty, or diet.</p>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon-wrapper"><mat-icon>restaurant</mat-icon></div>
+          <h4>Cook</h4>
+          <p>Follow along with interactive cooking modes, step-by-step instructions, and timed phases.</p>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon-wrapper"><mat-icon>favorite_border</mat-icon></div>
+          <h4>Share</h4>
+          <p>Upload your own culinary masterpieces, save favorites, and inspire home chefs everywhere.</p>
+        </div>
       </div>
 
       <!-- Newsletter Section -->
@@ -341,7 +338,7 @@ import { NewsletterService } from '../core/services/newsletter.service';
       display: flex;
       align-items: center;
       gap: 12px;
-      margin: 0 0 24px 0;
+      margin: 0 0 40px 0;
     }
 
     .section-icon {
@@ -905,8 +902,8 @@ import { NewsletterService } from '../core/services/newsletter.service';
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 30px;
-      margin-top: -40px;
-      margin-bottom: 40px;
+      margin-top: 60px;
+      margin-bottom: 60px;
     }
     .feature-item {
       background: white;

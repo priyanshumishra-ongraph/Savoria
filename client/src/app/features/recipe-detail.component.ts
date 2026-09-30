@@ -11,11 +11,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmationModalComponent } from '../shared/components/confirmation-modal.component';
 import { ReviewSectionComponent } from './review-section.component';
+import { SimilarRecipesComponent } from '../shared/components/similar-recipes.component';
 
 @Component({
   selector: 'app-recipe-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatButtonModule, MatProgressSpinnerModule, MatIconModule, MatSnackBarModule, ConfirmationModalComponent, ReviewSectionComponent],
+  imports: [CommonModule, RouterModule, MatButtonModule, MatProgressSpinnerModule, MatIconModule, MatSnackBarModule, ConfirmationModalComponent, ReviewSectionComponent, SimilarRecipesComponent],
   template: `
     <div class="product-page-wrapper" *ngIf="recipe; else loadingOrError">
       <div class="product-main-container">
@@ -104,27 +105,10 @@ import { ReviewSectionComponent } from './review-section.component';
 
       <!-- Bottom: Horizontal Scrolling Sections -->
       <div class="product-bottom-container">
-        <div class="horizontal-section" *ngIf="similarRecipes.length > 0">
-          <h3>Similar recipes in {{ recipe.category }}</h3>
-          <div class="product-carousel">
-            <div class="product-card" *ngFor="let r of similarRecipes" [routerLink]="['/recipes', r.category.toLowerCase(), getSlug(r.title)]">
-              <div class="card-img-wrapper">
-                <img [src]="getImageUrl(r.imageUrl) || 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=800&q=80'" class="card-img">
-                <div class="time-badge">
-                  <mat-icon style="font-size:12px; width:12px; height:12px; margin-top:2px;">schedule</mat-icon>
-                  {{ r.cookTimeMinutes || 0 }} MINS
-                </div>
-              </div>
-              <h4 class="card-title">{{ r.title }}</h4>
-              <p class="card-subtitle">{{ r.difficulty }}</p>
-              <div class="card-bottom">
-                <span class="card-price" *ngIf="r.averageRating"><mat-icon style="font-size:14px; width:14px; height:14px; color:#ea580c; vertical-align:middle; margin-right:2px; margin-top:-2px;">star</mat-icon> {{ r.averageRating | number:'1.1-1' }} ({{ r.reviewCount }})</span>
-                <span class="card-price" *ngIf="!r.averageRating">New</span>
-                <button class="add-btn">VIEW</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <app-similar-recipes 
+          [recipeId]="recipe._id" 
+          [currentRecipeText]="recipe.title + ' ' + (recipe.ingredients ? recipe.ingredients.map(i => i.name).join(' ') : '')">
+        </app-similar-recipes>
 
         <div class="horizontal-section" *ngIf="otherRecipes.length > 0">
           <h3>People also cooked</h3>
@@ -859,13 +843,13 @@ export class RecipeDetailComponent implements OnInit {
 
   fetchRelatedRecipes() {
     // Fetch similar recipes (same category)
-    this.recipeService.getRecipes('', this.recipe!.category).subscribe(res => {
+    this.recipeService.getRecipes({ category: this.recipe!.category }).subscribe(res => {
       this.similarRecipes = res.recipes.filter((r: any) => r._id !== this.recipe!._id).slice(0, 4);
       this.cdr.detectChanges();
     });
 
     // Fetch other recipes (different category)
-    this.recipeService.getRecipes('').subscribe(res => {
+    this.recipeService.getRecipes({}).subscribe(res => {
       this.otherRecipes = res.recipes.filter((r: any) => r.category !== this.recipe!.category && r._id !== this.recipe!._id).slice(0, 4);
       this.cdr.detectChanges();
     });

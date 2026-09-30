@@ -469,7 +469,7 @@ export class RecipeCardComponent implements OnInit, OnDestroy {
 
   onImageError(event: Event, category: string): void {
     const img = event.target as HTMLImageElement;
-    img.src = 'https://placehold.co/600x400/e2e8f0/475569?text=Recipe';
+    img.src = this.getCategoryImage(category);
     img.onerror = null; // prevent infinite loop if fallback also fails
   }
 
@@ -479,6 +479,7 @@ export class RecipeCardComponent implements OnInit, OnDestroy {
     return this.recipe.owner.name || 'Unknown';
   }
 }
+
 
 
 

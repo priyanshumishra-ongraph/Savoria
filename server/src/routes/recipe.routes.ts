@@ -1,6 +1,9 @@
 import express from 'express';
 import { 
   getRecipes, 
+  getTrendingRecipes,
+  getSimilarRecipes,
+  getRecommendedRecipes,
   getRecipeById, 
   getRecipeBySlug,
   createRecipe, 
@@ -8,14 +11,17 @@ import {
   deleteRecipe,
   getMyRecipes
 } from '../controllers/recipe.controller';
-import { protect } from '../middleware/auth.middleware';
+import { protect, optionalAuth } from '../middleware/auth.middleware';
 import { recipeRules, recipeIdRule, recipeQueryRules, validate } from '../validators/recipe.validator';
 
 const router = express.Router();
 
 router.get('/', recipeQueryRules, validate, getRecipes);
+router.get('/trending', getTrendingRecipes);
+router.get('/recommended', optionalAuth, getRecommendedRecipes);
 router.get('/my', protect, recipeQueryRules, validate, getMyRecipes);
 router.get('/by-slug/:category/:titleSlug', getRecipeBySlug);
+router.get('/:id/similar', recipeIdRule, validate, getSimilarRecipes);
 router.get('/:id', recipeIdRule, validate, getRecipeById);
 
 router.post('/', protect, recipeRules, validate, createRecipe);

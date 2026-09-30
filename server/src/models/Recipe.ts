@@ -151,14 +151,24 @@ RecipeSchema.pre<IRecipe>('save', function () {
   }
 });
 
-RecipeSchema.index({
-  title: 'text',
-  'ingredients.name': 'text',
-  tags: 'text',
-  description: 'text',
-});
+RecipeSchema.index(
+  {
+    title: 'text',
+    'ingredients.name': 'text',
+    tags: 'text',
+    description: 'text',
+    steps: 'text'
+  },
+  {
+    weights: { title: 10, tags: 5, 'ingredients.name': 3, steps: 2, description: 1 },
+    name: 'recipe_text_idx_v2',
+  }
+);
 
 RecipeSchema.index({ category: 1, slug: 1 });
+RecipeSchema.index({ reviewCount: -1, averageRating: -1, createdAt: -1 });
+RecipeSchema.index({ cookTimeMinutes: 1 });
+RecipeSchema.index({ averageRating: 1 });
 
 export { toSlug };
 export default mongoose.model<IRecipe>('Recipe', RecipeSchema);

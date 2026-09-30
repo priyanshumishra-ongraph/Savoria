@@ -35,6 +35,7 @@ export interface Recipe {
     likesCount?: number;
     averageRating?: number;
     reviewCount?: number;
+    createdAt?: string;
     ratingDistribution?: {
         1: number;
         2: number;
@@ -82,4 +83,15 @@ export interface CollectionResponse {
     total: number;
     page: number;
     pages: number;
+}
+
+export interface SearchParams {
+  search?: string;
+  category?: string;
+  ingredients?: string;
+  maxCookTime?: number;
+  minRating?: number;
+  sort?: 'newest' | 'rating' | 'cookTime' | 'mostReviewed';
+  page?: number;
+  limit?: number;
 }
