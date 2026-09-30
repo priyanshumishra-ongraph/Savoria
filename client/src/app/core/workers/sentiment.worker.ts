@@ -4,6 +4,7 @@ import * as toxicity from '@tensorflow-models/toxicity';
 import * as tf from '@tensorflow/tfjs';
 
 env.allowLocalModels = false;
+env.useBrowserCache = false;
 
 let sentimentPipeline: any = null;
 let toxicityModel: any = null;

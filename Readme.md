@@ -1,5 +1,5 @@
-<div align="center">
-  <img src="assets/Dashboard.png" alt="Savoria Dashboard" width="100%" style="border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 14px rgba(0,0,0,0.1);"/>
+﻿<div align="center">
+  <img src="assets/Hero.png" alt="Savoria" width="100%" style="border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 14px rgba(0,0,0,0.1);"/>
   
   # 🍳 Savoria Recipe App
   
@@ -180,9 +180,13 @@ This project fulfills the requirement free AI add-ons running entirely in the br
 
 ## 📸 Screenshots of Day 9
 
-- **Reviews & Ratings:** <br><img src="assets/Reviews-Ratings.png" width="600"/>
-- **Ratings:** <br><img src="assets/Ratings.png" width="600"/>
-- **AI Sentiment & Toxicity in action:** <br><img src="assets/Review-Toxic.png" width="600"/>
+| Reviews & Ratings | Ratings |
+| :---: | :---: |
+| <img src="assets/Reviews-Ratings.png" alt="Reviews & Ratings" width="400"/> | <img src="assets/Ratings.png" alt="Ratings" width="400"/> |
+
+| AI Sentiment & Toxicity | |
+| :---: | :---: |
+| <img src="assets/Review-Toxic.png" alt="AI Sentiment & Toxicity" width="400"/> | |
 
 ---
 
@@ -202,10 +206,39 @@ This project fulfills the requirement free AI add-ons running entirely in the br
 
 ## 📸 Screenshots of Day 10
 
-- **My Cookbook:** <br><img src="assets/My Cookbooks.png" width="600"/>
-- **Favorites Collections:** <br><img src="assets/Favorites.png" width="600"/>
-- **Collection Popup:** <br><img src="assets/Save to Cookbook.png" width="600"/>
-- **AI Warning:** <br><img src="assets/Ai Warning.png" width="600"/>
+| My Cookbook | Favorites Collections |
+| :---: | :---: |
+| <img src="assets/My Cookbooks.png" alt="My Cookbook" width="400"/> | <img src="assets/Favorites.png" alt="Favorites Collections" width="400"/> |
+
+| Collection Popup | AI Warning |
+| :---: | :---: |
+| <img src="assets/Save to Cookbook.png" alt="Collection Popup" width="400"/> | <img src="assets/Ai Warning.png" alt="AI Warning" width="400"/> |
+
+---
+
+### 🟢 Day 11: Search, Semantic AI & UI Polish (Completed)
+
+- **Robust Backend API**: Upgraded the MongoDB backend with weighted text search (prioritizing titles and tags) and strict $all array matching for ingredients.
+- **Centralized RxJS State Management**: Refactored the frontend SearchService to use a centralized BehaviorSubject and switchMap RxJS pipeline, eliminating duplicate API calls on fast typing.
+- **"Cook with what I have"**: Built a rich filtering UI with an interactive ingredient chip picker, cook time slider, and sort bars.
+- **Smart Trending & Similar Sections**: Added a "Trending" horizontal scroll bar and a Smart "Similar Recipes as Recommended for You" section that offloads AI Semantic Re-ranking to a Web Worker.
+- **Hands-free Voice Search**: Integrated the Web Speech API for hands-free voice searching directly inside the search bar.
+- **API Testing**: Expanded the Jest integration suite to specifically test advanced query filtering, verifying full data integrity (ensuring 47/47 tests pass).
+
+## 🧠 In-Browser AI Add-ons for Day 11
+1. **Semantic "Similar Recipes" Re-ranking**
+   - **Model**: Xenova/all-MiniLM-L6-v2 (via Transformers.js).
+   - **What it does**: Offloads heavy feature extraction and cosine similarity math to a background Web Worker. It compares the current recipe's text (title & ingredients) against candidate recipes to re-order the "You might also like" recommendations locally based on semantic meaning!
+
+## 📸 Screenshots of Day 11
+
+| Search Section | Filtering Section |
+| :---: | :---: |
+| <img src="assets/Search-section.png" alt="Search Section" width="400"/> | <img src="assets/filtering.png" alt="Filtering" width="400"/> |
+
+| Trending this Week | |
+| :---: | :---: |
+| <img src="assets/Trending-this-week.png" alt="Trending this Week" width="400"/> | |
 
 ---
 
@@ -283,3 +316,4 @@ npm start
 | **6. Create** | Click **+** or **Add Recipe** → fill the form with image upload |
 | **7. Edit/Delete** | Open your own recipe → Edit or Delete buttons appear only for owners |
 | **8. Admin** | Log in as admin → access Users panel to deactivate/reactivate accounts |
+

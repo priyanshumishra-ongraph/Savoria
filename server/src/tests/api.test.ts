@@ -1,7 +1,7 @@
 import request from 'supertest';
 import express from 'express';
 import mongoose from 'mongoose';
-import { afterAll, beforeAll, describe, expect, it } from '@jest/globals';
+import { afterAll, beforeAll, describe, expect, it, jest } from '@jest/globals';
 import authRoutes from '../routes/auth.routes';
 import recipeRoutes from '../routes/recipe.routes';
 import reviewRoutes from '../routes/review.routes';
@@ -13,6 +13,7 @@ import Review from '../models/Review';
 import dotenv from 'dotenv';
 
 dotenv.config();
+jest.setTimeout(30000);
 
 const app = express();
 app.use(express.json());
@@ -541,5 +542,94 @@ describe('Collection API & Favorites API Integration', () => {
       
     expect(res.status).toBe(200);
     expect(res.body.favorites).not.toContain(testRecipeId);
+  });
+});
+
+describe('Advanced Recipe Filtering API', () => {
+  beforeAll(async () => {
+    // Insert some fresh test recipes for filtering tests
+    await Recipe.create([
+      {
+        title: 'Vegan Tomato Soup',
+        slug: 'vegan-tomato-soup',
+        description: 'Warm and cozy.',
+        category: 'Dinner',
+        difficulty: 'Easy',
+        tags: ['Vegan', 'Gluten-Free', 'Healthy'],
+        cookTimeMinutes: 30,
+        ingredients: [{ name: 'Tomato', quantity: '1' }, { name: 'Garlic', quantity: '1' }, { name: 'Basil', quantity: '1' }],
+        steps: ['Boil tomatoes.'],
+        owner: adminUserId,
+      },
+      {
+        title: 'Classic Breakfast Pancakes',
+        slug: 'classic-breakfast-pancakes',
+        description: 'Fluffy pancakes.',
+        category: 'Breakfast',
+        difficulty: 'Medium',
+        tags: ['Vegetarian', 'Sweet'],
+        cookTimeMinutes: 20,
+        ingredients: [{ name: 'Flour', quantity: '1' }, { name: 'Milk', quantity: '1' }, { name: 'Egg', quantity: '1' }],
+        steps: ['Fry them up.'],
+        owner: adminUserId,
+      },
+      {
+        title: 'Garlic Butter Steak',
+        slug: 'garlic-butter-steak',
+        description: 'Rich and savory.',
+        category: 'Dinner',
+        difficulty: 'Hard',
+        tags: ['Keto', 'High-Protein'],
+        cookTimeMinutes: 45,
+        ingredients: [{ name: 'Steak', quantity: '1' }, { name: 'Garlic', quantity: '1' }, { name: 'Butter', quantity: '1' }],
+        steps: ['Grill it well.'],
+        owner: adminUserId,
+      }
+    ]);
+  });
+
+  it('GET /api/recipes?category=Breakfast,Dinner should return matching categories', async () => {
+    const res = await request(app).get('/api/recipes?category=Breakfast,Dinner');
+    expect(res.status).toBe(200);
+    const titles = res.body.recipes.map((r: any) => r.title);
+    expect(titles).toContain('Vegan Tomato Soup');
+    expect(titles).toContain('Classic Breakfast Pancakes');
+    expect(titles).toContain('Garlic Butter Steak');
+  });
+
+  it('GET /api/recipes?difficulty=Easy,Hard should return matching difficulties', async () => {
+    const res = await request(app).get('/api/recipes?difficulty=Easy,Hard');
+    expect(res.status).toBe(200);
+    const titles = res.body.recipes.map((r: any) => r.title);
+    expect(titles).toContain('Vegan Tomato Soup'); // Easy
+    expect(titles).toContain('Garlic Butter Steak'); // Hard
+    expect(titles).not.toContain('Classic Breakfast Pancakes'); // Medium
+  });
+
+  it('GET /api/recipes?tags=Vegan,Keto should return matching tags via $in', async () => {
+    const res = await request(app).get('/api/recipes?tags=Vegan,Keto');
+    expect(res.status).toBe(200);
+    const titles = res.body.recipes.map((r: any) => r.title);
+    expect(titles).toContain('Vegan Tomato Soup'); // Vegan
+    expect(titles).toContain('Garlic Butter Steak'); // Keto
+    expect(titles).not.toContain('Classic Breakfast Pancakes');
+  });
+
+  it('GET /api/recipes?ingredients=Garlic,Steak&strictIngredients=false should return loose matches', async () => {
+    const res = await request(app).get('/api/recipes?ingredients=Garlic,Steak&strictIngredients=false');
+    expect(res.status).toBe(200);
+    const titles = res.body.recipes.map((r: any) => r.title);
+    // Garlic is in Tomato Soup, Garlic and Steak in Steak
+    expect(titles).toContain('Vegan Tomato Soup');
+    expect(titles).toContain('Garlic Butter Steak');
+  });
+
+  it('GET /api/recipes?ingredients=Garlic,Steak&strictIngredients=true should return exact $all matches', async () => {
+    const res = await request(app).get('/api/recipes?ingredients=Garlic,Steak&strictIngredients=true');
+    expect(res.status).toBe(200);
+    const titles = res.body.recipes.map((r: any) => r.title);
+    // Only steak has BOTH Garlic and Steak
+    expect(titles).toContain('Garlic Butter Steak');
+    expect(titles).not.toContain('Vegan Tomato Soup');
   });
 });

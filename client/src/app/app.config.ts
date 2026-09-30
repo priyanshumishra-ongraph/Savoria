@@ -6,7 +6,7 @@ import { provideHttpClient, withInterceptors, withFetch } from '@angular/common/
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideRouter(routes, withInMemoryScrolling({ scrollPositionRestoration: 'enabled' })),
+    provideRouter(routes, withInMemoryScrolling({ scrollPositionRestoration: 'disabled' })),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor]))
   ]
 };

@@ -37,3 +37,22 @@ export const admin = (req: AuthRequest, res: Response, next: NextFunction): void
         res.status(403).json({ message: 'Not authorized as an admin' });
     }
 }
+export const optionalAuth = (req: AuthRequest, res: Response, next: NextFunction): void => {
+    let token: string | undefined;
+
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        token = req.headers.authorization.split(' ')[1];
+    }
+
+    if (!token) {
+        return next();
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { id: string; role: 'user' | 'admin' };
+        req.user = { id: decoded.id, role: decoded.role };
+    } catch (error) {
+        // ignore invalid token for optional auth
+    }
+    next();
+}

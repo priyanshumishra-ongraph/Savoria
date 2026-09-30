@@ -1,5 +1,7 @@
-
 @use '@angular/material' as mat;
+
+*, *::before, *::after { box-sizing: border-box; }
+*, *::before, *::after { box-sizing: border-box; }
 
 html {
   height: 100%;
@@ -15,7 +17,7 @@ html {
   );
 }
 
-body {
+body { margin: 0; padding: 0; overflow-x: hidden; width: 100%;
   color-scheme: light;
   background-color: #fafaf9; /* A softer, premium warm white */
   color: #1c1917; /* Dark slate for premium text */
@@ -43,3 +45,7 @@ h1, h2, h3, h4, h5, h6, .playfair, .nav-brand a {
   transform: translateY(-4px);
   box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.1);
 }
+
+
+
+

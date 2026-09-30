@@ -1,4 +1,4 @@
-# Daily Log
+﻿# Daily Log
 
 ## Day 9: Ratings, Reviews & In-Browser AI
 **What I built:**
@@ -35,3 +35,21 @@
 - Used AI to rapidly wire up the backend Favourites API to the frontend Recipe Cards.
 - Collaborated with AI to architect the auto-provisioning "Favourites" Cookbook system.
 - Used AI to correctly inject Angular's ChangeDetectorRef for fixing the CSS transition timings on the toast popups.
+
+## Day 11: Search, Semantic AI & UI Polish
+**What I built:**
+- Upgraded the MongoDB backend with weighted text search (prioritizing titles and tags) and strict $all array matching for ingredients.
+- Refactored the frontend SearchService to use a centralized BehaviorSubject and switchMap RxJS pipeline, eliminating duplicate API calls on fast typing.
+- Built a rich "Cook with what I have" filtering UI with an interactive ingredient chip picker, cook time slider, and sort bars.
+- Added a Smart "Similar Recipes as Recommended for You" section that offloads AI Semantic Re-ranking (cosine similarity via @xenova/transformers) to a background Web Worker.
+- Integrated the Web Speech API for hands-free voice searching directly inside the search bar.
+
+**What I learned:**
+- Using async/await and resolving promises inside an Angular 
+gOnChanges hook can throw ExpressionChangedAfterItHasBeenCheckedError (NG0100) if DOM elements are updated asynchronously. I learned to manually trigger ChangeDetectorRef to sync the state.
+- Transformers.js Web Workers will attempt to load local ONNX models by default, which causes Protobuf parsing crashes if the dev server responds with a fallback index.html. Setting env.allowLocalModels = false forces it to pull securely from the HuggingFace CDN.
+
+**Where I used AI tools:**
+- Used AI to orchestrate the complex Web Worker messaging for client-side semantic re-ranking.
+- Used AI to deeply analyze and patch NG0100 and Protobuf loading crashes in the UI.
+- Used AI to architect a robust, fully-passing 47-test suite to secure the backend API and fix rogue database collection bugs.
