@@ -230,6 +230,10 @@ This project fulfills the requirement free AI add-ons running entirely in the br
    - **Model**: Xenova/all-MiniLM-L6-v2 (via Transformers.js).
    - **What it does**: Offloads heavy feature extraction and cosine similarity math to a background Web Worker. It compares the current recipe's text (title & ingredients) against candidate recipes to re-order the "You might also like" recommendations locally based on semantic meaning!
 
+2. **Hands-free Voice Search**
+   - **Model**: Built-in Browser AI (via Web Speech API).
+   - **What it does**: Captures microphone input locally and uses the browser\'s native speech recognition engine to instantly transcribe spoken words into text queries directly inside the search bar.
+
 ## 📸 Screenshots of Day 11
 
 | Search Section | Filtering Section |
@@ -316,4 +320,5 @@ npm start
 | **6. Create** | Click **+** or **Add Recipe** → fill the form with image upload |
 | **7. Edit/Delete** | Open your own recipe → Edit or Delete buttons appear only for owners |
 | **8. Admin** | Log in as admin → access Users panel to deactivate/reactivate accounts |
+
 
