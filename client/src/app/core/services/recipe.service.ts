@@ -48,8 +48,9 @@ export class RecipeService {
     return this.http.post<Recipe>(this.apiUrl, recipeData);
   }
 
-  getMyRecipes(): Observable<RecipeResponse> {
-    return this.http.get<RecipeResponse>(`${this.apiUrl}/my`);
+  getMyRecipes(page: number = 1, limit: number = 6): Observable<RecipeResponse> {
+    const params = new HttpParams().set('page', page.toString()).set('limit', limit.toString());
+    return this.http.get<RecipeResponse>(`${this.apiUrl}/my`, { params });
   }
 
   updateRecipe(id: string, recipeData: any): Observable<Recipe> {

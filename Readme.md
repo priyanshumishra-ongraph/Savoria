@@ -57,12 +57,15 @@ client/
 ```text
 server/
 ├── src/
+│   ├── config/             # Environment & App configuration
 │   ├── controllers/        # Business logic for routes
 │   ├── middleware/         # Custom middleware (JWT protect, Admin role checking)
-│   ├── models/             # Mongoose database schemas (User, Recipe)
+│   ├── models/             # Mongoose database schemas (User, Recipe, Notification)
 │   ├── routes/             # Express router definitions
 │   ├── scripts/            # Database seeding scripts
+│   ├── socket/             # Socket.IO handlers for real-time pushing
 │   ├── tests/              # Jest integration test suites
+│   ├── utils/              # Reusable backend utilities (e.g., Notification Grouping)
 │   ├── validators/         # Express-validator rule chains
 │   └── server.ts           # App entry point & express configuration
 ```
@@ -285,7 +288,7 @@ The server immediately rejects the request with a `403 Forbidden` status. The fr
 **4. The Admin Override**
 If an `admin` attempts to delete User A's recipe, the same block of code sees `req.user.role === 'admin'` and allows the deletion to proceed.
 
-*Note: All 29 scenarios are fully covered by the automated integration tests (`npm run test` in the server), including registration, JWT auth, RBAC, pagination, and admin operations.*
+*Note: All 53 scenarios are fully covered by the automated integration tests (`npm run test` in the server), including registration, JWT auth, RBAC, pagination, AI routes, real-time notifications, and admin operations.*
 
 ---
 

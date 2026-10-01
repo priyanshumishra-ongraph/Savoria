@@ -48,30 +48,6 @@ import { TrendingSectionComponent } from '../shared/components/trending-section.
         <app-trending-section />
       </div>
 
-      <!-- Categories Section -->
-      <div class="dashboard-content" *ngIf="!isLoading && !error" style="margin-top: 40px;">
-        <div class="section-header">
-          <div class="section-icon category-icon">
-            <mat-icon style="color: #0c831f;">category</mat-icon>
-          </div>
-          <h3>Browse By Category</h3>
-          <a routerLink="/recipes" class="section-badge" style="background: #0c831f; text-decoration: none; cursor: pointer;">Explore 
-            <mat-icon style="color: white; font-size: 16px; width: 16px; align-items: center; justify-content: center; height: 16px;">arrow_forward</mat-icon>
-          </a>
-        </div>
-
-        <div class="categories-grid fade-in">
-          <div class="category-card" *ngFor="let cat of categoryKeys; let i = index" 
-               [routerLink]="['/recipes']" [queryParams]="{category: cat}"
-               [style.animation-delay]="(i * 0.1) + 's'">
-            <div class="cat-icon-wrapper">
-              <mat-icon>{{ getCategoryIconName(cat) }}</mat-icon>
-            </div>
-            <h4>{{ cat }}</h4>
-          </div>
-        </div>
-      </div>
-
       <div class="dashboard-content" *ngIf="!isLoading && !error" style="margin-top: 60px;">
         <!-- Fresh Out The Oven -->
         <div class="section-header">
@@ -153,62 +129,33 @@ import { TrendingSectionComponent } from '../shared/components/trending-section.
         </div>
       </div>
 
-
-
-      <div class="dashboard-content" *ngIf="!isLoading && !error" style="margin-top: 60px;">
-        
-        <!-- Recipes Added Today -->
+      <!-- Categories Section -->
+      <div class="dashboard-content" *ngIf="!isLoading && !error" style="margin-top: 40px;">
         <div class="section-header">
-          <div class="section-icon pulse">
-            <mat-icon style="color: #f97316;">update</mat-icon>
+          <div class="section-icon category-icon">
+            <mat-icon style="color: #0c831f;">category</mat-icon>
           </div>
-          <h3>Recipes Added Today</h3>
-        </div>
-        
-        <div class="stats-grid">
-          <!-- Total Recipes Card -->
-          <mat-card class="stat-card" style="animation-delay: 0s;">
-            <div class="stat-icon-bg">
-              <mat-icon style="width: 40px; height: 40px; font-size: 40px;">menu_book</mat-icon>
-            </div>
-            <mat-card-content class="stat-content" style="padding: 0;">
-              <div class="stat-value">{{ stats.totalRecipes || 0 }}</div>
-              <div class="stat-label">Total Recipes</div>
-            </mat-card-content>
-            <div class="trend-indicator up">
-              <mat-icon style="font-size: 16px; width: 16px; height: 16px;">public</mat-icon>
-              All Time
-            </div>
-          </mat-card>
-
-          <mat-card class="stat-card" *ngFor="let cat of categoryKeys; let i = index" [style.animation-delay]="(i + 1) * 0.1 + 's'">
-            <div class="stat-icon-bg">
-              <mat-icon style="width: 40px; height: 40px; font-size: 40px;">{{ getCategoryIconName(cat) }}</mat-icon>
-            </div>
-            <mat-card-content class="stat-content" style="padding: 0;">
-              <div class="stat-value">{{ stats.todayByCategory[cat] || 0 }}</div>
-              <div class="stat-label">{{ cat }}</div>
-            </mat-card-content>
-            <div class="trend-indicator up">
-              <mat-icon style="font-size: 16px; width: 16px; height: 16px;">trending_up</mat-icon>
-              Added Today
-            </div>
-          </mat-card>
-          
-          <!-- Empty State -->
-          <mat-card class="stat-card empty fade-in" *ngIf="categoryKeys.length === 0">
-            <div class="stat-icon-bg">
-              <mat-icon style="width: 40px; height: 40px; font-size: 40px;">assignment</mat-icon>
-            </div>
-            <mat-card-content class="stat-content" style="padding: 0;">
-              <div class="stat-value" style="color: #a0aec0;">0</div>
-              <div class="stat-label" style="color: #a0aec0;">Recipes Added Today</div>
-            </mat-card-content>
-            <p class="empty-hint">Be the first to share a recipe today!</p>
-          </mat-card>
+          <h3>Browse By Category</h3>
+          <a routerLink="/recipes" class="section-badge" style="background: #0c831f; text-decoration: none; cursor: pointer;">Explore 
+            <mat-icon style="color: white; font-size: 16px; width: 16px; align-items: center; justify-content: center; height: 16px;">arrow_forward</mat-icon>
+          </a>
         </div>
 
+        <div class="categories-grid fade-in">
+          <div class="category-card" *ngFor="let cat of categoryKeys; let i = index" 
+               [routerLink]="['/recipes']" [queryParams]="{categories: cat}"
+               [style.animation-delay]="(i * 0.1) + 's'">
+            <div class="cat-icon-wrapper">
+              <mat-icon>{{ getCategoryIconName(cat) }}</mat-icon>
+            </div>
+            <h4>{{ cat }}</h4>
+          </div>
+        </div>
       </div>
+
+
+
+
 
       <!-- How It Works Section -->
       <div class="dashboard-content features-section">
