@@ -2,7 +2,11 @@ import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import Review from '../models/Review';
 import Recipe from '../models/Recipe';
+import User from '../models/User';
+import Notification from '../models/Notification';
+import { emitToUser } from '../socket/socket';
 import { AuthRequest } from '../middleware/auth.middleware';
+import { sendGroupedNotification } from '../utils/notification.util';
 
 /**
  * Recalculate average rating for a recipe and save it
@@ -107,6 +111,16 @@ export const addReview = async (req: AuthRequest, res: Response): Promise<void> 
     await updateRecipeRating(recipeObjId);
 
     await review.populate('userId', 'name avatarUrl');
+
+    // ── Notification: tell the recipe owner someone reviewed their recipe ──
+    await sendGroupedNotification({
+      recipientId: recipe.owner.toString(),
+      senderId: userId as string,
+      type: 'review',
+      recipeId: recipeObjId.toString(),
+      recipeTitle: recipe.title,
+      recipeImage: recipe.imageUrl || '',
+    });
 
     res.status(201).json(review);
     } catch (error: any) {
@@ -228,8 +242,20 @@ export const toggleHelpfulVote = async (req: AuthRequest, res: Response): Promis
       hasVoted 
         ? { $pull: { helpfulVotes: userId } }
         : { $addToSet: { helpfulVotes: userId } },
-      { new: true }
-    ).populate('userId', 'name avatarUrl');
+      { returnDocument: 'after' }
+    ).populate('userId', 'name avatarUrl').populate('recipeId', 'title imageUrl');
+
+    // ── Notification: tell the reviewer that someone found their review helpful ──
+    if (!hasVoted) {
+      await sendGroupedNotification({
+        recipientId: review.userId.toString(),
+        senderId: userId as string,
+        type: 'helpful',
+        recipeId: review.recipeId.toString(),
+        recipeTitle: (updatedReview?.recipeId as any)?.title || 'A Recipe',
+        recipeImage: (updatedReview?.recipeId as any)?.imageUrl || '',
+      });
+    }
 
     res.json(updatedReview);
   } catch (error) {
@@ -254,7 +280,7 @@ export const addOwnerReply = async (req: AuthRequest, res: Response): Promise<vo
       return;
     }
 
-    const review = await Review.findById(reviewId).populate('recipeId', 'owner');
+    const review = await Review.findById(reviewId).populate('recipeId', 'owner title imageUrl');
     if (!review) {
       res.status(404).json({ message: 'Review not found' });
       return;
@@ -270,6 +296,17 @@ export const addOwnerReply = async (req: AuthRequest, res: Response): Promise<vo
     await review.save();
 
     await review.populate('userId', 'name avatarUrl');
+
+    // ── Notification: tell the reviewer that the owner replied ──
+    await sendGroupedNotification({
+      recipientId: review.userId._id.toString(),
+      senderId: userId as string,
+      type: 'reply',
+      recipeId: recipe._id.toString(),
+      recipeTitle: recipe.title,
+      recipeImage: recipe.imageUrl || '',
+    });
+
     res.json(review);
   } catch (error) {
     console.error('Error adding owner reply:', error);

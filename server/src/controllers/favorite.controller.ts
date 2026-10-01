@@ -3,6 +3,8 @@ import { AuthRequest } from '../middleware/auth.middleware';
 import User from '../models/User';
 import Recipe from '../models/Recipe';
 import Collection from '../models/Collection';
+import Notification from '../models/Notification';
+import { emitToUser } from '../socket/socket';
 
 export const addFavorite = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -41,6 +43,23 @@ export const addFavorite = async (req: AuthRequest, res: Response): Promise<void
     if (!user.favorites.includes(recipe._id as any)) {
       user.favorites.push(recipe._id as any);
       await user.save();
+    }
+
+    // ── Notification: tell the recipe owner someone saved their recipe ──
+    const ownerId = recipe.owner.toString();
+    const userId = user._id.toString();
+    if (ownerId !== userId) {
+      const notification = await Notification.create({
+        recipient: ownerId,
+        sender: userId,
+        type: 'save',
+        recipeId: recipe._id,
+        recipeTitle: recipe.title,
+        senderName: user.name,
+        senderAvatar: user.avatarUrl ?? '',
+      });
+      // Push via Socket.IO
+      emitToUser(ownerId, 'new_notification', notification);
     }
 
     res.status(200).json({ message: 'Recipe added to favorites collection', favorites: user.favorites });
