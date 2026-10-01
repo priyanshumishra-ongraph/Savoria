@@ -1,4 +1,4 @@
-﻿<div align="center">
+<div align="center">
   <img src="assets/Hero.png" alt="Savoria" width="100%" style="border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 14px rgba(0,0,0,0.1);"/>
   
   # 🍳 Savoria Recipe App
@@ -32,6 +32,7 @@ Savoria focuses on strict REST API design, robust database schemas, secure authe
 - 🛒 **Dynamic Checkout**: Mock checkout flow for ingredients with dynamic cart calculations.
 - 🔍 **Advanced Search**: Compound text indexes for incredibly fast title, tag, and ingredient searching.
 - 📱 **Fully Responsive**: Carefully crafted mobile, tablet, and desktop layouts.
+- 🔔 **Real-time Notifications**: Socket.IO push notifications for reviews, saves, replies, and helpful votes, featuring smart unread grouping, filtering, image thumbnails, and customizable user settings.
 
 ---
 
@@ -239,6 +240,22 @@ This project fulfills the requirement free AI add-ons running entirely in the br
 | Trending this Week | |
 | :---: | :---: |
 | <img src="assets/Trending-this-week.png" alt="Trending this Week" width="400"/> | |
+
+---
+
+### 🟢 Day 12: Real-time Notifications & Settings (Completed)
+
+- **Real-time Push Notifications**: Integrated Socket.IO for real-time pushing and MongoDB for persistent notification storage across 4 events (Reviews, Saves, Replies, and Helpful Votes).
+- **Anti-Spam Grouping**: Engineered a "Notification Grouping" backend utility that prevents spam by grouping unread notifications for the same recipe (e.g., "John Doe and 4 others saved your recipe").
+- **Robust Dropdown UI**: Created a highly polished frontend UI dropdown with Unread/All tabs, recipe image thumbnails, "Mark all read" capabilities, inline delete buttons, and cursor-based infinite scroll pagination.
+- **Customizable Preferences**: Built a Settings page allowing users to strictly opt-out of specific notification types, properly synced to their MongoDB profile.
+- **E2E Testing**: Expanded the Jest integration suite in `api.test.ts` to strictly verify the full notification creation, pagination, unread counts, reading, and deletion lifecycle (ensuring 53/53 tests pass).
+
+## 📸 Screenshots of Day 12
+
+| Notification Dropdown | Settings Preferences |
+| :---: | :---: |
+| <img src="assets/Notifications.png" alt="Notification Dropdown" width="400"/> | <img src="assets/Notification-preferences.png" alt="Settings Preferences" width="400"/> |
 
 ---
 

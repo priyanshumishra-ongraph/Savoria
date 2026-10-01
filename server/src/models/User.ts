@@ -9,6 +9,12 @@ export interface IUser extends Document {
   avatarUrl?: string;
   isActive: boolean;
   favorites: mongoose.Types.ObjectId[];
+  notificationPreferences: {
+    onReview: boolean;
+    onSave: boolean;
+    onReply: boolean;
+    onHelpful: boolean;
+  };
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -53,6 +59,12 @@ const UserSchema: Schema = new Schema(
         ref: 'Recipe',
       }
     ],
+    notificationPreferences: {
+      onReview: { type: Boolean, default: true },
+      onSave: { type: Boolean, default: true },
+      onReply: { type: Boolean, default: true },
+      onHelpful: { type: Boolean, default: true }
+    },
   },
   {
     timestamps: true,

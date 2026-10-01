@@ -7,6 +7,7 @@ import recipeRoutes from '../routes/recipe.routes';
 import reviewRoutes from '../routes/review.routes';
 import collectionRoutes from '../routes/collection.routes';
 import favoriteRoutes from '../routes/favorite.routes';
+import notificationRoutes from '../routes/notification.routes';
 import User from '../models/User';
 import Recipe from '../models/Recipe';
 import Review from '../models/Review';
@@ -22,6 +23,7 @@ app.use('/api/recipes', recipeRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/collections', collectionRoutes);
 app.use('/api/favorites', favoriteRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 let userToken: string;
 let adminToken: string;
@@ -631,5 +633,78 @@ describe('Advanced Recipe Filtering API', () => {
     // Only steak has BOTH Garlic and Steak
     expect(titles).toContain('Garlic Butter Steak');
     expect(titles).not.toContain('Vegan Tomato Soup');
+  });
+});
+
+describe('Notifications API', () => {
+  let notifId: string;
+
+  it('GET /api/notifications should return an empty list initially', async () => {
+    const res = await request(app)
+      .get('/api/notifications')
+      .set('Authorization', `Bearer ${userToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body.notifications).toEqual([]);
+    expect(res.body.hasMore).toBe(false);
+  });
+
+  it('Adding a review triggers a notification for the recipe owner', async () => {
+    const res = await request(app)
+      .post('/api/reviews')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        recipeId: secondRecipeId,
+        rating: 4,
+        comment: 'Yummy test review from admin',
+      });
+    expect(res.status).toBe(201);
+  });
+
+  it('GET /api/notifications should return the new notification for the owner', async () => {
+    const res = await request(app)
+      .get('/api/notifications')
+      .set('Authorization', `Bearer ${userToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body.notifications.length).toBe(1);
+    
+    const notif = res.body.notifications[0];
+    expect(notif.type).toBe('review');
+    expect(notif.senderName).toBe('Admin User');
+    expect(notif.recipeTitle).toBe('Morning Pancakes');
+    expect(notif.read).toBe(false);
+    
+    notifId = notif._id;
+  });
+
+  it('GET /api/notifications/unread-count should return 1', async () => {
+    const res = await request(app)
+      .get('/api/notifications/unread-count')
+      .set('Authorization', `Bearer ${userToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body.count).toBe(1);
+  });
+
+  it('PATCH /api/notifications/:id/read should mark notification as read', async () => {
+    const res = await request(app)
+      .patch(`/api/notifications/${notifId}/read`)
+      .set('Authorization', `Bearer ${userToken}`);
+    expect(res.status).toBe(200);
+    
+    const countRes = await request(app)
+      .get('/api/notifications/unread-count')
+      .set('Authorization', `Bearer ${userToken}`);
+    expect(countRes.body.count).toBe(0);
+  });
+
+  it('DELETE /api/notifications/:id should delete the notification', async () => {
+    const res = await request(app)
+      .delete(`/api/notifications/${notifId}`)
+      .set('Authorization', `Bearer ${userToken}`);
+    expect(res.status).toBe(200);
+
+    const checkRes = await request(app)
+      .get('/api/notifications')
+      .set('Authorization', `Bearer ${userToken}`);
+    expect(checkRes.body.notifications.length).toBe(0);
   });
 });

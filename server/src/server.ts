@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import http from 'http';
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
@@ -12,20 +13,24 @@ import newsletterRoutes from './routes/newsletter.routes';
 import reviewRoutes from './routes/review.routes';
 import collectionRoutes from './routes/collection.routes';
 import favoriteRoutes from './routes/favorite.routes';
+import notificationRoutes from './routes/notification.routes';
 import { errorHandler, notFound } from './middleware/error.middleware';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import { initSocket } from './socket/socket';
 
 dotenv.config();
 
 const app = express();
+const httpServer = http.createServer(app);
 
 // Trust the reverse proxy (Render) so rate limiting uses the correct IP
 app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
+const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:4200';
 
 const corsOptions = {
-  origin: process.env.CLIENT_URL || 'http://localhost:4200',
+  origin: CLIENT_URL,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -69,12 +74,17 @@ app.use('/api/favorites', favoriteRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/newsletter', newsletterRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
 
 connectDB().then(() => {
-  app.listen(PORT, () => {
+  // Initialise Socket.IO after DB is ready
+  initSocket(httpServer, CLIENT_URL);
+
+  httpServer.listen(PORT, () => {
     console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+    console.log(`Socket.IO listening on ws://localhost:${PORT}`);
   });
 });

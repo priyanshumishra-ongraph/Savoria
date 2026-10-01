@@ -121,6 +121,17 @@ export class AuthService {
     this.currentUserSubject.next(null);
   }
 
+  updatePreferences(preferences: Partial<NonNullable<User['notificationPreferences']>>) {
+    return this.http.patch<User>(`${this.apiUrl}/me/preferences`, { notificationPreferences: preferences }).pipe(
+      tap(updatedUser => {
+        this.currentUserSubject.next(updatedUser);
+        if (isPlatformBrowser(this.platformId)) {
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+      })
+    );
+  }
+
   getToken(): string | null {
     if (isPlatformBrowser(this.platformId)) {
       return localStorage.getItem('token');

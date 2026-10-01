@@ -1,4 +1,4 @@
-﻿# Daily Log
+# Daily Log
 
 ## Day 9: Ratings, Reviews & In-Browser AI
 **What I built:**
@@ -53,3 +53,21 @@ gOnChanges hook can throw ExpressionChangedAfterItHasBeenCheckedError (NG0100) i
 - Used AI to orchestrate the complex Web Worker messaging for client-side semantic re-ranking.
 - Used AI to deeply analyze and patch NG0100 and Protobuf loading crashes in the UI.
 - Used AI to architect a robust, fully-passing 47-test suite to secure the backend API and fix rogue database collection bugs.
+
+## Day 12: Real-time Notifications & Settings
+**What I built:**
+- Built a comprehensive real-time notification system supporting 4 distinct events: Reviews, Saves (Collections), Replies, and Helpful Votes.
+- Integrated Socket.IO for real-time pushing and MongoDB for persistent notification storage.
+- Engineered a "Notification Grouping" backend utility that prevents spam by grouping unread notifications for the same recipe (e.g., "John Doe and 4 others saved your recipe").
+- Created a robust frontend UI dropdown with Unread/All tabs, recipe image thumbnails, "Mark all read" capabilities, and inline delete buttons.
+- Implemented cursor-based pagination for the notifications feed to preserve performance.
+- Added a Notifications Preferences page allowing users to opt-out of specific notification types, properly synced to their MongoDB profile.
+- Added comprehensive E2E testing using Supertest to guarantee the lifecycle of notifications (ensuring 53/53 tests passed).
+
+**What I learned:**
+- When updating MongoDB arrays inside `findOneAndUpdate`, checking the `returnDocument: 'after'` option is critical when you need to send a notification containing the most up-to-date document state.
+- Structuring Socket.IO connections in Angular requires cleaning up event listeners during component teardown to prevent memory leaks and duplicate signals.
+- In-place grouping of notifications via `$inc` and `$set` using Mongoose allows you to keep an unread notification fresh at the top of the feed without clogging the database with hundreds of individual rows.
+
+**Where I used AI tools:**
+- Paired with AI to design the schema architecture for grouped notifications.
