@@ -4,9 +4,15 @@ export interface User {
     email: string;
     role: 'user' | 'admin';
     avatarUrl?: string;
-  favorites?: string[];
+    favorites?: string[];
     isActive?: boolean;
     createdAt?: string;
+    notificationPreferences?: {
+        onReview: boolean;
+        onSave: boolean;
+        onReply: boolean;
+        onHelpful: boolean;
+    };
 }
 
 export interface AuthResponse extends User {

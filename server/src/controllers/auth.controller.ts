@@ -1,4 +1,4 @@
-﻿import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
 import Collection from '../models/Collection';
@@ -121,6 +121,30 @@ export const getMe = async (req: AuthRequest, res: Response, next: NextFunction)
     } else {
       res.status(404).json({ message: 'User not found' });
     }
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updatePreferences = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const user = await User.findById(req.user?.id);
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+
+    if (req.body.notificationPreferences) {
+      user.notificationPreferences = {
+        ...user.notificationPreferences,
+        ...req.body.notificationPreferences
+      };
+      await user.save();
+    }
+
+    // Return the updated user object without password
+    const updatedUser = await User.findById(user._id).select('-password');
+    res.json(updatedUser);
   } catch (error) {
     next(error);
   }

@@ -45,6 +45,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'recipes/id/:id',
+    loadComponent: () => import('./features/recipe-detail.component').then(m => m.RecipeDetailComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'recipes/:category/:titleSlug',
     loadComponent: () => import('./features/recipe-detail.component').then(m => m.RecipeDetailComponent),
     canActivate: [authGuard],
@@ -77,6 +82,11 @@ export const routes: Routes = [
     path: 'admin/register',
     loadComponent: () => import('./features/user-registration.component').then(m => m.UserRegistrationComponent),
     canActivate: [authGuard, adminGuard],
+  },
+  {
+    path: 'settings',
+    loadComponent: () => import('./features/settings.component').then(m => m.SettingsComponent),
+    canActivate: [authGuard],
   },
   {
     path: '',

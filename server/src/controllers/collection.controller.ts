@@ -1,9 +1,13 @@
 import { Request, Response } from 'express';
 import Collection from '../models/Collection';
 import User from '../models/User';
+import Recipe from '../models/Recipe';
+import Notification from '../models/Notification';
+import { emitToUser } from '../socket/socket';
 import { AuthRequest } from '../middleware/auth.middleware';
 import crypto from 'crypto';
 import mongoose from 'mongoose';
+import { sendGroupedNotification } from '../utils/notification.util';
 
 
 export const getCollections = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -109,6 +113,24 @@ export const addRecipeToCollection = async (req: AuthRequest, res: Response): Pr
     await collection.save();
 
     await collection.populate({ path: 'recipes', populate: { path: 'owner', select: 'name' } });
+
+    // ── Notification: tell the recipe owner someone saved their recipe ──
+    const recipe = await Recipe.findById(recipeObjId);
+    if (recipe) {
+      const ownerId = recipe.owner.toString();
+      const userId = req.user!.id;
+      
+      if (ownerId !== userId) {
+        await sendGroupedNotification({
+          recipientId: ownerId,
+          senderId: userId,
+          type: 'save',
+          recipeId: recipe._id.toString(),
+          recipeTitle: recipe.title,
+          recipeImage: recipe.imageUrl || '',
+        });
+      }
+    }
 
     res.json(collection);
   } catch (error) {
