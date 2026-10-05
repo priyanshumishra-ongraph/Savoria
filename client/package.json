@@ -33,7 +33,9 @@
     "@tensorflow/tfjs-converter": "^4.22.0",
     "@tensorflow/tfjs-core": "^4.22.0",
     "@xenova/transformers": "^2.17.2",
+    "date-fns": "^4.4.0",
     "express": "^5.1.0",
+    "lucide-angular": "^1.0.0",
     "rxjs": "~7.8.0",
     "socket.io-client": "^4.8.4",
     "tslib": "^2.3.0"

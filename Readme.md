@@ -1,4 +1,4 @@
-<div align="center">
+﻿<div align="center">
   <img src="assets/Hero.png" alt="Savoria" width="100%" style="border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 14px rgba(0,0,0,0.1);"/>
   
   # 🍳 Savoria Recipe App
@@ -33,6 +33,7 @@ Savoria focuses on strict REST API design, robust database schemas, secure authe
 - 🔍 **Advanced Search**: Compound text indexes for incredibly fast title, tag, and ingredient searching.
 - 📱 **Fully Responsive**: Carefully crafted mobile, tablet, and desktop layouts.
 - 🔔 **Real-time Notifications**: Socket.IO push notifications for reviews, saves, replies, and helpful votes, featuring smart unread grouping, filtering, image thumbnails, and customizable user settings.
+- 📅 **Meal Planner & Smart Shopping List**: Weekly interactive grid to schedule meals, automatically aggregating ingredients into a smart printable checklist with brand-styled PDF exporting.
 
 ---
 
@@ -266,6 +267,35 @@ This project fulfills the requirement free AI add-ons running entirely in the br
 
 ---
 
+### 🚀 Day 13: Meal Planner & Smart Shopping List (Completed)
+
+- **Weekly Meal Planner**: Built an interactive grid allowing users to schedule meals (Breakfast, Lunch, Dinner, Snacks and etc) using an Angular Material interface.
+- **Smart Shopping List**: Engineered an automated list that aggregates all ingredients from scheduled recipes, intelligently extracting numbers and units (e.g. '1 (15 oz) can', '1-2 lbs') and merging identical items.
+- **Brand UI Overhaul**: Applied a comprehensive Savoria-branded design to the planner, utilizing warm gradients, custom active tab indicators, and aesthetic grid borders.
+- **Print-Ready PDF Export**: Created a pristine PDF print view that hides browser headers, forces brand color printing, and injects precise top/bottom page margins using HTML spacers.
+
+
+## 🤖 In-Browser AI Add-ons for Day 13
+1. **Intelligent Ingredient Parser**
+   - **Model**: Advanced Parsing Heuristics (Zero-dependency).
+   - **What it does**: Processes messy, human-written ingredient strings (e.g., '1 (15 oz) can', '1-2 lbs') to automatically extract precise numerical quantities and normalized unit metrics in the browser, preventing zero-value math errors in the generated shopping list.
+
+2. **Hands-free Cook Mode**
+   - **Model**: Native Browser AI (window.speechSynthesis).
+   - **What it does**: Provides a hands-free cooking experience by leveraging the browser's built-in text-to-speech engine to read recipe steps aloud, allowing users to cook without constantly checking their screen.
+
+## 📸 Screenshots of Day 13
+
+| Weekly Meal Planner | Smart Shopping List |
+| :---: | :---: |
+| <img src="assets/weekly-grid.png" alt="Weekly Meal Planner" width="400"/> | <img src="assets/shopping-list-p.png" alt="Smart Shopping List" width="400"/> |
+
+| PDF Export View |
+| :---: |
+| <img src="assets/pdf-export.png" alt="PDF Export View" width="400"/> |
+
+---
+
 ## 🛡️ Authentication & Authorization Walkthrough
 
 Savoria implements strict **Role-Based Access Control (RBAC)** to ensure users can only modify their own data. This is proven and enforced by both the UI and the automated test suite.
@@ -340,5 +370,11 @@ npm start
 | **6. Create** | Click **+** or **Add Recipe** → fill the form with image upload |
 | **7. Edit/Delete** | Open your own recipe → Edit or Delete buttons appear only for owners |
 | **8. Admin** | Log in as admin → access Users panel to deactivate/reactivate accounts |
+
+
+
+
+
+
 
 
