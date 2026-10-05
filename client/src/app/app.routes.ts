@@ -94,6 +94,11 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
+    path: 'meal-planner',
+    loadComponent: () => import('./features/meal-planner.component').then(m => m.MealPlannerComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: '**',
     loadComponent: () => import('./features/not-found.component').then(m => m.NotFoundComponent),
   },

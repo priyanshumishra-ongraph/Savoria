@@ -4,6 +4,7 @@ import { environment } from '../../environments/environment';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { RecipeService } from '../core/services/recipe.service';
 import { AuthService } from '../core/services/auth.service';
+import { SpeechService } from '../core/services/speech.service';
 import { Recipe } from '../core/models/types';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -170,9 +171,14 @@ import { SimilarRecipesComponent } from '../shared/components/similar-recipes.co
           <h2>{{ recipe?.title }}</h2>
           <span class="cooking-badge">Cooking Mode</span>
         </div>
-        <button mat-icon-button (click)="exitCookingMode()" class="close-cooking-btn">
-          <mat-icon>close</mat-icon>
-        </button>
+        <div class="header-controls" style="display: flex; gap: 8px;">
+          <button mat-icon-button (click)="toggleSpeech()" title="Play/Pause Voice" [ngClass]="{'active-speech': isSpeaking}">
+            <mat-icon>{{ isSpeaking ? 'pause_circle' : 'play_circle' }}</mat-icon>
+          </button>
+          <button mat-icon-button (click)="exitCookingMode()" class="close-cooking-btn" title="Exit Cooking Mode">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
       </div>
       
       <div class="cooking-progress">
@@ -760,6 +766,7 @@ export class RecipeDetailComponent implements OnInit {
   private router = inject(Router);
   private recipeService = inject(RecipeService);
   private authService = inject(AuthService);
+  private speechService = inject(SpeechService);
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
   private snackBar = inject(MatSnackBar);
@@ -950,29 +957,69 @@ export class RecipeDetailComponent implements OnInit {
 
   isCookingMode = false;
   currentStepIndex = 0;
+  isSpeaking = false;
+  private commandSub: any;
   
   startCooking() {
     if (this.recipe && this.recipe.steps && this.recipe.steps.length > 0) {
       this.isCookingMode = true;
       this.currentStepIndex = 0;
       document.body.style.overflow = 'hidden';
+      
+      this.commandSub = this.speechService.commands$.subscribe(cmd => {
+        if (cmd === 'next') this.nextStep();
+        else if (cmd === 'previous') this.prevStep();
+        else if (cmd === 'repeat') this.readCurrentStep();
+        this.cdr.detectChanges();
+      });
+
+      this.readCurrentStep();
     }
   }
   
   exitCookingMode() {
     this.isCookingMode = false;
     document.body.style.overflow = '';
+    this.speechService.stop();
+    if (this.commandSub) {
+      this.commandSub.unsubscribe();
+    }
+    this.isSpeaking = false;
   }
   
   nextStep() {
     if (this.recipe && this.recipe.steps && this.currentStepIndex < this.recipe.steps.length - 1) {
       this.currentStepIndex++;
+      if (this.isSpeaking) {
+        this.readCurrentStep();
+      }
     }
   }
   
   prevStep() {
     if (this.currentStepIndex > 0) {
       this.currentStepIndex--;
+      if (this.isSpeaking) {
+        this.readCurrentStep();
+      }
+    }
+  }
+
+  toggleSpeech() {
+    if (this.isSpeaking) {
+      this.speechService.pause();
+      this.isSpeaking = false;
+    } else {
+      this.isSpeaking = true;
+      this.readCurrentStep();
+    }
+  }
+
+  readCurrentStep() {
+    if (this.recipe && this.recipe.steps) {
+      this.isSpeaking = true;
+      const text = this.recipe.steps[this.currentStepIndex];
+      this.speechService.speak(text);
     }
   }
 }

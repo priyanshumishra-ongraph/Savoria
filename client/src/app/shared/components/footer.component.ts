@@ -20,6 +20,13 @@ import { Component } from '@angular/core';
       border-top: 1px solid #4E342E;
       width: 100%;
     }
+    
+    @media print {
+      .footer {
+        display: none !important;
+      }
+    }
+    
     .footer-content p {
       margin: 0.2rem 0;
       color: #F5F5F5; /* Off-white text for contrast */
