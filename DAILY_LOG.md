@@ -71,3 +71,15 @@ gOnChanges hook can throw ExpressionChangedAfterItHasBeenCheckedError (NG0100) i
 
 **Where I used AI tools:**
 - Paired with AI to design the schema architecture for grouped notifications.
+
+## Day 13: Meal Planner & Smart Shopping List
+**What I built:**
+- Built an interactive Weekly Meal Planner grid allowing users to schedule Breakfast, Lunch, Dinner, Snacks, and more using an Angular Material interface.
+- Developed a Smart Shopping List that automatically aggregates all ingredients from scheduled recipes for the week, merging identical items and normalizing quantities.
+- Created a robust quantity parser that intelligently extracts numbers and units from complex, unstructured ingredient strings (e.g., "1 (15 oz) can", "1-2 lbs").
+- Applied a comprehensive Savoria-branded UI overhaul to the planner, utilizing warm gradients, custom active tab indicators, and aesthetic grid borders.
+- Engineered a pristine PDF Export/Print view that hides browser headers, forces brand color printing, and injects precise top/bottom page margins using HTML spacers.
+
+**What I learned:**
+- Template functions in Angular (e.g., *ngIf="getMeal(day, type)") run on every change detection cycle, causing severe (N)$ performance bottlenecks. I learned to pre-compute an (1)$ Map lookup table in the component class to eliminate render lag.
+- Angular singleton services can easily cause memory leaks if components subscribe to their Observables without implementing ngOnDestroy to clean up the subscriptions.
