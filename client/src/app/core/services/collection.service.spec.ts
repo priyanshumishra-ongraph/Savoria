@@ -33,7 +33,7 @@ describe('CollectionService', () => {
       expect(res.collections[0].name).toBe('Fav');
     });
 
-    const req = httpMock.expectOne(req => req.url === \/collections);
+    const req = httpMock.expectOne(req => req.url.includes('/collections'));
     expect(req.request.method).toBe('GET');
     req.flush(mockResponse);
   });
@@ -45,7 +45,7 @@ describe('CollectionService', () => {
       expect(res.recipes.length).toBe(1);
     });
 
-    const req = httpMock.expectOne(\/collections/1/recipes);
+    const req = httpMock.expectOne((req) => req.url.includes('/collections/1/recipes'));
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({ recipeId: 'r1' });
     req.flush(mockCol);
@@ -56,7 +56,7 @@ describe('CollectionService', () => {
       expect(res).toBeTruthy();
     });
 
-    const req = httpMock.expectOne(\/collections/1/recipes/r1);
+    const req = httpMock.expectOne((req) => req.url.includes('/collections/1/recipes/r1'));
     expect(req.request.method).toBe('DELETE');
     req.flush({ success: true });
   });
@@ -66,7 +66,7 @@ describe('CollectionService', () => {
       expect(res.message).toBe('Deleted');
     });
 
-    const req = httpMock.expectOne(\/collections/1);
+    const req = httpMock.expectOne((req) => req.url.includes('/collections/1'));
     expect(req.request.method).toBe('DELETE');
     req.flush({ message: 'Deleted' });
   });

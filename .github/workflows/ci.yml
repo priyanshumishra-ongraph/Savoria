@@ -1,0 +1,46 @@
+﻿name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, feature/* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-22.04
+    
+    strategy:
+      matrix:
+        node-version: [20.x]
+        
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        
+    - name: Install Backend Dependencies
+      working-directory: ./server
+      run: rm -rf package-lock.json node_modules && npm install
+      
+    - name: Run Backend Tests
+      working-directory: ./server
+      env:
+        JWT_SECRET: super_secret_test_key_ci
+        PORT: 5000
+      run: npm test
+      
+    - name: Install Frontend Dependencies
+      working-directory: ./client
+      run: rm -rf package-lock.json node_modules && npm install
+      
+    - name: Run Frontend Tests (Headless)
+      working-directory: ./client
+      run: npm test -- --watch=false
+      
+    - name: Build Frontend Production
+      working-directory: ./client
+      run: npm run build

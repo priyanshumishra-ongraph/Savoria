@@ -1,70 +1,75 @@
-import { ComponentFixture, TestBed, } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RecipeListComponent } from './recipe-list.component';
-import { ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
-import { RecipeService } from '../core/services/recipe.service';
-import { of, BehaviorSubject } from 'rxjs';
-import { BrowserAnimationsModule, NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { PLATFORM_ID } from '@angular/core';
+import { SearchService } from '../core/services/search.service';
+import { AuthService } from '../core/services/auth.service';
+import { of, firstValueFrom } from 'rxjs';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { Component, NO_ERRORS_SCHEMA } from '@angular/core';
 
 describe('RecipeListComponent', () => {
   let component: RecipeListComponent;
   let fixture: ComponentFixture<RecipeListComponent>;
-  let mockRecipeService: any;
-  let queryParamsSubject = new BehaviorSubject<any>({});
+  let mockSearchService: any;
+  let mockAuthService: any;
 
   beforeEach(async () => {
-    mockRecipeService = {
-      getRecipes: vi.fn().mockReturnValue(of({
-        recipes: [
-          { _id: '1', title: 'Recipe 1', category: 'Dinner', difficulty: 'Easy' },
-          { _id: '2', title: 'Recipe 2', category: 'Lunch', difficulty: 'Medium' }
-        ],
-        total: 2,
-        page: 1,
-        pages: 1
-      }))
+    mockSearchService = {
+      results$: of({ recipes: [], total: 0, page: 1, limit: 10 }),
+      categories$: of([]),
+      difficulties$: of([]),
+      tags$: of([]),
+      ingredients$: of([]),
+      strictIngredients$: of(false),
+      maxCookTime$: of(null),
+      minRating$: of(0),
+      setSearch: vi.fn(),
+      setSort: vi.fn(),
+      setCategory: vi.fn()
     };
 
-    const mockActivatedRoute = {
-      queryParams: queryParamsSubject.asObservable(), snapshot: { queryParamMap: { get: (key: string) => null } }
+    mockAuthService = {
+      currentUser$: of(null)
     };
 
     await TestBed.configureTestingModule({
-      imports: [
-        ReactiveFormsModule,
-        NoopAnimationsModule,
-        RecipeListComponent
-      ],
+      imports: [RecipeListComponent],
       providers: [
-        { provide: RecipeService, useValue: mockRecipeService },
-        { provide: ActivatedRoute, useValue: mockActivatedRoute },
-        { provide: PLATFORM_ID, useValue: 'browser' }
+        { provide: SearchService, useValue: mockSearchService },
+        { provide: AuthService, useValue: mockAuthService }
       ]
-    }).compileComponents();
+    })
+    .overrideComponent(RecipeListComponent, {
+      set: { schemas: [NO_ERRORS_SCHEMA] }
+    })
+    .compileComponents();
 
     fixture = TestBed.createComponent(RecipeListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
-  it('should create and load recipes on init', async () => {
+  it('should create', () => {
     expect(component).toBeTruthy();
-    await new Promise(r => setTimeout(r, 450));
-    expect(mockRecipeService.getRecipes).toHaveBeenCalledWith('', '', 1, 12);
-    expect(component.recipes.length).toBe(2);
   });
 
-  it('should filter recipes when category changes', async () => {
-    component.categoryControl.setValue('Dinner');
-    await new Promise(r => setTimeout(r, 450));
-    expect(mockRecipeService.getRecipes).toHaveBeenCalledWith('', 'Dinner', 1, 12);
+  it('should initialize results$ from search service', async () => {
+    const res = await firstValueFrom(component.results$);
+    expect(res.recipes).toEqual([]);
+    expect(res.total).toBe(0);
   });
 
-  it('should filter recipes when search changes', async () => {
-    component.searchControl.setValue('pasta');
-    await new Promise(r => setTimeout(r, 450));
-    expect(mockRecipeService.getRecipes).toHaveBeenCalledWith('pasta', '', 1, 12);
+  it('should trigger search on input', () => {
+    component.onSearchInput('pasta');
+    expect(mockSearchService.setSearch).toHaveBeenCalledWith('pasta');
+  });
+
+  it('should trigger sort', () => {
+    component.onSort('newest');
+    expect(mockSearchService.setSort).toHaveBeenCalledWith('newest');
+  });
+
+  it('should trigger search from voice result', () => {
+    component.onVoiceResult('pizza');
+    expect(mockSearchService.setSearch).toHaveBeenCalledWith('pizza');
   });
 });

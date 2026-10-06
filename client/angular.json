@@ -30,7 +30,9 @@
                 "input": "public"
               }
             ],
-            "styles": ["src/styles.scss"],
+            "styles": [
+              "src/styles.scss"
+            ],
             "outputMode": "static",
             "security": {
               "allowedHosts": []
@@ -76,9 +78,7 @@
         },
         "test": {
           "builder": "@angular/build:unit-test",
-          "options": {
-            "webWorkerTsConfig": "tsconfig.worker.json"
-          }
+          "options": {}
         }
       }
     }

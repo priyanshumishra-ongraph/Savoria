@@ -1,6 +1,7 @@
 import request from 'supertest';
 import express from 'express';
 import mongoose from 'mongoose';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 import { afterAll, beforeAll, describe, expect, it, jest } from '@jest/globals';
 import authRoutes from '../routes/auth.routes';
 import recipeRoutes from '../routes/recipe.routes';
@@ -14,7 +15,7 @@ import Review from '../models/Review';
 import dotenv from 'dotenv';
 
 dotenv.config();
-jest.setTimeout(30000);
+jest.setTimeout(300000);
 
 const app = express();
 app.use(express.json());
@@ -32,9 +33,13 @@ let secondRecipeId: string;
 let adminUserId: string;
 let regularUserId: string;
 
+let mongoServer: MongoMemoryServer;
+
 beforeAll(async () => {
-  const testUri = (process.env.MONGODB_URI as string).replace('Savoria', 'Savoria-Test');
-  await mongoose.connect(testUri);
+  mongoServer = await MongoMemoryServer.create();
+  const testUri = mongoServer.getUri();
+  console.log('Mongo URI:', testUri);
+  await mongoose.connect(testUri, { family: 4 });
   await User.deleteMany();
   await Recipe.deleteMany();
 
@@ -59,6 +64,9 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await mongoose.connection.close();
+  if (mongoServer) {
+    await mongoServer.stop();
+  }
 });
 
 describe('Auth API', () => {

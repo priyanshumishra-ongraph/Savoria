@@ -8,7 +8,8 @@
   [![Angular](https://img.shields.io/badge/Angular-DD0031?style=for-the-badge&logo=angular&logoColor=white)](https://angular.io/)
   [![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
   [![Express.js](https://img.shields.io/badge/Express.js-404D59?style=for-the-badge)](https://expressjs.com/)
-  [![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)](https://mongodb.com/)
+  [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/priyanshumishra-ongraph/Savoria/ci.yml?style=for-the-badge&logo=github)
+  ![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)](https://mongodb.com/)
 </div>
 
 ---
@@ -296,7 +297,21 @@ This project fulfills the requirement free AI add-ons running entirely in the br
 
 ---
 
-## 🛡️ Authentication & Authorization Walkthrough
+### 🚀 Day 14: Snap & Cook (AI Recipe OCR) & CI/CD Pipeline
+
+- **Snap & Cook (AI Scanner)**: Implemented an entirely in-browser OCR scanner using `Tesseract.js` WebAssembly. Users can snap a photo of a physical recipe card or cookbook page, and the AI instantly transcribes and auto-fills the Angular reactive recipe form.
+- **Automated Text Parsing**: Engineered a smart heuristic parser that scans raw OCR text to intelligently differentiate between Titles, Ingredients (detecting measurements), and Cooking Steps.
+- **GitHub Actions CI Pipeline**: Built an automated continuous integration pipeline (`.github/workflows/ci.yml`) that validates the build, runs the headless Angular frontend tests, and spins up an in-memory MongoDB container to execute all 53 backend API tests via Jest & Supertest upon every push.
+- **Real Angular Unit Tests**: Replaced scaffolded Jasmine specs with fully functional `TestBed` unit tests for the Meal Planner feature, mocking services, testing component interactions, and ensuring robust lookup mapping.
+
+## 🤖 In-Browser AI Add-ons for Day 14
+1. **Snap & Cook Optical Character Recognition (OCR)**
+   - **Model**: `Tesseract.js` (WebAssembly-based eng.traineddata).
+   - **What it does**: Runs a highly accurate machine learning OCR model entirely locally inside the user's browser, respecting privacy while perfectly translating photos of text into digital recipes without calling external paid APIs.
+
+
+
+## 🔐 Authentication & Authorization Walkthrough
 
 Savoria implements strict **Role-Based Access Control (RBAC)** to ensure users can only modify their own data. This is proven and enforced by both the UI and the automated test suite.
 

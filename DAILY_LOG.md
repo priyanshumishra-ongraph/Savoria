@@ -83,3 +83,16 @@ gOnChanges hook can throw ExpressionChangedAfterItHasBeenCheckedError (NG0100) i
 **What I learned:**
 - Template functions in Angular (e.g., *ngIf="getMeal(day, type)") run on every change detection cycle, causing severe (N)$ performance bottlenecks. I learned to pre-compute an (1)$ Map lookup table in the component class to eliminate render lag.
 - Angular singleton services can easily cause memory leaks if components subscribe to their Observables without implementing ngOnDestroy to clean up the subscriptions.
+
+### 🚀 Day 14: Snap & Cook (AI Recipe OCR) & CI/CD Pipeline (Completed)
+
+- **Snap & Cook (AI Scanner)**: Implemented an entirely in-browser OCR scanner using Tesseract.js WebAssembly. Users can snap a photo of a physical recipe card or cookbook page, and the AI instantly transcribes and auto-fills the Angular reactive recipe form.
+- **Automated Text Parsing**: Engineered a smart heuristic parser that scans raw OCR text to intelligently differentiate between Titles, Ingredients (detecting measurements), and Cooking Steps.
+- **GitHub Actions CI Pipeline**: Built an automated continuous integration pipeline (.github/workflows/ci.yml) that validates the build, runs the headless Angular frontend tests, and spins up an in-memory MongoDB container to execute all 53 backend API tests via Jest & Supertest upon every push.
+- **Real Angular Unit Tests**: Replaced scaffolded Jasmine specs with fully functional TestBed unit tests for the Meal Planner feature, mocking services, testing component interactions, and ensuring robust lookup mapping.
+
+## 🤖 In-Browser AI Add-ons for Day 14
+1. **Snap & Cook Optical Character Recognition (OCR)**
+   - **Model**: Tesseract.js (WebAssembly-based eng.traineddata).
+   - **What it does**: Runs a highly accurate machine learning OCR model entirely locally inside the user's browser, respecting privacy while perfectly translating photos of text into digital recipes without calling external paid APIs.
+
