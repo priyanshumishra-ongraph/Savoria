@@ -30,7 +30,7 @@
     "form-data": "^4.0.6",
     "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.9.4",
+    "mongoose": "^8.24.5",
     "multer": "^2.3.0",
     "multer-storage-cloudinary": "^4.0.0",
     "node-fetch": "^3.3.2",
@@ -42,10 +42,16 @@
     "@types/jest": "^30.0.0",
     "@types/supertest": "^7.2.1",
     "jest": "^30.5.1",
+    "mongodb-memory-server": "^11.3.0",
     "nodemon": "^3.1.14",
     "supertest": "^7.2.2",
     "ts-jest": "^29.4.12",
     "ts-node": "^10.9.2",
     "tsx": "^4.23.12"
+  },
+  "config": {
+    "mongodbMemoryServer": {
+      "version": "7.0.14"
+    }
   }
 }

@@ -8,6 +8,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { PercentPipe } from '@angular/common';
+import Tesseract from 'tesseract.js';
 import { RecipeService } from '../core/services/recipe.service';
 import { environment } from '../../environments/environment';
 import * as mobilenet from '@tensorflow-models/mobilenet';
@@ -18,7 +21,7 @@ import * as tf from '@tensorflow/tfjs';
   standalone: true,
   imports: [
     CommonModule, ReactiveFormsModule, RouterModule,
-    MatInputModule, MatSelectModule, MatButtonModule, MatCardModule, MatProgressSpinnerModule, MatIconModule
+    MatInputModule, MatSelectModule, MatButtonModule, MatCardModule, MatProgressSpinnerModule, MatIconModule, MatProgressBarModule, PercentPipe
   ],
   template: `
     <div class="form-container">
@@ -29,7 +32,26 @@ import * as tf from '@tensorflow/tfjs';
         </mat-card-header>
 
         <mat-card-content>
-          <form [formGroup]="recipeForm" (ngSubmit)="onSubmit()" class="recipe-form">
+          <div class="snap-cook-banner col-span-2" *ngIf="!isEditMode">
+              <div class="snap-cook-header">
+                <div>
+                  <h3 style="margin: 0; color: #ea580c; display: flex; align-items: center; gap: 8px;">
+                    <mat-icon>document_scanner</mat-icon> Snap & Cook (AI Scanner)
+                  </h3>
+                  <p style="margin: 4px 0 0; color: #718096; font-size: 14px;">Got an old recipe card? Snap a photo and let AI fill out the form for you!</p>
+                </div>
+                <button type="button" mat-stroked-button color="primary" (click)="fileInputOcr.click()" [disabled]="isScanningRecipe">
+                  <mat-icon>camera_alt</mat-icon> Scan Photo
+                </button>
+                <input type="file" #fileInputOcr hidden (change)="onScanRecipe($event)" accept="image/*">
+              </div>
+              <div class="scan-progress" *ngIf="isScanningRecipe">
+                <p style="margin-bottom: 8px; font-weight: 500; color: #3C2218;">Status: {{scanStatus}} ({{scanProgress | percent}})</p>
+                <mat-progress-bar mode="determinate" [value]="scanProgress * 100"></mat-progress-bar>
+              </div>
+            </div>
+            
+            <form [formGroup]="recipeForm" (ngSubmit)="onSubmit()" class="recipe-form">
             
             <mat-form-field appearance="outline" class="col-span-2">
               <mat-label>Recipe Title</mat-label>
@@ -101,8 +123,8 @@ import * as tf from '@tensorflow/tfjs';
             </mat-form-field>
             
             <mat-form-field appearance="outline">
-              <mat-label>Ingredients (Comma separated)</mat-label>
-              <textarea matInput formControlName="ingredientsText" rows="5" placeholder="2 cups flour, 1 tsp salt..."></textarea>
+              <mat-label>Ingredients (One per line)</mat-label>
+              <textarea matInput formControlName="ingredientsText" rows="5" placeholder="2 cups flour\n1 tsp salt..."></textarea>
               <mat-error *ngIf="recipeForm.get('ingredientsText')?.hasError('required')">At least one ingredient is required</mat-error>
             </mat-form-field>
 
@@ -214,6 +236,29 @@ import * as tf from '@tensorflow/tfjs';
       .form-card { padding: 20px 16px; }
     }
 
+    /* Snap & Cook Styles */
+    .snap-cook-banner {
+      background: #fffdfa;
+      border: 2px dashed #ea580c;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .snap-cook-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .scan-progress {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(249, 115, 22, 0.2);
+    }
+    
+    @media (max-width: 768px) {
+      .snap-cook-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    }
+    
     /* Modal Styles */
     .modal-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -255,6 +300,9 @@ export class RecipeFormComponent implements OnInit {
   error = '';
   isEditMode = false;
   isClassifying = false;
+  isScanningRecipe = false;
+  scanProgress = 0;
+  scanStatus = "";
   aiWarning = false;
   recipeId: string | null = null;
   
@@ -301,7 +349,7 @@ export class RecipeFormComponent implements OnInit {
       next: recipe => {
         this.recipeForm.patchValue({
           ...recipe,
-          ingredientsText: recipe.ingredients.map((i: any) => `${i.quantity} ${i.name}`).join(', '),
+          ingredientsText: recipe.ingredients.map((i: any) => `${i.quantity} ${i.name}`).join('\n'),
           stepsText: recipe.steps.join('\n'),
           tagsText: recipe.tags ? recipe.tags.join(', ') : ''
         });
@@ -310,6 +358,88 @@ export class RecipeFormComponent implements OnInit {
         this.error = err.error?.message || 'Failed to load recipe for editing. Please go back and try again.';
         this.recipeForm.disable(); // Prevent submitting an empty form
       }
+    });
+  }
+
+  async onScanRecipe(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+
+    this.isScanningRecipe = true;
+    this.scanProgress = 0;
+    this.scanStatus = 'Initializing AI...';
+    this.cdr.detectChanges();
+
+    try {
+      const result = await Tesseract.recognize(URL.createObjectURL(file), 'eng', {
+        logger: m => {
+          this.scanStatus = m.status;
+          this.scanProgress = m.progress;
+          this.cdr.detectChanges();
+        }
+      });
+      
+      const text = result.data.text;
+      this.parseScannedText(text);
+      this.isScanningRecipe = false;
+      this.cdr.detectChanges();
+    } catch(err) {
+      console.error(err);
+      this.error = 'Failed to scan recipe image.';
+      this.isScanningRecipe = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  parseScannedText(text: string) {
+    const lines = text.split('\n').map((l: string) => l.trim()).filter((l: string) => l.length > 0);
+    if(lines.length === 0) return;
+    
+    const title = lines[0] || 'Scanned Recipe';
+    const ingredients: string[] = [];
+    const steps: string[] = [];
+    
+    let mode = 'ingredients'; 
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i];
+      const lower = line.toLowerCase();
+      
+      if (lower.includes('directions') || lower.includes('instructions') || lower.includes('steps') || lower.includes('method') || lower.includes('preparation')) {
+        mode = 'steps';
+        continue;
+      }
+      if (lower.includes('ingredients')) {
+        mode = 'ingredients';
+        continue;
+      }
+      
+      if (mode === 'ingredients') {
+        // If it starts with a number or contains common measurements, it's an ingredient
+        if (/(?:^\d|^\d+\s*\/\s*\d+)/.test(line) || lower.includes('cup') || lower.includes('tbsp') || lower.includes('tsp') || lower.includes('oz') || lower.includes('g') || lower.includes('ml')) {
+           ingredients.push(line);
+        } else {
+           // If it's a long sentence or ends with punctuation, it's likely a step
+           if (line.length > 40 || /[.!?]$/.test(line)) {
+              mode = 'steps';
+              steps.push(line);
+           } else {
+              ingredients.push(line);
+           }
+        }
+      } else {
+        steps.push(line);
+      }
+    }
+    
+    // Ensure we don't end up with completely empty lists if parsing failed
+    if (ingredients.length === 0 && steps.length === 0) {
+      ingredients.push(...lines.slice(1));
+    }
+    
+    this.recipeForm.patchValue({
+      title: title.substring(0, 100),
+      ingredientsText: ingredients.join('\n'),
+      stepsText: steps.join('\n')
     });
   }
 
@@ -388,7 +518,7 @@ export class RecipeFormComponent implements OnInit {
     const formVal = this.recipeForm.value;
     
     // Parse Text into backend Arrays
-    const ingredientsArray = formVal.ingredientsText.split(',').map((i: string) => i.trim()).filter((i: string) => i).map((item: string) => {
+    const ingredientsArray = formVal.ingredientsText.split('\n').map((i: string) => i.trim()).filter((i: string) => i).map((item: string) => {
       const match = item.match(/^((?:\d[\d\s\/\.\-]*|for garnish)?(?:\([^)]+\)\s*)?(?:(?:cups?|tbsp|tsp|oz|lbs?|g|ml|pinch|dash|cloves?|bunch|slices?|heads?)\b\s*)?)(.*)$/i);
       let qty = (match && match[1].trim()) ? match[1].trim() : '-';
       let name = match ? match[2].trim() : item;
