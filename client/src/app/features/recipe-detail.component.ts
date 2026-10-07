@@ -907,7 +907,7 @@ export class RecipeDetailComponent implements OnInit {
           horizontalPosition: 'center',
           verticalPosition: 'bottom'
         });
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/discover']);
       });
     }
   }

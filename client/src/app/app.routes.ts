@@ -15,14 +15,12 @@ export const routes: Routes = [
     canActivate: [guestGuard],
   },
   {
-    path: 'dashboard',
-    loadComponent: () => import('./features/dashboard.component').then(m => m.DashboardComponent),
-    canActivate: [authGuard],
+    path: 'discover',
+    loadComponent: () => import('./features/dashboard.component').then(m => m.DiscoverComponent),
   },
   {
     path: 'recipes',
     loadComponent: () => import('./features/recipe-list.component').then(m => m.RecipeListComponent),
-    canActivate: [authGuard],
   },
   {
     path: 'recipes/my',
@@ -32,7 +30,6 @@ export const routes: Routes = [
   {
     path: 'recipes/category/:name',
     loadComponent: () => import('./features/category-recipes.component').then(m => m.CategoryRecipesComponent),
-    canActivate: [authGuard],
   },
   {
     path: 'recipes/new',
@@ -56,7 +53,7 @@ export const routes: Routes = [
   },
   {
     path: 'collections',
-    loadComponent: () => import('./features/collections-dashboard.component').then(m => m.CollectionsDashboardComponent),
+    loadComponent: () => import('./features/collections-dashboard.component').then(m => m.CollectionsDiscoverComponent),
     canActivate: [authGuard],
   },
   {
@@ -90,7 +87,7 @@ export const routes: Routes = [
   },
   {
     path: '',
-    redirectTo: 'dashboard',
+    redirectTo: 'discover',
     pathMatch: 'full',
   },
   {

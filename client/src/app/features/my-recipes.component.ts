@@ -17,20 +17,20 @@ import { AuthService } from '../core/services/auth.service';
   standalone: true,
   imports: [CommonModule, RouterModule, RecipeCardComponent, MatCardModule, MatIconModule],
   template: `
-    <div class="dashboard-wrapper">
-      <div class="dashboard-header">
+    <div class="discover-wrapper">
+      <div class="discover-header">
         <div class="header-content">
           <div class="title-area">
             <a routerLink="/recipes" class="back-link">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-              Back to Dashboard
+              Back to Discover
             </a>
             <h2>My Recipes</h2>
           </div>
         </div>
       </div>
 
-      <div class="dashboard-content" *ngIf="stats" style="padding-bottom: 0;">
+      <div class="discover-content" *ngIf="stats" style="padding-bottom: 0;">
         <div class="section-header">
           <div class="section-icon pulse">
             <mat-icon style="color: #f97316;">update</mat-icon>
@@ -69,21 +69,21 @@ import { AuthService } from '../core/services/auth.service';
         </div>
       </div>
 
-      <div class="dashboard-content" *ngIf="isLoading">
+      <div class="discover-content" *ngIf="isLoading">
         <div class="loading-state">
           <div class="spinner-ring"></div>
           <p>Loading your recipes...</p>
         </div>
       </div>
 
-      <div class="dashboard-content" *ngIf="error && !isLoading">
+      <div class="discover-content" *ngIf="error && !isLoading">
         <div class="error-banner">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
           {{ error }}
         </div>
       </div>
 
-      <div class="dashboard-content" *ngIf="!isLoading && !error">
+      <div class="discover-content" *ngIf="!isLoading && !error">
         <ng-container *ngIf="recipes.length > 0; else noRecipes">
           <div class="recipe-grid">
             <app-recipe-card *ngFor="let recipe of recipes" [recipe]="recipe"></app-recipe-card>
@@ -113,13 +113,13 @@ import { AuthService } from '../core/services/auth.service';
     </div>
   `,
   styles: [`
-    .dashboard-wrapper { background-color: #faf5eb; min-height: calc(100vh - 70px); font-family: 'Inter', 'Segoe UI', sans-serif; padding-bottom: 60px; }
-    .dashboard-header { background: white; padding: 24px 20px; border-bottom: 1px solid #edf2f7; position: relative; top: 0; z-index: 90; }
+    .discover-wrapper { background-color: #faf5eb; min-height: calc(100vh - 70px); font-family: 'Inter', 'Segoe UI', sans-serif; padding-bottom: 60px; }
+    .discover-header { background: white; padding: 24px 20px; border-bottom: 1px solid #edf2f7; position: relative; top: 0; z-index: 90; }
     .header-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
     .back-link { display: flex; align-items: center; gap: 6px; color: #718096; text-decoration: none; font-size: 14px; font-weight: 600; margin-bottom: 8px; transition: color 0.2s; }
     .back-link:hover { color: #f97316; }
     .title-area h2 { margin: 0; font-size: 28px; font-weight: 800; color: #3C2218; letter-spacing: -0.5px; }
-    .dashboard-content { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+    .discover-content { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
     .recipe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
 
     /* ✅ Loading */
@@ -130,7 +130,7 @@ import { AuthService } from '../core/services/auth.service';
     /* ✅ Error */
     .error-banner { display: flex; align-items: center; gap: 10px; padding: 14px 18px; background: #fee2e2; color: #dc2626; border-radius: 10px; font-weight: 500; }
 
-    /* ✅ Dashboard Stats */
+    /* ✅ Discover Stats */
     .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
     .section-icon { width: 48px; height: 48px; border-radius: 12px; background: #fff7ed; display: flex; align-items: center; justify-content: center; }
     .section-header h3 { font-size: 24px; font-weight: 800; color: #3C2218; margin: 0; }

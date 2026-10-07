@@ -110,7 +110,7 @@ export class AuthService {
 
   logout() {
     this.clearSession();
-    this.router.navigate(['/login']);
+    this.router.navigate(['/discover']);
   }
 
   private clearSession() {

@@ -4,7 +4,7 @@ import { AuthRequest } from '../middleware/auth.middleware';
 
 
 
-export const getDashboardStats = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+export const getDiscoverStats = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);

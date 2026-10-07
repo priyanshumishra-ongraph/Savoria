@@ -29,7 +29,7 @@ import { SearchService } from '../../core/services/search.service';
 
       <!-- Categories -->
       <div class="filter-section">
-        <h4 class="section-title">Course / Category</h4>
+        <h4 class="section-title">Category</h4>
         <div class="checkbox-group">
           <label class="custom-checkbox" *ngFor="let cat of availableCategories">
             <input type="checkbox" [checked]="state.categories?.includes(cat)" (change)="toggleArrayItem('categories', cat, state.categories!)">

@@ -72,14 +72,15 @@ import { LoadingSpinnerComponent } from '../shared/components/loading-spinner.co
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: calc(100vh - 80px);
-      background-color: #f4f6f8;
+      min-height: 100vh;
+      background-color: #faf5eb;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     .login-card {
       background: #ffffff;
       padding: 40px;
       border-radius: 12px;
+      border: 1px solid #3c2218;
       box-shadow: 0 10px 25px rgba(0,0,0,0.05);
       width: 100%;
       max-width: 420px;
@@ -145,7 +146,7 @@ export class LoginComponent {
     this.authService.login({ email: this.email, password: this.password }).subscribe({
       next: () => {
         this.isSubmitting = false;
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/discover']);
       },
       error: (err) => {
         this.isSubmitting = false;

@@ -49,7 +49,7 @@ describe('LoginComponent', () => {
     component.onSubmit();
     
     expect(mockAuthService.login).toHaveBeenCalledWith({ email: 'test@example.com', password: 'password' });
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/dashboard']);
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/discover']);
   });
 
   it('should handle login error', () => {

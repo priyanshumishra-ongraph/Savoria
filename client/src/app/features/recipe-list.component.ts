@@ -22,7 +22,7 @@ import { VoiceSearchBtnComponent } from '../shared/components/voice-search-btn.c
     RecommendedSectionComponent, SortBarComponent, FilterChipsComponent, VoiceSearchBtnComponent
   ],
   template: `
-    <div class="dashboard-wrapper">
+    <div class="discover-wrapper">
       <div class="explore-header">
         <div class="explore-header-content">
           <div class="title-area">
@@ -42,7 +42,7 @@ import { VoiceSearchBtnComponent } from '../shared/components/voice-search-btn.c
         </div>
       </div>
 
-      <div class="dashboard-content">
+      <div class="discover-content">
         <div class="two-column-layout">
           <!-- Left Sidebar -->
           <aside class="sidebar" [class.mobile-hidden]="!showFilters">
@@ -97,7 +97,7 @@ import { VoiceSearchBtnComponent } from '../shared/components/voice-search-btn.c
     :host { display: block; width: 100%; max-width: 100%; overflow-x: hidden; }
 
     /* ── Wrapper ─────────────────────────────── */
-    .dashboard-wrapper {
+    .discover-wrapper {
       background-color: #faf5eb;
       min-height: 100vh;
       padding-bottom: 60px;
@@ -190,7 +190,7 @@ import { VoiceSearchBtnComponent } from '../shared/components/voice-search-btn.c
     }
 
     /* ── Body layout ─────────────────────────── */
-    .dashboard-content {
+    .discover-content {
       max-width: 1400px;
       margin: 0 auto;
       padding: 36px 24px;
@@ -293,12 +293,12 @@ import { VoiceSearchBtnComponent } from '../shared/components/voice-search-btn.c
       .explore-header { padding: 32px 20px 24px; }
       .title-area h2 { font-size: 30px; }
       .recipe-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; }
-      .dashboard-content { padding: 28px 20px; }
+      .discover-content { padding: 28px 20px; }
     }
 
     /* ── Small tablet / phone landscape ≤ 768px  */
     @media (max-width: 768px) {
-      .dashboard-content { padding: 24px 16px; }
+      .discover-content { padding: 24px 16px; }
       .title-area h2 { font-size: 26px; }
       .recipe-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
       .nav-btn { min-width: 90px; padding: 9px 16px; font-size: 13px; }
@@ -307,7 +307,7 @@ import { VoiceSearchBtnComponent } from '../shared/components/voice-search-btn.c
     /* ── Phone portrait ≤ 480px ──────────────── */
     @media (max-width: 480px) {
       .explore-header { padding: 24px 16px 20px; }
-      .dashboard-content { padding: 20px 12px; }
+      .discover-content { padding: 20px 12px; }
       .title-area h2 { font-size: 22px; }
       .recipe-grid { grid-template-columns: 1fr; gap: 18px; }
       .pagination-controls { gap: 10px; margin-top: 32px; }

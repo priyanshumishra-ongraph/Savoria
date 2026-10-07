@@ -1,9 +1,8 @@
 import express from 'express';
-import { getDashboardStats } from '../controllers/dashboard.controller';
-import { protect } from '../middleware/auth.middleware';
+import { getDiscoverStats } from '../controllers/dashboard.controller';
 
 const router = express.Router();
 
-router.get('/stats', protect, getDashboardStats);
+router.get('/stats', getDiscoverStats);
 
 export default router;

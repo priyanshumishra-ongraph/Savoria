@@ -11,7 +11,7 @@ import { RouterModule } from '@angular/router';
         <div class="error-code">404</div>
         <h2>Page Not Found</h2>
         <p>The page you're looking for doesn't exist or has been moved.</p>
-        <a routerLink="/dashboard" class="home-btn">Go to Dashboard</a>
+        <a routerLink="/discover" class="home-btn">Go to Discover</a>
       </div>
     </div>
   `,

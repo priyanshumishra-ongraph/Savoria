@@ -104,8 +104,8 @@ import { environment } from '../../environments/environment';
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: calc(100vh - 80px);
-      background-color: #f4f6f8;
+      min-height: 100vh;
+      background-color: #faf5eb;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       padding: 40px 0;
     }
@@ -113,6 +113,7 @@ import { environment } from '../../environments/environment';
       background: #ffffff;
       padding: 40px;
       border-radius: 12px;
+      border: 1px solid #3c2218;
       box-shadow: 0 10px 25px rgba(0,0,0,0.05);
       width: 100%;
       max-width: 420px;

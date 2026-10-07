@@ -10,8 +10,8 @@ import { RecipeCardComponent } from '../shared/components/recipe-card.component'
   standalone: true,
   imports: [CommonModule, RouterModule, RecipeCardComponent],
   template: `
-    <div class="dashboard-wrapper">
-      <div class="dashboard-header">
+    <div class="discover-wrapper">
+      <div class="discover-header">
         <div class="header-content">
           <div class="title-area">
             <a routerLink="/recipes" class="back-link">
@@ -23,7 +23,7 @@ import { RecipeCardComponent } from '../shared/components/recipe-card.component'
         </div>
       </div>
 
-      <div class="dashboard-content">
+      <div class="discover-content">
         <!-- Loading State -->
         <div *ngIf="isLoading" class="loading-state">
           <div class="spinner"></div>
@@ -57,14 +57,14 @@ import { RecipeCardComponent } from '../shared/components/recipe-card.component'
     </div>
   `,
   styles: [`
-    .dashboard-wrapper {
+    .discover-wrapper {
       background-color: #f8f9fa;
       min-height: calc(100vh - 70px);
       font-family: 'Inter', 'Segoe UI', sans-serif;
       padding-bottom: 60px;
     }
 
-    .dashboard-header {
+    .discover-header {
       background: white;
       padding: 24px 20px;
       border-bottom: 1px solid #edf2f7;
@@ -125,7 +125,7 @@ import { RecipeCardComponent } from '../shared/components/recipe-card.component'
     
     .empty-create-btn { display: inline-flex; margin-top: 10px; }
 
-    .dashboard-content {
+    .discover-content {
       max-width: 1200px;
       margin: 0 auto;
       padding: 40px 20px;

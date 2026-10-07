@@ -52,7 +52,7 @@ describe('AuthService', () => {
     expect(emittedUser?.email).toBe('test@test.com');
   });
 
-  it('logout() should clear session and navigate to /login', async () => {
+  it('logout() should clear session and navigate to /discover', async () => {
     localStorage.setItem('token', 'sometoken');
     localStorage.setItem('user', JSON.stringify({ _id: '1', name: 'A', email: 'a@a.com', role: 'user' }));
     vi.spyOn(router, 'navigate');
@@ -61,7 +61,7 @@ describe('AuthService', () => {
 
     expect(localStorage.getItem('token')).toBeNull();
     expect(localStorage.getItem('user')).toBeNull();
-    expect(router.navigate).toHaveBeenCalledWith(['/login']);
+    expect(router.navigate).toHaveBeenCalledWith(['/discover']);
   });
 
   it('validateSession() should clear session and redirect on 401', async () => {

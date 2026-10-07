@@ -6,7 +6,7 @@ import { Collection, CollectionResponse } from '../core/models/types';
 import { environment } from '../../environments/environment';
 
 @Component({
-  selector: 'app-collections-dashboard',
+  selector: 'app-collections-discover',
   standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
@@ -41,7 +41,7 @@ import { environment } from '../../environments/environment';
         </div>
         <h3>No Cookbooks Found</h3>
         <p>You haven't created any recipe collections yet.</p>
-        <button routerLink="/dashboard" class="btn-primary">Explore Recipes</button>
+        <button routerLink="/discover" class="btn-primary">Explore Recipes</button>
       </div>
 
       <div class="collections-grid" *ngIf="!loading && collections.length > 0">
@@ -213,7 +213,7 @@ import { environment } from '../../environments/environment';
     }
     
     .btn-retry, .btn-primary {
-      background: #0f172a;
+      background: #ea580c;
       color: #fff;
       border: none;
       padding: 0.75rem 1.5rem;
@@ -375,7 +375,7 @@ import { environment } from '../../environments/environment';
     }
   `]
 })
-export class CollectionsDashboardComponent implements OnInit {
+export class CollectionsDiscoverComponent implements OnInit {
   collections: Collection[] = [];
   loading = true;
   error: string | null = null;

@@ -2,7 +2,7 @@ import { Component, inject, OnInit, PLATFORM_ID, ChangeDetectorRef } from '@angu
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -11,12 +11,15 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RecipeCardComponent } from '../shared/components/recipe-card.component';
 import { NewsletterService } from '../core/services/newsletter.service';
 import { TrendingSectionComponent } from '../shared/components/trending-section.component';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { LoginPromptModalComponent } from '../shared/components/login-prompt-modal.component';
+import { AuthService } from '../core/services/auth.service';
 
-@Component({  selector: 'app-dashboard',
+@Component({  selector: 'app-discover',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, MatCardModule, MatIconModule, MatButtonModule, MatProgressSpinnerModule, RecipeCardComponent, TrendingSectionComponent],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, MatCardModule, MatIconModule, MatButtonModule, MatProgressSpinnerModule, RecipeCardComponent, TrendingSectionComponent, MatDialogModule],
   template: `
-    <div class="dashboard-wrapper">
+    <div class="discover-wrapper">
       <!-- Premium Hero Section -->
       <div class="hero-section">
         <div class="hero-overlay"></div>
@@ -30,13 +33,13 @@ import { TrendingSectionComponent } from '../shared/components/trending-section.
 
 
       <!-- Loading State -->
-      <div class="dashboard-content" *ngIf="isLoading" style="margin-top: 40px; text-align: center; color: #718096; min-height: 200px;">
+      <div class="discover-content" *ngIf="isLoading" style="margin-top: 40px; text-align: center; color: #718096; min-height: 200px;">
         <mat-spinner diameter="40" style="margin: 0 auto 16px;"></mat-spinner>
-        <p>Loading your dashboard...</p>
+        <p>Loading your discover...</p>
       </div>
 
       <!-- Error State -->
-      <div class="dashboard-content" *ngIf="error && !isLoading" style="margin-top: 40px;">
+      <div class="discover-content" *ngIf="error && !isLoading" style="margin-top: 40px;">
         <div style="display: flex; align-items: center; gap: 10px; padding: 14px 18px; background: #fee2e2; color: #dc2626; border-radius: 10px; font-weight: 500;">
           <mat-icon>error_outline</mat-icon>
           {{ error }}
@@ -44,11 +47,11 @@ import { TrendingSectionComponent } from '../shared/components/trending-section.
       </div>
 
       <!-- Trending Section -->
-      <div class="dashboard-content" *ngIf="!isLoading && !error" style="margin-top: 40px;">
+      <div class="discover-content" *ngIf="!isLoading && !error" style="margin-top: 40px;">
         <app-trending-section />
       </div>
 
-      <div class="dashboard-content" *ngIf="!isLoading && !error" style="margin-top: 60px;">
+      <div class="discover-content" *ngIf="!isLoading && !error" style="margin-top: 60px;">
         <!-- Fresh Out The Oven -->
         <div class="section-header">
           <div class="section-icon star">
@@ -110,17 +113,17 @@ import { TrendingSectionComponent } from '../shared/components/trending-section.
           <div class="empty-state-content">
             <mat-icon style="font-size: 48px; width: 48px; height: 48px; color: #a0aec0;">menu_book</mat-icon>
             <p>No recipes have been added yet to the platform.</p>
-            <a routerLink="/recipes/new" mat-flat-button color="accent" class="create-btn">Create the first one</a>
+            <a (click)="onAddRecipeClick($event)" mat-flat-button color="accent" class="create-btn">Create the first one</a>
           </div>
         </mat-card>
 
       </div>
 
       <!-- Quick & Easy Section -->
-      <div class="dashboard-content" *ngIf="!isLoading && !error && stats?.quickAndEasy?.length > 0" style="margin-top: 60px;">
+      <div class="discover-content" *ngIf="!isLoading && !error && stats?.quickAndEasy?.length > 0" style="margin-top: 60px;">
         <div class="section-header">
           <div class="section-icon">
-            <mat-icon style="color: #0c831f;">bolt</mat-icon>
+            <mat-icon style="color: #ea580c;">bolt</mat-icon>
           </div>
           <h3>Quick & Easy <span style="font-size: 14px; font-weight: normal; color: #718096; margin-left: 8px;">Ready in 30 mins or less</span></h3>
         </div>
@@ -130,13 +133,13 @@ import { TrendingSectionComponent } from '../shared/components/trending-section.
       </div>
 
       <!-- Categories Section -->
-      <div class="dashboard-content" *ngIf="!isLoading && !error" style="margin-top: 40px;">
+      <div class="discover-content" *ngIf="!isLoading && !error" style="margin-top: 40px;">
         <div class="section-header">
           <div class="section-icon category-icon">
-            <mat-icon style="color: #0c831f;">category</mat-icon>
+            <mat-icon style="color: #ea580c;">category</mat-icon>
           </div>
           <h3>Browse By Category</h3>
-          <a routerLink="/recipes" class="section-badge" style="background: #0c831f; text-decoration: none; cursor: pointer;">Explore 
+          <a routerLink="/recipes" class="section-badge" style="background: #ea580c; text-decoration: none; cursor: pointer;">Explore 
             <mat-icon style="color: white; font-size: 16px; width: 16px; align-items: center; justify-content: center; height: 16px;">arrow_forward</mat-icon>
           </a>
         </div>
@@ -158,7 +161,7 @@ import { TrendingSectionComponent } from '../shared/components/trending-section.
 
 
       <!-- How It Works Section -->
-      <div class="dashboard-content features-section">
+      <div class="discover-content features-section">
         <div class="feature-item">
           <div class="feature-icon-wrapper"><mat-icon>search</mat-icon></div>
           <h4>Discover</h4>
@@ -202,7 +205,7 @@ import { TrendingSectionComponent } from '../shared/components/trending-section.
         <h2 class="playfair">Ready to inspire others?</h2>
         <p>Join thousands of home chefs sharing their culinary masterpieces on Savoria.</p>
         <div class="cta-buttons">
-          <a routerLink="/recipes/new" class="cta-btn primary">Share a Recipe</a>
+          <a (click)="onAddRecipeClick($event)" class="cta-btn primary">Share a Recipe</a>
           <a routerLink="/recipes" class="cta-btn secondary">Explore Kitchens</a>
         </div>
       </div>
@@ -210,7 +213,7 @@ import { TrendingSectionComponent } from '../shared/components/trending-section.
     </div>
   `,
   styles: [`
-    .dashboard-wrapper {
+    .discover-wrapper {
       background-color: #faf5eb; /* Richer Warm Cream */
       min-height: calc(100vh - 70px);
       font-family: 'Inter', 'Segoe UI', sans-serif;
@@ -274,7 +277,7 @@ import { TrendingSectionComponent } from '../shared/components/trending-section.
       text-shadow: 0 1px 4px rgba(0,0,0,0.2);
     }
 
-    .dashboard-content {
+    .discover-content {
       max-width: 1200px;
       margin: 20px auto 0;
       padding: 0 20px;
@@ -704,14 +707,14 @@ import { TrendingSectionComponent } from '../shared/components/trending-section.
     .category-card:hover {
       transform: translateY(-5px);
       box-shadow: 0 15px 30px rgba(12, 131, 31, 0.1);
-      border-color: #0c831f;
+      border-color: #ea580c;
     }
 
     .cat-icon-wrapper {
       width: 64px;
       height: 64px;
       background: #f3fbf4;
-      color: #0c831f;
+      color: #ea580c;
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -727,7 +730,7 @@ import { TrendingSectionComponent } from '../shared/components/trending-section.
 
     .category-card:hover .cat-icon-wrapper {
       transform: scale(1.1);
-      background: #0c831f;
+      background: #ea580c;
       color: white;
     }
 
@@ -740,6 +743,10 @@ import { TrendingSectionComponent } from '../shared/components/trending-section.
 
     /* Responsive */
     @media (max-width: 900px) {
+      .recipe-header-row {
+        flex-direction: column;
+        gap: 12px;
+      }
       .latest-recipe-card {
         flex-direction: column;
       }
@@ -754,15 +761,16 @@ import { TrendingSectionComponent } from '../shared/components/trending-section.
       }
       .recipe-metrics {
         flex-direction: row;
-        flex-wrap: nowrap;
-        gap: 12px;
+        flex-wrap: wrap;
+        gap: 8px;
         justify-content: flex-start;
+        width: 100%;
       }
       .metric {
         flex: none;
         justify-content: flex-start;
-        font-size: 14px;
-        padding: 8px 16px;
+        font-size: 13px;
+        padding: 6px 12px;
         white-space: nowrap;
       }
       .meta {
@@ -770,6 +778,7 @@ import { TrendingSectionComponent } from '../shared/components/trending-section.
         align-items: center;
         justify-content: space-between;
         gap: 12px;
+        flex-wrap: wrap;
       }
       .view-btn {
         width: auto;
@@ -782,7 +791,7 @@ import { TrendingSectionComponent } from '../shared/components/trending-section.
     }
     
     @media (max-width: 768px) {
-      .dashboard-container {
+      .discover-container {
         padding: 0 16px 40px;
       }
       .header-text h2 {
@@ -791,7 +800,7 @@ import { TrendingSectionComponent } from '../shared/components/trending-section.
       .page-header {
         padding: 20px 10px 10px;
       }
-      .dashboard-content {
+      .discover-content {
         margin-top: 10px;
       }
       .stat-value {
@@ -801,8 +810,8 @@ import { TrendingSectionComponent } from '../shared/components/trending-section.
         display: none;
       }
       .section-header {
-        flex-wrap: wrap;
-        gap: 12px;
+        flex-wrap: nowrap;
+        gap: 8px;
       }
       .section-header h3 {
         font-size: 20px;
@@ -1036,11 +1045,27 @@ import { TrendingSectionComponent } from '../shared/components/trending-section.
     }
   `]
 })
-export class DashboardComponent implements OnInit {
+export class DiscoverComponent implements OnInit {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
+  private authService = inject(AuthService);
+  private dialog = inject(MatDialog);
+  private router = inject(Router);
+
+  onAddRecipeClick(event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!this.authService.currentUserValue) {
+      this.dialog.open(LoginPromptModalComponent, {
+        width: '400px',
+        autoFocus: false
+      });
+    } else {
+      this.router.navigate(['/recipes/new']);
+    }
+  }
   
   stats: any = { todayByCategory: {}, latestRecipe: null, totalRecipes: 0 };
   categoryKeys: string[] = ['Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Beverage', 'Snack'];
@@ -1049,16 +1074,16 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
-      this.http.get<any>(`${this.apiUrl}/dashboard/stats`).subscribe({
+      this.http.get<any>(`${this.apiUrl}/discover/stats`).subscribe({
         next: (data) => {
           this.stats = data;
           this.isLoading = false;
           this.cdr.detectChanges();
         },
         error: (err) => {
-          this.error = 'Failed to load dashboard data. Please try again.';
+          this.error = 'Failed to load discover data. Please try again.';
           this.isLoading = false;
-          console.error('Failed to load dashboard stats', err);
+          console.error('Failed to load discover stats', err);
           this.cdr.detectChanges();
         }
       });

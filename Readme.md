@@ -48,7 +48,7 @@ client/
 ├── src/
 │   ├── app/
 │   │   ├── core/           # Guards, Interceptors, Models, and API Services
-│   │   ├── features/       # Smart components (Dashboard, Login, RecipeDetail, etc.)
+│   │   ├── features/       # Smart components (Discover, Login, RecipeDetail, etc.)
 │   │   ├── shared/         # Reusable UI components & pipes (Navbar, Footer, RecipeCard)
 │   │   ├── app.routes.ts   # Application routing configuration
 │   │   └── app.ts          # Root component
@@ -76,9 +76,9 @@ server/
 
 ## 📸 Screenshots
 
-| Dashboard | Categories |
+| Discover | Categories |
 | :---: | :---: |
-| <img src="assets/Dashboard.png" alt="Dashboard" width="400"/> | <img src="assets/Categories.png" alt="Categories" width="400"/> |
+| <img src="assets/Dashboard.png" alt="Discover" width="400"/> | <img src="assets/Categories.png" alt="Categories" width="400"/> |
 
 | Recipe View | Cooking Mode |
 | :---: | :---: |
@@ -135,9 +135,9 @@ server/
 - **Automated Testing**: Built an integration test suite using `Jest` and `Supertest` covering request validation, authentication tokens, and deep RBAC permission checks.
 - **Data Seeding**: Created an automated database seed script for generating test users, admins, and sample recipes.
 
-### ✅ Day 5: Frontend Dashboard & Data Integration (Completed)
+### ✅ Day 5: Frontend Discover & Data Integration (Completed)
 - **Standalone Architecture**: Configured Angular routing and feature modules using modern standalone components.
-- **Dashboard UI**: Designed the main dashboard layout, featuring dynamic "Fresh Out The Oven" and "Browse by Category" sections.
+- **Discover UI**: Designed the main discover layout, featuring dynamic "Fresh Out The Oven" and "Browse by Category" sections.
 - **Data Binding**: Integrated backend API endpoints to fetch and display live recipe statistics, categories, and author details.
 - **Data Mapping Fixes**: Resolved schema mapping issues between the backend and frontend to accurately calculate and display total cooking/prep times and handle default image fallbacks.
 
@@ -167,7 +167,7 @@ server/
 - **AI Sentiment Analysis**: Integrated `@xenova/transformers` directly in the browser via an Angular Web Worker to perform sentiment and toxicity analysis on user reviews without blocking the main UI thread.
 - **Robust Aggregation**: Engineered MongoDB `$facet` aggregation pipelines to automatically recalculate and synchronize a recipe's `averageRating`, `reviewCount`, and 5-star distribution whenever a review is posted or deleted.
 - **Interactive Review UI**: Built a standalone `review-section.component.ts` featuring helpful voting, author replies, dynamic sorting, and a custom deletion confirmation modal.
-- **Recipe Card Enhancements**: Overhauled the frontend layout to cleanly display inline star ratings directly beside recipe titles across all dashboard carousels and search lists.
+- **Recipe Card Enhancements**: Overhauled the frontend layout to cleanly display inline star ratings directly beside recipe titles across all discover carousels and search lists.
 - **Review API Testing**: Expanded the Jest integration suite to specifically test the Ratings & Reviews flow, verifying full data integrity and strict authorization checks (ensuring 32/32 tests pass).
 
 ---
@@ -198,10 +198,10 @@ This project fulfills the requirement free AI add-ons running entirely in the br
 
 ### ✅ Day 10: Favorites and Collections (Completed)
 
-- **My Cookbooks Dashboard**: Added the "My Cookbooks" page with built-in pagination for seamlessly managing your saved bookmarks and favorited recipe cards.
+- **My Cookbooks Discover**: Added the "My Cookbooks" page with built-in pagination for seamlessly managing your saved bookmarks and favorited recipe cards.
 - **MobileNet Image Warning**: Integrated TensorFlow.js MobileNet directly into the recipe upload form to classify images locally, showing a warning banner if the uploaded image is not food.
 - **Favorites Integration**: Upgraded the backend favorites logic and wired it up to a 1-click "Heart" button on recipe cards, with animated Toast notifications.
-- **Auto-Cookbooks**: Favoriting a recipe automatically provisions and syncs a custom "Favorites" Cookbook on the collections dashboard for seamless organization.
+- **Auto-Cookbooks**: Favoriting a recipe automatically provisions and syncs a custom "Favorites" Cookbook on the collections discover for seamless organization.
 - **Privacy & CSS Fixes**: Scrubbed user emails from MongoDB populated collaborator lists to prevent PII leaks, and fixed complex mobile CSS layout bugs on the navbar.
 - **Favourite API Testing**: Expanded the Jest integration suite to specifically test the favourite and collections flow, verifying full data integrity and strict authorization checks (ensuring 42/42 tests pass).
 
@@ -377,7 +377,7 @@ npm start
 
 | Step | What to do |
 | :--- | :--- |
-| **1. Browse** | Open the app → Dashboard shows latest recipes and category tiles |
+| **1. Browse** | Open the app → Discover shows latest recipes and category tiles |
 | **2. Explore** | Click **Explore Recipes** → search by keyword, filter by category, paginate |
 | **3. Detail** | Click any recipe card → full ingredients, steps, cooking mode, and ingredient checkout |
 | **4. Sign Up** | Go to `/register` → fill in name, email, password, optional avatar |

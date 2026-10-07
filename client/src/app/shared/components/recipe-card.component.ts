@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, HostBinding, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { Recipe } from '../../core/models/types';
 import { TimeFormatPipe } from '../pipes/time-format.pipe';
 import { environment } from '../../../environments/environment';
@@ -8,13 +8,15 @@ import { SaveToCollectionModalComponent } from './save-to-collection-modal.compo
 import { FavoriteService } from '../../core/services/favorite.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Subscription } from 'rxjs';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { LoginPromptModalComponent } from './login-prompt-modal.component';
 
 @Component({
   selector: 'app-recipe-card',
   standalone: true,
-  imports: [CommonModule, RouterModule, TimeFormatPipe, SaveToCollectionModalComponent],
+  imports: [CommonModule, RouterModule, TimeFormatPipe, SaveToCollectionModalComponent, MatDialogModule],
   template: `
-    <a [routerLink]="['/recipes', recipe.category.toLowerCase(), getSlug(recipe.title)]" 
+    <a (click)="onCardClick($event)"
        class="recipe-card premium-hover">
       <div class="image-wrapper">
         <img [src]="getImageUrl(recipe.imageUrl) || getCategoryImage(recipe.category)"
@@ -376,7 +378,22 @@ export class RecipeCardComponent implements OnInit, OnDestroy {
   private favoriteService = inject(FavoriteService);
   private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
+  private dialog = inject(MatDialog);
+  private router = inject(Router);
   private sub?: Subscription;
+
+  onCardClick(event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!this.authService.currentUserValue) {
+      this.dialog.open(LoginPromptModalComponent, {
+        width: '400px',
+        autoFocus: false
+      });
+    } else {
+      this.router.navigate(['/recipes', this.recipe.category.toLowerCase(), this.getSlug(this.recipe.title)]);
+    }
+  }
 
   ngOnInit() {
     this.sub = this.favoriteService.favoriteIds$.subscribe(ids => {

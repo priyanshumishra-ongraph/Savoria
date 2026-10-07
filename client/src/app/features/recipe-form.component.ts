@@ -145,7 +145,7 @@ import * as tf from '@tensorflow/tfjs';
         </mat-card-content>
 
         <mat-card-actions class="actions">
-          <button mat-button routerLink="/dashboard">Cancel</button>
+          <button mat-button routerLink="/discover">Cancel</button>
           <button mat-flat-button class="btn-submit" [disabled]="recipeForm.invalid || isSubmitting || isUploadingImage" (click)="onSubmit()">
             <mat-spinner *ngIf="isSubmitting" diameter="20" class="btn-spinner"></mat-spinner>
             <span *ngIf="!isSubmitting">{{ isEditMode ? 'Save Changes' : 'Publish Recipe' }}</span>
@@ -572,6 +572,6 @@ export class RecipeFormComponent implements OnInit {
 
   closeSuccessPopup() {
     this.showSuccessPopup = false;
-    this.router.navigate(['/dashboard']);
+    this.router.navigate(['/discover']);
   }
 }

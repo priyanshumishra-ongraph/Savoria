@@ -120,8 +120,8 @@ import * as tf from '@tensorflow/tfjs';
       
       <div class="empty-state" *ngIf="collection.recipes.length === 0">
         <h3>This collection is empty.</h3>
-        <p>Go to the dashboard to find and save recipes!</p>
-        <a routerLink="/dashboard" class="btn-explore">Explore Recipes</a>
+        <p>Go to the discover to find and save recipes!</p>
+        <a routerLink="/discover" class="btn-explore">Explore Recipes</a>
       </div>
     </div>
 
@@ -829,7 +829,7 @@ export class CollectionDetailComponent implements OnInit {
       },
       error: () => {
         this.loading = false;
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/discover']);
       }
     });
   }

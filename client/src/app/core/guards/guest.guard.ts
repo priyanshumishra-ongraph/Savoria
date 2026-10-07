@@ -17,7 +17,7 @@ export const guestGuard: CanActivateFn = () => {
         take(1),
         map(user => {
             if (!user) return true;
-            return router.createUrlTree(['/dashboard']);
+            return router.createUrlTree(['/discover']);
         })
     );  
 };

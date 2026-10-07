@@ -26,8 +26,8 @@ import { ViewChild, AfterViewInit } from '@angular/core';
     MatPaginatorModule, MatSelectModule, MatProgressSpinnerModule
   ],
   template: `
-    <div class="dashboard-wrapper">
-      <div class="dashboard-header">
+    <div class="discover-wrapper">
+      <div class="discover-header">
         <div class="header-content">
           <div class="title-area">
             <h2>Registered Users</h2>
@@ -40,7 +40,7 @@ import { ViewChild, AfterViewInit } from '@angular/core';
         </div>
       </div>
 
-      <div class="dashboard-content">
+      <div class="discover-content">
         <div class="users-table-container mat-elevation-z2">
           <table mat-table [dataSource]="dataSource" class="full-width-table">
             
@@ -236,14 +236,14 @@ import { ViewChild, AfterViewInit } from '@angular/core';
     </app-confirmation-modal>
   `,
   styles: [`
-    .dashboard-wrapper {
+    .discover-wrapper {
       background-color: #faf5eb;
       min-height: calc(100vh - 70px);
       font-family: 'Inter', 'Segoe UI', sans-serif;
       padding-bottom: 60px;
     }
 
-    .dashboard-header {
+    .discover-header {
       background-color: transparent;
       padding: 30px 20px;
       border-bottom: 1px solid #edf2f7;
@@ -294,7 +294,7 @@ import { ViewChild, AfterViewInit } from '@angular/core';
       box-shadow: 0 6px 16px rgba(249, 115, 22, 0.35);
     }
 
-    .dashboard-content {
+    .discover-content {
       max-width: 1200px;
       margin: 40px auto;
       padding: 0 40px;
@@ -761,7 +761,7 @@ import { ViewChild, AfterViewInit } from '@angular/core';
       .full-width-table {
         min-width: 700px;
       }
-      .dashboard-content {
+      .discover-content {
         padding: 0 20px;
       }
       .header-content {
@@ -771,7 +771,7 @@ import { ViewChild, AfterViewInit } from '@angular/core';
 
     /* Mobile (768px and below) */
     @media (max-width: 768px) {
-      .dashboard-header {
+      .discover-header {
         padding: 16px 0;
       }
 
@@ -794,7 +794,7 @@ import { ViewChild, AfterViewInit } from '@angular/core';
         padding: 10px 16px;
       }
 
-      .dashboard-content {
+      .discover-content {
         margin: 20px auto;
         padding: 0 16px;
       }

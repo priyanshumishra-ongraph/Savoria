@@ -4,41 +4,48 @@ import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
 import { NotificationService } from '../core/services/notification.service';
 import { RelativeTimePipe } from '../shared/pipes/relative-time.pipe';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { LoginPromptModalComponent } from '../shared/components/login-prompt-modal.component';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterModule, RelativeTimePipe],
+  imports: [CommonModule, RouterModule, RelativeTimePipe, MatDialogModule],
   template: `
     <nav class="navbar">
       <div class="nav-container">
       <!-- Left: Brand -->
       <div class="nav-brand">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-        <a routerLink="/dashboard" (click)="closeMobileMenu()">Savoria</a>
+        <a routerLink="/discover" (click)="closeMobileMenu()">
+          <img src="assets/savoria-logo.png" alt="Savoria Logo" class="logo">
+        </a>
+      </div>
+
+      <!-- Center Menu -->
+      <div class="nav-menu-center" [class.mobile-open]="isMobileMenuOpen">
+        <a routerLink="/discover" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link" (click)="closeMobileMenu()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+          Discover
+        </a>
+        <a routerLink="/recipes" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link" (click)="closeMobileMenu()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+          Recipes
+        </a>
+        <a *ngIf="(currentUser$ | async)?.role === 'admin'" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" routerLink="/admin/users" class="nav-link" (click)="closeMobileMenu()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          Users
+        </a>
+        <a class="nav-link" [class.active]="router.url === '/recipes/new'" (click)="onAddRecipeClick($event)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Create Recipe
+        </a>
+        <a class="nav-link mobile-only-link" *ngIf="!(currentUser$ | async)" routerLink="/login" (click)="closeMobileMenu()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+          Sign In
+        </a>
       </div>
 
       <ng-container *ngIf="currentUser$ | async as user; else guestLinks">
-
-        <!-- Center Menu -->
-        <div class="nav-menu-center" [class.mobile-open]="isMobileMenuOpen">
-          <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link" (click)="closeMobileMenu()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
-            Dashboard
-          </a>
-          <a routerLink="/recipes" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link" (click)="closeMobileMenu()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-            Categories
-          </a>
-          <a *ngIf="user.role === 'admin'" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" routerLink="/admin/users" class="nav-link" (click)="closeMobileMenu()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-            Users
-          </a>
-          <a routerLink="/recipes/new" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link" (click)="closeMobileMenu()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            Add Recipe
-          </a>
-        </div>
 
         <!-- Right: Profile + Hamburger -->
         <div class="nav-right">
@@ -166,6 +173,11 @@ import { RelativeTimePipe } from '../shared/pipes/relative-time.pipe';
       <ng-template #guestLinks>
         <div class="nav-right">
           <a routerLink="/login" class="login-link">Sign In</a>
+          
+          <button class="hamburger-btn" (click)="toggleMobileMenu()">
+            <svg *ngIf="!isMobileMenuOpen" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            <svg *ngIf="isMobileMenuOpen" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
         </div>
       </ng-template>
       </div>
@@ -212,6 +224,14 @@ import { RelativeTimePipe } from '../shared/pipes/relative-time.pipe';
       color: #ea580c; /* Terracotta */
       text-decoration: none;
       letter-spacing: -0.5px;
+    }
+    
+    .logo {
+      width: auto;
+      height: 40px;
+      object-fit: contain;
+      transform: scale(1.6); 
+      transform-origin: left center;
     }
 
     .nav-menu-center {
@@ -594,7 +614,7 @@ import { RelativeTimePipe } from '../shared/pipes/relative-time.pipe';
 
     .nav-link.active {
       color: #ea580c;
-      background-color: rgba(234, 88, 12, 0.1);
+      background-color: #fff7ed;
       font-weight: 700;
     }
 
@@ -668,9 +688,11 @@ import { RelativeTimePipe } from '../shared/pipes/relative-time.pipe';
       font-size: 14px;
       font-weight: 700;
       color: #3C2218; /* Espresso */
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      max-width: 130px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: block;
     }
 
     .badge {
@@ -773,12 +795,20 @@ import { RelativeTimePipe } from '../shared/pipes/relative-time.pipe';
       font-size: 15px;
       font-weight: 700;
       color: #3C2218;
+      max-width: 150px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .dropdown-email {
       font-size: 12px;
       color: #78716c;
       margin-top: 2px;
+      max-width: 150px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .dropdown-divider {
@@ -859,9 +889,19 @@ import { RelativeTimePipe } from '../shared/pipes/relative-time.pipe';
         font-size: 13px;
       }
     }
+    
+    .mobile-only-link {
+      display: none;
+    }
 
     /* Mobile: hamburger takeover */
     @media (max-width: 768px) {
+      .login-link {
+        display: none;
+      }
+      .mobile-only-link {
+        display: flex;
+      }
       .hamburger-btn {
         display: block;
       }
@@ -893,7 +933,7 @@ import { RelativeTimePipe } from '../shared/pipes/relative-time.pipe';
       .nav-menu-center {
         display: none;
         position: absolute;
-        top: 60px;
+        top: 100%;
         left: 0;
         right: 0;
         background: white;
@@ -921,7 +961,7 @@ import { RelativeTimePipe } from '../shared/pipes/relative-time.pipe';
       .nav-link:hover,
       .nav-link.active {
         background-color: #fff7ed;
-        color: #f97316;
+        color: #ea580c;
       }
     }
   `]
@@ -929,7 +969,22 @@ import { RelativeTimePipe } from '../shared/pipes/relative-time.pipe';
 export class NavbarComponent {
   private authService = inject(AuthService);
   private notifService = inject(NotificationService);
-  private router = inject(Router);
+  public router = inject(Router);
+  private dialog = inject(MatDialog);
+
+  onAddRecipeClick(event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.closeMobileMenu();
+    if (!this.authService.currentUserValue) {
+      this.dialog.open(LoginPromptModalComponent, {
+        width: '400px',
+        autoFocus: false
+      });
+    } else {
+      this.router.navigate(['/recipes/new']);
+    }
+  }
 
   readonly currentUser$ = this.authService.currentUser$;
   readonly notifications$ = this.notifService.notifications;
