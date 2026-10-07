@@ -15,7 +15,10 @@ export class RecipeService {
     let p = new HttpParams();
     if (params.search)      p = p.set('search', params.search);
     if (params.category)    p = p.set('category', params.category);
+    if (params.difficulty)  p = p.set('difficulty', params.difficulty);
+    if (params.tags)        p = p.set('tags', params.tags);
     if (params.ingredients) p = p.set('ingredients', params.ingredients);
+    if (params.strictIngredients) p = p.set('strictIngredients', 'true');
     if (params.maxCookTime != null) p = p.set('maxCookTime', params.maxCookTime.toString());
     if (params.minRating   != null) p = p.set('minRating',   params.minRating.toString());
     if (params.sort)        p = p.set('sort', params.sort);

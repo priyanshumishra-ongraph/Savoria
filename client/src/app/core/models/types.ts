@@ -94,7 +94,10 @@ export interface CollectionResponse {
 export interface SearchParams {
   search?: string;
   category?: string;
+  difficulty?: string;
+  tags?: string;
   ingredients?: string;
+  strictIngredients?: string;
   maxCookTime?: number;
   minRating?: number;
   sort?: 'newest' | 'rating' | 'cookTime' | 'mostReviewed';

@@ -57,8 +57,8 @@ export class SearchService {
 
   // Update URL whenever filters change
   private updateUrl(params: any) {
-    this.router.navigate([], {
-      relativeTo: this.route,
+    const currentPath = this.router.url.split('?')[0];
+    this.router.navigate([currentPath], {
       queryParams: params,
       queryParamsHandling: 'merge',
     });
