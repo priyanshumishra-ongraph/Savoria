@@ -1,23 +1,26 @@
 ﻿<div align="center">
-  <img src="assets/Hero.png" alt="Savoria" width="100%" style="border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 14px rgba(0,0,0,0.1);"/>
+  <img src="assets/Discover.png" alt="Savoria" width="100%" style="border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 14px rgba(0,0,0,0.1);"/>
   
   # 🍳 Savoria Recipe App
   
   **A robust, modern Full-Stack Recipe Web Application built with the MEAN Stack.**
   
-  [![Angular](https://img.shields.io/badge/Angular-DD0031?style=for-the-badge&logo=angular&logoColor=white)](https://angular.io/)
+  [![Angular](https://img.shields.io/badge/Angular_21-DD0031?style=for-the-badge&logo=angular&logoColor=white)](https://angular.io/)
   [![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
-  [![Express.js](https://img.shields.io/badge/Express.js-404D59?style=for-the-badge)](https://expressjs.com/)
-  [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/priyanshumishra-ongraph/Savoria/ci.yml?style=for-the-badge&logo=github)
-  ![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)](https://mongodb.com/)
+  [![Express.js](https://img.shields.io/badge/Express_5-404D59?style=for-the-badge)](https://expressjs.com/)
+  [![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)](https://mongodb.com/)
+  [![Socket.IO](https://img.shields.io/badge/Socket.IO-010101?style=for-the-badge&logo=socket.io)](https://socket.io/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org/)
+  [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/priyanshumishra-ongraph/Savoria/ci.yml?style=for-the-badge&logo=github)](https://github.com/priyanshumishra-ongraph/Savoria/actions)
 </div>
 
 ---
 
 **🔗 Live App**: [savoria-p.vercel.app](https://savoria-p.vercel.app)  
-**🔗 Live API**: [savoria-xmme.onrender.com](https://savoria-xmme.onrender.com)
+**🔗 Live API**: [savoria-xmme.onrender.com](https://savoria-xmme.onrender.com)  
+**🎬 Demo Video**: [Watch on YouTube at 1.5x](https://youtu.be/R8C74GH6p3M?si=pw5VznCPmfGaDmLR)
 
-Savoria focuses on strict REST API design, robust database schemas, secure authentication, role-based access control, and a lightning-fast reactive Angular 17+ standalone frontend.
+Savoria is a feature-rich recipe platform built on strict REST API design, robust MongoDB schemas, secure JWT authentication, role-based access control, and a lightning-fast reactive **Angular 21 standalone** frontend with Server-Side Rendering (SSR). It ships with 6 in-browser AI models running entirely via Web Workers — no external AI API costs, no privacy leaks.
 
 ## 🔑 Demo Logins
 
@@ -28,73 +31,342 @@ Savoria focuses on strict REST API design, robust database schemas, secure authe
 
 ## ✨ Features
 
-- 🔐 **Secure Authentication**: JWT-based auth with encrypted passwords and 401 handling.
-- 🧑‍🍳 **Role-Based Access Control**: Admins can moderate recipes and users.
-- 🛒 **Dynamic Checkout**: Mock checkout flow for ingredients with dynamic cart calculations.
-- 🔍 **Advanced Search**: Compound text indexes for incredibly fast title, tag, and ingredient searching.
-- 📱 **Fully Responsive**: Carefully crafted mobile, tablet, and desktop layouts.
-- 🔔 **Real-time Notifications**: Socket.IO push notifications for reviews, saves, replies, and helpful votes, featuring smart unread grouping, filtering, image thumbnails, and customizable user settings.
-- 📅 **Meal Planner & Smart Shopping List**: Weekly interactive grid to schedule meals, automatically aggregating ingredients into a smart printable checklist with brand-styled PDF exporting.
+### 🔐 Auth & Security
+- **JWT Authentication**: Signed tokens with 7-day expiry, `bcrypt` password hashing, and strict `401`/`403` separation.
+- **Role-Based Access Control (RBAC)**: `user` and `admin` roles enforced on both frontend guards and backend middleware.
+- **Secure HTTP**: `helmet` headers, environment-scoped CORS, and `express-rate-limit` abuse protection.
+
+### 🧑‍🍳 Recipes
+- **Full CRUD**: Create, read, update, and delete recipes with image upload via Cloudinary.
+- **SEO-Friendly Slugs**: Auto-generated `category/title-slug` URL routing (e.g., `/recipes/dinner/creamy-garlic-pasta`).
+- **Compound Text Search**: Weighted MongoDB text indexes across titles (×10), tags (×5), ingredients (×3), steps (×2), and descriptions (×1).
+- **Advanced Filtering**: Filter by category, cook time, ingredients, difficulty, and sort by rating, date, or popularity.
+- **Cooking Mode**: Hands-free step-by-step view with built-in `window.speechSynthesis` text-to-speech narration.
+- **Snap & Cook (OCR)**: Upload a photo of a physical recipe card — `Tesseract.js` WebAssembly transcribes it and auto-fills the recipe form in-browser.
+
+### ⭐ Ratings & Reviews
+- **Star Ratings**: 1–5 star system with live `$facet` aggregation keeping `averageRating`, `reviewCount`, and full 5-star distribution in sync.
+- **Helpful Voting & Replies**: Vote reviews as helpful; recipe authors can post official replies.
+- **AI Sentiment Analysis**: `Xenova/distilbert-base-uncased-finetuned-sst-2-english` via Transformers.js tags each review as POSITIVE/NEGATIVE before submission.
+- **AI Toxicity Detection**: `@tensorflow-models/toxicity` scans for insults and profanity, attaching a probability score to every review.
+
+### 📚 Collections & Favorites
+- **My Cookbooks**: Create and manage personal recipe collections with pagination.
+- **1-Click Favorites**: Heart button on recipe cards auto-provisions a synced "Favorites" Cookbook.
+- **Save to Collection Modal**: Save any recipe to one or multiple named cookbooks.
+- **Shared Collections**: Token-based public sharing links for collections.
+- **AI Image Warning**: `@tensorflow-models/mobilenet` classifies uploaded images in-browser — warns if the image is not food-related.
+
+### 🔔 Real-time Notifications
+- **Socket.IO Push**: Live notifications across 4 event types — new Reviews, Saves, Author Replies, and Helpful Votes.
+- **JWT-authenticated Sockets**: Every WebSocket connection is verified with the same JWT middleware as the REST API.
+- **Anti-Spam Grouping**: Backend groups unread notifications per recipe ("John and 4 others saved your recipe").
+- **Rich Dropdown UI**: Unread/All tabs, recipe thumbnails, "Mark all read", inline delete, and cursor-based infinite scroll.
+- **Notification Preferences**: Per-user opt-out of any notification type, synced to MongoDB profile.
+
+### 🔍 Search & Discovery
+- **Semantic Recommendations**: `Xenova/all-MiniLM-L6-v2` runs cosine similarity in a Web Worker to re-rank "Similar Recipes" by semantic meaning.
+- **Voice Search**: Web Speech API integration — speak a query and it auto-fills the search bar.
+- **Trending Section**: Horizontal scroll of top-rated, high-engagement recipes.
+- **"Cook with what I have"**: Interactive ingredient chip picker, cook-time range slider, and multi-sort bars.
+- **RxJS Debounce Pipeline**: `BehaviorSubject` + `switchMap` eliminates duplicate API calls on fast typing.
+
+### 📅 Meal Planner & Shopping
+- **Weekly Grid**: Schedule Breakfast, Lunch, Dinner, Snacks, etc. for every day of the week using Angular Material.
+- **Smart Shopping List**: Aggregates and merges all ingredients across the week's plan, normalizing units and quantities.
+- **Intelligent Ingredient Parser**: Zero-dependency heuristic parser handles complex strings like `1 (15 oz) can` and `1-2 lbs`.
+- **Brand-Styled PDF Export**: Print-ready view with hidden browser chrome, forced color printing, and Savoria branding.
+
+### 🛒 Checkout
+- **Buy Ingredients Modal**: Dynamic cart calculating per-ingredient subtotals, delivery fee, and taxes for any recipe.
+
+### 🛠️ Admin Panel
+- **User Management**: View all registered users, activate or deactivate accounts.
+- **Admin Registration**: Dedicated `/admin/register` route for provisioning new admin accounts.
+- **Recipe Moderation**: Admins can edit or delete any recipe regardless of ownership.
+
+### 🤖 CI/CD & Testing
+- **GitHub Actions**: Automated pipeline on every push — builds Angular, runs Jest + Supertest against an in-memory MongoDB container.
+- **53 Integration Tests**: Full coverage of auth, RBAC, pagination, reviews, favorites, collections, and notifications.
+- **Angular Unit Tests**: `TestBed` specs for Meal Planner, AuthService, CollectionService, SpeechService, and more.
 
 ---
 
-## 📂 Folder Structure
+## 🧰 Tech Stack
 
-The project follows a strict monorepo architecture, separating the Angular frontend and Node.js backend.
+### Frontend (`client/`)
+| Category | Technology |
+| :--- | :--- |
+| Framework | Angular 21 (Standalone Components + SSR) |
+| UI Library | Angular Material 21, Angular CDK |
+| Icons | Lucide Angular |
+| Styling | SCSS (component-scoped) |
+| Reactive | RxJS 7.8 |
+| Real-time | Socket.IO Client 4.8 |
+| Date Utilities | date-fns 4 |
+| In-browser AI | TensorFlow.js 4, `@xenova/transformers` 2, Tesseract.js 7 |
+| AI Models | MobileNet, Toxicity, DistilBERT SST-2, all-MiniLM-L6-v2 |
+| Build Tool | Angular CLI 21 / `@angular/build` |
+| Testing | Vitest 4, jsdom |
+
+### Backend (`server/`)
+| Category | Technology |
+| :--- | :--- |
+| Runtime | Node.js 20+ |
+| Framework | Express 5 |
+| Language | TypeScript 5.9 |
+| Database | MongoDB (Mongoose 8) |
+| Auth | JSON Web Tokens (`jsonwebtoken`), `bcryptjs` |
+| Real-time | Socket.IO 4.8 |
+| File Upload | Multer 2 + Cloudinary |
+| Security | `helmet`, `express-rate-limit`, `cors` |
+| Validation | `express-validator` 7 |
+| Testing | Jest 30, Supertest 7, `mongodb-memory-server` 11 |
+| Dev Tools | `tsx` watch, `nodemon` |
+
+### Infrastructure
+| Service | Purpose |
+| :--- | :--- |
+| Vercel | Angular SSR frontend hosting |
+| Render | Node.js API hosting |
+| MongoDB Atlas | Cloud database |
+| Cloudinary | Image storage & delivery |
+| GitHub Actions | CI/CD pipeline |
+
+---
+
+## 📂 Code Structure
 
 ### Frontend (`client/`)
 ```text
 client/
 ├── src/
 │   ├── app/
-│   │   ├── core/           # Guards, Interceptors, Models, and API Services
-│   │   ├── features/       # Smart components (Discover, Login, RecipeDetail, etc.)
-│   │   ├── shared/         # Reusable UI components & pipes (Navbar, Footer, RecipeCard)
-│   │   ├── app.routes.ts   # Application routing configuration
-│   │   └── app.ts          # Root component
-│   └── environments/       # Environment variables (API URLs)
+│   │   ├── core/
+│   │   │   ├── guards/
+│   │   │   │   ├── auth.guard.ts         # Protects authenticated routes
+│   │   │   │   ├── admin.guard.ts        # Restricts admin-only routes
+│   │   │   │   └── guest.guard.ts        # Redirects logged-in users away from login/register
+│   │   │   ├── interceptors/
+│   │   │   │   └── auth.interceptor.ts   # Attaches JWT Bearer token to every HTTP request
+│   │   │   ├── models/
+│   │   │   │   ├── types.ts              # Shared TypeScript interfaces (Recipe, User, Review, etc.)
+│   │   │   │   ├── meal-plan.ts          # MealPlan & MealSlot types
+│   │   │   │   └── notification.ts       # Notification payload types
+│   │   │   ├── services/
+│   │   │   │   ├── auth.service.ts       # Login, register, token storage, current user signal
+│   │   │   │   ├── recipe.service.ts     # Full recipe CRUD + search/filter API calls
+│   │   │   │   ├── review.service.ts     # Ratings, helpful votes, replies
+│   │   │   │   ├── collection.service.ts # Cookbooks CRUD + sharing
+│   │   │   │   ├── favorite.service.ts   # Heart/unfavorite toggle
+│   │   │   │   ├── notification.service.ts # Socket.IO + REST notification management
+│   │   │   │   ├── search.service.ts     # RxJS BehaviorSubject search pipeline
+│   │   │   │   ├── meal-planner.service.ts # Weekly plan state management
+│   │   │   │   ├── embedding.service.ts  # Cosine similarity via Web Worker bridge
+│   │   │   │   ├── speech.service.ts     # window.speechSynthesis TTS wrapper
+│   │   │   │   ├── voice-search.service.ts # Web Speech API voice input
+│   │   │   │   └── newsletter.service.ts
+│   │   │   └── workers/
+│   │   │       ├── sentiment.worker.ts   # Transformers.js DistilBERT + TF.js Toxicity
+│   │   │       └── embedding.worker.ts   # all-MiniLM-L6-v2 semantic similarity
+│   │   ├── features/
+│   │   │   ├── dashboard.component.ts         # Discover page (hero, fresh recipes, categories)
+│   │   │   ├── recipe-list.component.ts       # Explore all recipes (search, filter, paginate)
+│   │   │   ├── recipe-detail.component.ts     # Single recipe view + cooking mode + checkout
+│   │   │   ├── recipe-form.component.ts       # Create/edit recipe form + OCR Snap & Cook
+│   │   │   ├── my-recipes.component.ts        # Authenticated user's own recipes
+│   │   │   ├── category-recipes.component.ts  # Recipes filtered by category
+│   │   │   ├── review-section.component.ts    # Ratings, reviews, AI badges, replies
+│   │   │   ├── collections-dashboard.component.ts # My Cookbooks overview
+│   │   │   ├── collection-detail.component.ts # Single cookbook detail + sharing
+│   │   │   ├── meal-planner.component.ts      # Weekly grid + smart shopping list + PDF export
+│   │   │   ├── settings.component.ts          # Notification preferences
+│   │   │   ├── users.component.ts             # Admin: user management table
+│   │   │   ├── user-registration.component.ts # Admin: register new users
+│   │   │   ├── login.component.ts
+│   │   │   ├── register.component.ts
+│   │   │   └── not-found.component.ts
+│   │   ├── shared/
+│   │   │   ├── components/
+│   │   │   │   ├── recipe-card.component.ts          # Recipe card with rating, heart, save
+│   │   │   │   ├── trending-section.component.ts     # Horizontal trending scroll
+│   │   │   │   ├── recommended-section.component.ts  # AI-re-ranked recommendations
+│   │   │   │   ├── similar-recipes.component.ts      # Semantic similar recipe panel
+│   │   │   │   ├── voice-search-btn.component.ts     # Microphone button for voice search
+│   │   │   │   ├── filter-chips.component.ts         # Ingredient chip picker
+│   │   │   │   ├── sort-bar.component.ts             # Multi-criteria sort bar
+│   │   │   │   ├── save-to-collection-modal.component.ts
+│   │   │   │   ├── confirmation-modal.component.ts
+│   │   │   │   ├── login-prompt-modal.component.ts
+│   │   │   │   ├── loading-spinner.component.ts
+│   │   │   │   ├── footer.component.ts
+│   │   │   │   └── navbar.component.ts (in features/)
+│   │   │   └── pipes/
+│   │   │       ├── relative-time.pipe.ts   # "3 minutes ago" formatting
+│   │   │       └── time-format.pipe.ts     # Minutes → "1h 30m" formatting
+│   │   ├── app.routes.ts     # Lazy-loaded standalone route definitions
+│   │   ├── app.config.ts     # Root providers (HttpClient, Router, Material)
+│   │   └── app.ts            # Root component
+│   ├── environments/
+│   │   └── environment.ts    # API base URL
+│   └── index.html
 ```
 
 ### Backend (`server/`)
 ```text
 server/
 ├── src/
-│   ├── config/             # Environment & App configuration
-│   ├── controllers/        # Business logic for routes
-│   ├── middleware/         # Custom middleware (JWT protect, Admin role checking)
-│   ├── models/             # Mongoose database schemas (User, Recipe, Notification)
-│   ├── routes/             # Express router definitions
-│   ├── scripts/            # Database seeding scripts
-│   ├── socket/             # Socket.IO handlers for real-time pushing
-│   ├── tests/              # Jest integration test suites
-│   ├── utils/              # Reusable backend utilities (e.g., Notification Grouping)
-│   ├── validators/         # Express-validator rule chains
-│   └── server.ts           # App entry point & express configuration
+│   ├── config/
+│   │   └── db.ts                      # Mongoose connection + graceful SIGINT/SIGTERM shutdown
+│   ├── controllers/
+│   │   ├── auth.controller.ts         # Register, login, /me
+│   │   ├── recipe.controller.ts       # CRUD, trending, similar, recommended, my recipes
+│   │   ├── review.controller.ts       # Create/delete review, helpful vote, author reply
+│   │   ├── collection.controller.ts   # Cookbook CRUD, add/remove recipes, sharing tokens
+│   │   ├── favorite.controller.ts     # Toggle favorite, auto-sync Favorites cookbook
+│   │   ├── notification.controller.ts # Fetch, read, delete, unread count, preferences
+│   │   ├── dashboard.controller.ts    # Aggregated discover stats
+│   │   └── newsletter.controller.ts
+│   ├── middleware/
+│   │   ├── auth.middleware.ts         # JWT protect + optionalAuth + admin role check
+│   │   └── error.middleware.ts        # Global 404 + error formatter
+│   ├── models/
+│   │   ├── User.ts         # name, email, bcrypt password, role, avatarUrl, isActive,
+│   │   │                   # favorites[], notificationPreferences{}
+│   │   ├── Recipe.ts       # title, slug, category, ingredients[], steps[], tags[],
+│   │   │                   # averageRating, reviewCount, ratingDistribution{1-5},
+│   │   │                   # weighted compound text index
+│   │   ├── Review.ts       # rating, comment, sentiment, toxicity, helpfulVotes[], reply{}
+│   │   ├── Collection.ts   # name, owner, recipes[], collaborators[], shareToken
+│   │   ├── Notification.ts # type, recipient, actor, recipe, groupCount, isRead
+│   │   └── newsletter.model.ts
+│   ├── routes/
+│   │   ├── auth.routes.ts
+│   │   ├── recipe.routes.ts       # GET /, /trending, /recommended, /my, /:id, /by-slug/:cat/:slug
+│   │   ├── review.routes.ts
+│   │   ├── collection.routes.ts
+│   │   ├── favorite.routes.ts
+│   │   ├── notification.routes.ts
+│   │   ├── dashboard.routes.ts
+│   │   ├── upload.routes.ts       # Multer + Cloudinary file handling
+│   │   └── newsletter.routes.ts
+│   ├── scripts/
+│   │   ├── seed.ts                # Populates test users, admins, and sample recipes
+│   │   └── migrate-slugs.ts       # One-off slug backfill migration
+│   ├── socket/
+│   │   └── socket.ts              # Socket.IO init, JWT middleware, userSockets Map, emitToUser()
+│   ├── tests/
+│   │   └── api.test.ts            # 53 Jest + Supertest integration tests
+│   ├── utils/
+│   │   └── notification.util.ts   # Grouping logic: upsert or increment groupCount
+│   ├── validators/
+│   │   ├── auth.validator.ts      # express-validator rules for register/login
+│   │   └── recipe.validator.ts    # express-validator rules for recipe fields + query params
+│   └── server.ts                  # Express app setup, middleware, routes, Socket.IO init
 ```
 
 ---
 
 ## 📸 Screenshots
 
-| Discover | Categories |
+| Discover | Recipe |
 | :---: | :---: |
-| <img src="assets/Dashboard.png" alt="Discover" width="400"/> | <img src="assets/Categories.png" alt="Categories" width="400"/> |
+| <img src="assets/Discover.png" alt="Discover" width="400"/> | <img src="assets/Recipe_page.png" alt="Categories" width="400"/> |
 
 | Recipe View | Cooking Mode |
 | :---: | :---: |
 | <img src="assets/Recipe see by user.png" alt="Recipe View" width="400"/> | <img src="assets/Cooking Mode.png" alt="Cooking Mode" width="400"/> |
 
-| Payment Checkout | Add Recipe |
+| Payment Checkout | Create Recipe |
 | :---: | :---: |
-| <img src="assets/Payment-checkout.png" alt="Checkout" width="400"/> | <img src="assets/Add Recipe.png" alt="Add Recipe" width="400"/> |
+| <img src="assets/Payment-checkout.png" alt="Checkout" width="400"/> | <img src="assets/Create_recipe.png" alt="Add Recipe" width="400"/> |
 
 | My Recipes | Admin Panel |
 | :---: | :---: |
-| <img src="assets/My Recipe.png" alt="My Recipes" width="400"/> | <img src="assets/Users.png" alt="Admin Panel" width="400"/> |
+| <img src="assets/My_recipe.png" alt="My Recipes" width="400"/> | <img src="assets/Users.png" alt="Admin Panel" width="400"/> |
 
 | Recipe Scroll | Admin Recipes |
 | :---: | :---: |
 | <img src="assets/Recipe scroll.png" alt="Recipe Scroll" width="400"/> | <img src="assets/Recipe added by admin.png" alt="Admin Recipes" width="400"/> |
+
+| Reviews & Ratings | Ratings |
+| :---: | :---: |
+| <img src="assets/Reviews-Ratings.png" alt="Reviews & Ratings" width="400"/> | <img src="assets/Ratings.png" alt="Ratings" width="400"/> |
+
+| AI Toxicity Warning | My Cookbooks |
+| :---: | :---: |
+| <img src="assets/Review-Toxic.png" alt="AI Toxicity" width="400"/> | <img src="assets/My_cookbook.png" alt="My Cookbooks" width="400"/> |
+
+| Favorites | Save to Cookbook |
+| :---: | :---: |
+| <img src="assets/Favorites.png" alt="Favorites" width="400"/> | <img src="assets/Save to Cookbook.png" alt="Save to Cookbook" width="400"/> |
+
+| Search | Filtering |
+| :---: | :---: |
+| <img src="assets/Search-section.png" alt="Search" width="400"/> | <img src="assets/filtering.png" alt="Filtering" width="400"/> |
+
+| Trending This Week | Notifications |
+| :---: | :---: |
+| <img src="assets/Trending-this-week.png" alt="Trending" width="400"/> | <img src="assets/Notifications.png" alt="Notifications" width="400"/> |
+
+| Notification Preferences | Weekly Meal Planner |
+| :---: | :---: |
+| <img src="assets/Notification-preferences.png" alt="Preferences" width="400"/> | <img src="assets/weekly-grid.png" alt="Meal Planner" width="400"/> |
+
+| Smart Shopping List | PDF Export |
+| :---: | :---: |
+| <img src="assets/shopping-list-p.png" alt="Shopping List" width="400"/> | <img src="assets/pdf-export.png" alt="PDF Export" width="400"/> |
+
+---
+
+## 🤖 In-Browser AI Features
+
+All AI models run **entirely in the browser** via Web Workers — zero external API calls, zero cost, full privacy.
+
+| # | Feature | Model | Library | When it runs |
+| :---: | :--- | :--- | :--- | :--- |
+| 1 | **Sentiment Analysis** | `Xenova/distilbert-base-uncased-finetuned-sst-2-english` | Transformers.js | Before a review is submitted |
+| 2 | **Toxicity Detection** | `@tensorflow-models/toxicity` | TensorFlow.js | Before a review is submitted |
+| 3 | **Image Content Warning** | `@tensorflow-models/mobilenet` | TensorFlow.js | On recipe image upload |
+| 4 | **Semantic Re-ranking** | `Xenova/all-MiniLM-L6-v2` | Transformers.js | On "Similar Recipes" load |
+| 5 | **Voice Search** | Browser Web Speech API | Native browser | On microphone button press |
+| 6 | **Snap & Cook (OCR)** | `Tesseract.js` WebAssembly | Tesseract.js | On recipe photo upload |
+
+*(Models download asynchronously on first use; the UI shows a non-blocking "AI engines warming up..." state until ready.)*
+
+---
+
+## 🔐 Authentication & Authorization Walkthrough
+
+Savoria implements strict **Role-Based Access Control (RBAC)** enforced by both UI guards and API middleware.
+
+**1. Registration & Login**  
+`POST /api/auth/register` → hashes password with `bcrypt`, stores user.  
+`POST /api/auth/login` → verifies password, signs a 7-day JWT.
+
+**2. Protected Routes**  
+Every protected request passes through `protect` middleware:
+```typescript
+const decoded = jwt.verify(token, process.env.JWT_SECRET);
+req.user = await User.findById(decoded.id);
+```
+
+**3. Owner-Only Edit/Delete**  
+```typescript
+if (recipe.owner.toString() !== req.user.id && req.user.role !== 'admin') {
+  return res.status(403).json({ message: 'Forbidden' });
+}
+```
+
+**4. Admin Override**  
+`admin` role bypasses the owner check for full moderation access.
+
+**5. Frontend Guards**
+- `authGuard` — blocks unauthenticated access to protected pages
+- `adminGuard` — restricts `/admin/*` routes to admin role only
+- `guestGuard` — redirects logged-in users away from `/login` and `/register`
+
+*All 53 scenarios are fully covered by the automated Jest + Supertest integration tests (`npm run test` in `server/`).*
 
 ---
 
@@ -111,7 +383,7 @@ server/
 ### ✅ Day 2: Authentication (Completed)
 - **Authentication Endpoints**: Implemented robust `/api/auth/register` and `/api/auth/login` routes.
 - **Security & Hashing**: Verified user credentials securely using `bcrypt` comparison.
-- **JWT Implementation**: 
+- **JWT Implementation**:
   - Signed JSON Web Tokens upon successful login with a 7-day expiry.
   - Built custom `protect` middleware to intercept requests and verify JWT integrity.
   - Strictly enforcing `401 Unauthorized` for missing, bad, or expired tokens.
@@ -128,7 +400,7 @@ server/
 
 ### ✅ Day 4: API Hardening & Tests (Completed)
 - **Advanced Querying**: Implemented pagination, category filtering, and full-text search directly via API query parameters.
-- **API Hardening**: 
+- **API Hardening**:
   - Secured HTTP headers using `helmet`.
   - Configured strict environment-based `CORS` origins.
   - Implemented global endpoint rate-limiting using `express-rate-limit` to prevent abuse.
@@ -160,6 +432,7 @@ server/
 - **Database Persistence**: Updated schemas and controllers to securely store and retrieve relative image paths, ensuring seamless display across the application.
 - **State Management & UI Fixes**: Resolved Angular `NG0100` lifecycle errors during upload flows and implemented a polished, delayed success modal when publishing recipes.
 
+---
 
 # Daily Log of Advanced Sprint
 
@@ -175,7 +448,7 @@ server/
 ## 🤖 In-Browser AI Add-ons for Day 9
 This project fulfills the requirement free AI add-ons running entirely in the browser using Web Workers (displaying a non-blocking loading state).
 
-1. **Sentiment Analysis** 
+1. **Sentiment Analysis**
    - **Model**: `Xenova/distilbert-base-uncased-finetuned-sst-2-english` (via Transformers.js).
    - **What it does**: Analyzes the text of user reviews before submission to determine if the tone is POSITIVE or NEGATIVE, automatically attaching a colored sentiment badge to the review.
 2. **Toxicity Detection**
@@ -214,7 +487,7 @@ This project fulfills the requirement free AI add-ons running entirely in the br
 
 | My Cookbook | Favorites Collections |
 | :---: | :---: |
-| <img src="assets/My Cookbooks.png" alt="My Cookbook" width="400"/> | <img src="assets/Favorites.png" alt="Favorites Collections" width="400"/> |
+| <img src="assets/My_cookbook.png" alt="My Cookbook" width="400"/> | <img src="assets/Favorites.png" alt="Favorites Collections" width="400"/> |
 
 | Collection Popup | AI Warning |
 | :---: | :---: |
@@ -297,7 +570,7 @@ This project fulfills the requirement free AI add-ons running entirely in the br
 
 ---
 
-### 🚀 Day 14: Snap & Cook (AI Recipe OCR) & CI/CD Pipeline
+### 🚀 Day 14: Snap & Cook (AI Recipe OCR) & CI/CD Pipeline (Completed)
 
 - **Snap & Cook (AI Scanner)**: Implemented an entirely in-browser OCR scanner using `Tesseract.js` WebAssembly. Users can snap a photo of a physical recipe card or cookbook page, and the AI instantly transcribes and auto-fills the Angular reactive recipe form.
 - **Automated Text Parsing**: Engineered a smart heuristic parser that scans raw OCR text to intelligently differentiate between Titles, Ingredients (detecting measurements), and Cooking Steps.
@@ -309,87 +582,81 @@ This project fulfills the requirement free AI add-ons running entirely in the br
    - **Model**: `Tesseract.js` (WebAssembly-based eng.traineddata).
    - **What it does**: Runs a highly accurate machine learning OCR model entirely locally inside the user's browser, respecting privacy while perfectly translating photos of text into digital recipes without calling external paid APIs.
 
-
-
-## 🔐 Authentication & Authorization Walkthrough
-
-Savoria implements strict **Role-Based Access Control (RBAC)** to ensure users can only modify their own data. This is proven and enforced by both the UI and the automated test suite.
-
-**1. Creating a Recipe (Authenticated User)**
-When a logged-in user creates a recipe, the backend automatically attaches their unique `User ID` to the recipe's `owner` field via the JWT payload.
-
-**2. Editing/Deleting (Owner)**
-If the original author clicks "Edit" or "Delete", the backend verifies that `recipe.owner === req.user.id`. Since they match, the action is permitted (`200 OK`).
-
-**3. The 403 Forbidden Guard (Different User)**
-If User B attempts to send a `PUT` or `DELETE` request to User A's recipe, the backend intercepts it:
-```typescript
-if (recipe.owner.toString() !== req.user.id && req.user.role !== 'admin') {
-  return res.status(403).json({ message: 'Forbidden' });
-}
-```
-The server immediately rejects the request with a `403 Forbidden` status. The frontend intercepts this error and displays an access denied message without crashing.
-
-**4. The Admin Override**
-If an `admin` attempts to delete User A's recipe, the same block of code sees `req.user.role === 'admin'` and allows the deletion to proceed.
-
-*Note: All 53 scenarios are fully covered by the automated integration tests (`npm run test` in the server), including registration, JWT auth, RBAC, pagination, AI routes, real-time notifications, and admin operations.*
-
 ---
 
 ## 🚀 Getting Started
 
 ### ⚙️ Environment Variables
 
-Create a `.env` file in the `server/` directory (you can use `server/.env.example` as a template):
+**Server** — create `server/.env` (use `server/.env.example` as template):
 
 | Variable | Description | Example |
 | :--- | :--- | :--- |
-| `MONGODB_URI` | Your MongoDB connection string | `mongodb+srv://...` |
-| `JWT_SECRET` | Secret key used to sign JWTs | `super_secret_key` |
-| `CLIENT_URL` | The URL of the frontend (for CORS) | `http://localhost:4200` |
-| `API_URL` | *(Optional)* Override API url for client | `http://localhost:3000/api` |
+| `MONGODB_URI` | MongoDB Atlas connection string | `mongodb+srv://...` |
+| `JWT_SECRET` | Secret used to sign JWTs | `super_secret_key` |
+| `CLIENT_URL` | Frontend origin (for CORS + Socket.IO) | `http://localhost:4200` |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name | `my-cloud` |
+| `CLOUDINARY_API_KEY` | Cloudinary API key | `123456789` |
+| `CLOUDINARY_API_SECRET` | Cloudinary API secret | `abc...xyz` |
+
+**Client** — create `client/.env` (use `client/.env.example` as template):
+
+| Variable | Description | Example |
+| :--- | :--- | :--- |
+| `API_URL` | Backend API base URL | `http://localhost:3000/api` |
 
 ### Prerequisites
-- Node.js (v20+)
+- Node.js v20+
 - Angular CLI (`npm i -g @angular/cli`)
 - MongoDB Atlas URI
+- Cloudinary account
 
 ### Running the Server
 ```bash
 cd server
 npm install
-cp .env.example .env  # Update with your details
-npm run dev
+cp .env.example .env  # Fill in your values
+npm run dev           # tsx watch — hot-reloads on save
 ```
 
 ### Running the Client
 ```bash
 cd client
 npm install
-cp .env.example .env  # Optional: Customize API URL if needed
-npm start
+cp .env.example .env 
+npm start 
+```
+
+### Running Tests
+```bash
+cd server
+npm test            
+```
+
+### Seeding the Database
+```bash
+cd server
+npm run seed
 ```
 
 ---
 
 ## 🗺️ App Walkthrough
 
-| Step | What to do |
-| :--- | :--- |
-| **1. Browse** | Open the app → Discover shows latest recipes and category tiles |
-| **2. Explore** | Click **Explore Recipes** → search by keyword, filter by category, paginate |
-| **3. Detail** | Click any recipe card → full ingredients, steps, cooking mode, and ingredient checkout |
-| **4. Sign Up** | Go to `/register` → fill in name, email, password, optional avatar |
-| **5. Log In** | Use your new credentials or the demo logins above |
-| **6. Create** | Click **+** or **Add Recipe** → fill the form with image upload |
-| **7. Edit/Delete** | Open your own recipe → Edit or Delete buttons appear only for owners |
-| **8. Admin** | Log in as admin → access Users panel to deactivate/reactivate accounts |
-
-
-
-
-
-
-
-
+| Step | Route | What to do |
+| :--- | :--- | :--- |
+| **1. Browse** | `/discover` | Hero section, "Fresh Out The Oven" latest recipes, "Browse by Category" tiles |
+| **2. Explore** | `/recipes` | Search by keyword or voice, filter by category/cook-time/ingredients, paginate |
+| **3. Detail** | `/recipes/:category/:slug` | Full ingredients, numbered steps, cooking mode (TTS), buy-ingredients checkout |
+| **4. Search** | `/recipes?q=pasta` | Weighted full-text + ingredient chips + cook-time slider |
+| **5. Sign Up** | `/register` | Name, email, password, optional avatar upload |
+| **6. Log In** | `/login` | Use credentials or the demo logins above |
+| **7. Create Recipe** | `/recipes/new` | Form with image upload + Snap & Cook OCR to auto-fill from a photo |
+| **8. Rate & Review** | Recipe detail → Reviews | Star rating + comment; AI badge attached automatically |
+| **9. Save to Cookbook** | Recipe card → ♥ or 🔖 | Heart = auto-Favorites; bookmark = choose a named cookbook |
+| **10. My Cookbooks** | `/collections` | Manage all saved cookbooks, open/edit/share |
+| **11. Meal Plan** | `/meal-planner` | Drag recipes into weekly grid, view merged shopping list, export PDF |
+| **12. Notifications** | Navbar bell 🔔 | Live Socket.IO alerts; filter Unread/All; mark read; delete |
+| **13. Settings** | `/settings` | Toggle which notification types you receive |
+| **14. Admin: Users** | `/admin/users` | Activate / deactivate user accounts |
+| **15. Admin: Recipes** | Any recipe → Edit/Delete | Admin can moderate any recipe regardless of ownership |
